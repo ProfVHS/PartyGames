@@ -12,9 +12,13 @@ const io = new Server(server, {
 })
 
 io.on('connection', (socket) => {
-    
+    socket.on("join-room", (room) => {
+        socket.join(room)
+        console.log(`user ${socket.id} connected to ${data}`);
+    })
 })
 
 server.listen(3000, () => {
     console.log('serwer cię słyszy')
 });
+
