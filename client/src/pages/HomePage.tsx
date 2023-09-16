@@ -1,15 +1,16 @@
 import React from "react";
-import "../../styles/Home.scss";
-import "../../styles/Test.scss";
+import "../styles/Home.scss";
+import "../styles/Test.scss";
 
-import Logo from "../../assets/svgs/logo.svg";
+import Logo from "../assets/svgs/logo.svg";
 
-import ClickSound from "../../assets/audio/click.mp3";
+import ClickSound from "../assets/audio/click.mp3";
 
 export default function HomePage() {
   const handleClick = () => {
     new Audio(ClickSound).play();
   };
+
   return (
     <div className="box">
       <img src={Logo} />
