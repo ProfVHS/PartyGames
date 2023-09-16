@@ -22,7 +22,7 @@ export default function HomePage() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <Link to={`/lobby/${roomCode}`} >
+        <Link to={`/lobby/${roomCode}`} state={{username}} >
           <button className="button" style={{ width: "48%" }} >
             Join
           </button>
@@ -34,7 +34,7 @@ export default function HomePage() {
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value)}
         />
-          <Link to={`/lobby/${Math.round(Math.random() * (90000 - 10000) + 10000).toString()}`}>
+          <Link to={`/lobby/${Math.round(Math.random() * (90000 - 10000) + 10000).toString()}`} state={{username}}>
             <button className="button" style={{ marginTop: "40px" }} >
               Create Room
             </button>
