@@ -1,6 +1,4 @@
-import React from "react";
 import "../styles/Home.scss";
-import "../styles/Test.scss";
 
 import Logo from "../assets/svgs/logo.svg";
 
