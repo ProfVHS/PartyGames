@@ -1,11 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import "./index.css";
-
-import HomePage from "./pages/HomePage.tsx";
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import "./index.css";
+import HomePage from "./pages/HomePage.tsx";
 import RoomPage from "./pages/RoomPage.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -13,7 +12,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/lobby" element={<RoomPage />} />
+        <Route path="/Lobby/:roomCode" element={<RoomPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
