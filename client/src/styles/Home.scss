@@ -6,6 +6,8 @@ body {
   background-image: url("../assets/svgs/bg.svg");
   background-repeat: repeat;
   animation: backgroundAnimation 20s linear infinite;
+
+  position: relative;
 }
 @keyframes backgroundAnimation {
   from {
