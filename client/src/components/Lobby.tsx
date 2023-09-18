@@ -3,7 +3,7 @@ import "../styles/Lobby.scss";
 import ClickSound from "../assets/audio/click.mp3";
 
 interface LobbyProps {
-  roomCode: string;
+  roomCode: string | undefined;
 }
 
 function Lobby({ roomCode }: LobbyProps) {
