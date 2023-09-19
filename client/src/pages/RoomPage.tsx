@@ -18,10 +18,10 @@ export default function RoomPage() {
         <Camera username="GMBLR" score={420} />
         <Camera username="GMBLR" score={420} />
 
-        <Lobby roomCode="X1Y4Z3" />
-      </div>
-      <div className="gui">
-        <AudioVideoControls />
+        <div className="roomContent">
+          <Lobby roomCode="X1Y4Z3" />
+          <AudioVideoControls />
+        </div>
       </div>
     </>
   );
