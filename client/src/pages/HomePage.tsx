@@ -23,10 +23,17 @@ export default function HomePage() {
       setRoomExistence(exists);
     });
   };
-  
-  const handleClick = () => {
+   
+  const JoinHandleClick = () => {
     new Audio(ClickSound).play();
+    
+    roomExistence ? socket.emit("join-room", roomCode, username) : '';
   };
+
+  const CreateHandleClick = () => {
+    new Audio(ClickSound).play();
+    
+  }
 
   return (
     <div className="box">
@@ -42,13 +49,13 @@ export default function HomePage() {
         />
         <Link 
           style={{width: "48%"}}
-          to={roomExistence ? `/lobby/${roomCode}` : "/"} 
-          state={{username}} 
+          to={roomExistence ? `/lobby/` : "/"} 
+          state={{username, roomCode}} 
         >
           <button
             className="button"
             style={{ width: "100%" }}
-            onClick={handleClick}
+            onClick={JoinHandleClick}
           >
             Join
           </button>
@@ -62,13 +69,13 @@ export default function HomePage() {
         />
         <Link 
           style={{width: "100%"}}
-          to={`/lobby/${Math.round(Math.random() * (90000 - 10000) + 10000).toString()}`} 
-          state={{username}}
+          to={`/lobby/`} 
+          state={{username, roomCode}}
         >
           <button
             className="button"
             style={{ marginTop: "40px" }}
-            onClick={handleClick}
+            onClick={CreateHandleClick}
           >
             Create Room
           </button>
