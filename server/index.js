@@ -26,9 +26,6 @@ io.on('connection', (socket) => {
         activeRooms.delete(room);
     })
 
-    socket.on('changedValue', (data) => {
-        socket.to(data.roomCode).emit('updateValue', {data: playerValue, ready});
-    });
 })
 
 server.listen(3000, () => {
