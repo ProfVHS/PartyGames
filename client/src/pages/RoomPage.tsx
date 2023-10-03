@@ -5,7 +5,7 @@ import Lobby from "../components/Lobby";
 import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 import ClickSound from "../assets/audio/click.mp3";
@@ -19,16 +19,23 @@ export default function RoomPage() {
   const [value, setValue] = useState<number>(0);
   const [ready, setReady] = useState(false);
 
-  const username = location.state?.username;
-  const roomCode = location.state?.roomCode;
- 
+  const [score, setScore] = useState();
+  
+  const [players, setPlayers] = useState<string[]>([]);
 
+  const username = location.state?.username;
+  const roomCode = location.state?.randomRoomCode ? location.state?.randomRoomCode : location.state?.roomCode;
+ 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
   };
 
-  console.log(roomCode)
+  socket.on("joined", (data:string) => {
+    setPlayers(players => [...players, data]);
+  })
+  
+  console.log(players);
 
   return (
     <>

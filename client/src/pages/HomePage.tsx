@@ -4,16 +4,18 @@ import Logo from "../assets/svgs/logo.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-import { Link } from 'react-router-dom';
-import { useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
 
 import { io } from "socket.io-client";
 
 export default function HomePage() {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState(false);
 
+  const navigate = useNavigate();
   const socket = io("http://localhost:3000");
 
   const inputHandler = (room:string) => {
@@ -27,13 +29,24 @@ export default function HomePage() {
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
     
-    roomExistence ? socket.emit("join-room", roomCode, username) : '';
+    if(roomExistence && username){
+      navigate("/lobby", {state: {username, roomCode}});
+      roomExistence ? socket.emit("join-room", roomCode, username) : '';
+    }
   };
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
-    
+
+    if(username){
+      navigate("/lobby", {state: {username, randomRoomCode}});
+      username ? socket.emit("join-room", randomRoomCode, username) : '';
+    }
   }
+
+  useEffect(() => {
+    setRandomRoomCode(Math.round(Math.random() * (90000 - 10000) + 10000).toString());
+  }, [])
 
   return (
     <div className="box">
@@ -47,19 +60,13 @@ export default function HomePage() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <Link 
-          style={{width: "48%"}}
-          to={roomExistence ? `/lobby/` : "/"} 
-          state={{username, roomCode}} 
-        >
           <button
             className="button"
-            style={{ width: "100%" }}
+            style={{ width: "50%" }}
             onClick={JoinHandleClick}
           >
             Join
           </button>
-        </Link>
         <input
           className="input"
           placeholder="Room Code"
@@ -67,11 +74,6 @@ export default function HomePage() {
           value={roomCode}
           onChange={(e) => inputHandler(e.target.value)}
         />
-        <Link 
-          style={{width: "100%"}}
-          to={`/lobby/`} 
-          state={{username, roomCode}}
-        >
           <button
             className="button"
             style={{ marginTop: "40px" }}
@@ -79,7 +81,6 @@ export default function HomePage() {
           >
             Create Room
           </button>
-        </Link>
       </div>
     </div>
   );

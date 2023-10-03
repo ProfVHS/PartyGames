@@ -20,6 +20,7 @@ io.on('connection', (socket) => {
         socket.join(room);
         activeRooms.add(room);
         console.log(`user ${user} connected to ${room}`);
+        socket.to(room).emit("joined", {user});
     })
     socket.on("leaveRoom", (room) => {
         socket.leave(room);
