@@ -1,10 +1,3 @@
-.roomWrapper {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 .roomGrid {
   display: grid;
   grid-template-columns: 25% 50% 25%;
@@ -12,14 +5,27 @@
 
   height: 100vh;
   width: 100vw;
+  padding: 10px;
+
+  box-sizing: border-box;
 
   justify-items: center;
 
   align-items: center;
 }
+
+.roomContent {
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
 .gui {
-  bottom: 22vh;
-  position: absolute;
   width: 100vw;
   height: 10vh;
 

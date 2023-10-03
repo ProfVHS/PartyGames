@@ -34,11 +34,10 @@ export default function RoomPage() {
     <>
       <div className="roomGrid">
         <Camera username={username} score={420} />
-
-        <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={value} />
-      </div>
-      <div className="gui">
-        <AudioVideoControls />
+        <div className="roomContent">
+          <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={value} />
+          <AudioVideoControls />
+        </div>
       </div>
     </>
   );
