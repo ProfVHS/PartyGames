@@ -102,3 +102,31 @@ body {
     transform: translateY(2px);
   }
 }
+.home {
+  &__loadingScreen {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 10;
+    background-color: #9d4edd;
+    background-image: url("../assets/svgs/loading-bg.svg");
+    animation: loadingScreenAnimation_Home 2s ease-in-out;
+
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 64px;
+    font-family: "Spicy Rice", cursive;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@keyframes loadingScreenAnimation_Home {
+  from {
+    top: -100%;
+  }
+  to {
+    top: 0;
+  }
+}

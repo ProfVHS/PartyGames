@@ -1,3 +1,33 @@
+.room {
+  &__loadingScreen {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 10;
+    background-color: #9d4edd;
+    background-image: url("../assets/svgs/loading-bg.svg");
+    top: 0;
+    animation: loadingScreenAnimation_Room 2s ease-in-out;
+
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 64px;
+    font-family: "Spicy Rice", cursive;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@keyframes loadingScreenAnimation_Room {
+  from {
+    top: 0;
+  }
+  to {
+    top: -100%;
+  }
+}
+
 .roomGrid {
   display: grid;
   grid-template-columns: 25% 50% 25%;
