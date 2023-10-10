@@ -10,32 +10,32 @@ import { io } from "socket.io-client";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-export default function RoomPage() {
+const socket = io("http://localhost:3000");
 
-  const socket = io("http://localhost:3000");
+export default function RoomPage() {
 
   const location = useLocation();
 
   const [value, setValue] = useState<number>(0);
-  const [ready, setReady] = useState(false);
-
-  const [score, setScore] = useState();
-  
-  const [players, setPlayers] = useState<string[]>([]);
 
   const username = location.state?.username;
-  const roomCode = location.state?.randomRoomCode ? location.state?.randomRoomCode : location.state?.roomCode;
+  const roomCode:string = location.state?.randomRoomCode ? location.state?.randomRoomCode : location.state?.roomCode;
  
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
   };
 
-  socket.on("joined", (data:string) => {
-    setPlayers(players => [...players, data]);
-  })
-  
-  console.log(players);
+  useEffect(() => {
+    socket.emit('joined', roomCode) 
+  }, [])
+
+  useEffect(() => {
+    socket.on("users-in-room", (data) => {
+      console.log(data);
+    })
+    
+  }, [socket])
 
   return (
     <>
