@@ -4,49 +4,54 @@ import Logo from "../assets/svgs/logo.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import { io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 
-export default function HomePage() {
+interface HomePageProps {
+  socket: Socket;
+}
+
+export default function HomePage({ socket }: HomePageProps) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState(false);
 
   const navigate = useNavigate();
-  const socket = io("http://localhost:3000");
 
-  const inputHandler = (room:string) => {
+  const inputHandler = (room: string) => {
     setRoomCode(room);
     socket.emit("checkRoomExistence", room);
     socket.on("roomExistenceResponse", (exists) => {
       setRoomExistence(exists);
     });
   };
-   
+
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
-    
-    if(roomExistence && username){
-      navigate("/lobby", {state: {username, roomCode}});
-      roomExistence ? socket.emit("join-room", roomCode, username) : '';
+
+    if (roomExistence && username) {
+      navigate("/lobby", { state: { username, roomCode } });
+      roomExistence ? socket.emit("join-room", roomCode, username) : "";
     }
   };
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
 
-    if(username){
-      navigate("/lobby", {state: {username, randomRoomCode}});
-      username ? socket.emit("join-room", randomRoomCode, username) : '';
+    if (username) {
+      navigate("/lobby", { state: { username, randomRoomCode } });
+      username ? socket.emit("join-room", randomRoomCode, username) : "";
     }
-  }
+  };
 
   useEffect(() => {
-    setRandomRoomCode(Math.round(Math.random() * (90000 - 10000) + 10000).toString());
-  }, [])
+    setRandomRoomCode(
+      Math.round(Math.random() * (90000 - 10000) + 10000).toString()
+    );
+  }, []);
 
   return (
     <div className="box">
@@ -60,13 +65,13 @@ export default function HomePage() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-          <button
-            className="button"
-            style={{ width: "50%" }}
-            onClick={JoinHandleClick}
-          >
-            Join
-          </button>
+        <button
+          className="button"
+          style={{ width: "50%" }}
+          onClick={JoinHandleClick}
+        >
+          Join
+        </button>
         <input
           className="input"
           placeholder="Room Code"
@@ -74,13 +79,13 @@ export default function HomePage() {
           value={roomCode}
           onChange={(e) => inputHandler(e.target.value)}
         />
-          <button
-            className="button"
-            style={{ marginTop: "40px" }}
-            onClick={CreateHandleClick}
-          >
-            Create Room
-          </button>
+        <button
+          className="button"
+          style={{ marginTop: "40px" }}
+          onClick={CreateHandleClick}
+        >
+          Create Room
+        </button>
       </div>
     </div>
   );

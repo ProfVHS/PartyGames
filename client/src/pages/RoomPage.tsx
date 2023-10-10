@@ -6,43 +6,51 @@ import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
 import ClickSound from "../assets/audio/click.mp3";
 
-const socket = io("http://localhost:3000");
+import { Socket } from "socket.io-client";
 
-export default function RoomPage() {
+interface RoomPageProps {
+  socket: Socket;
+}
 
+export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
 
   const [value, setValue] = useState<number>(0);
 
-  const username = location.state?.username;
-  const roomCode:string = location.state?.randomRoomCode ? location.state?.randomRoomCode : location.state?.roomCode;
- 
+  const [users, setUsers] = useState<[]>([]);
+
+  //const username = location.state?.username;
+  const roomCode: string = location.state?.randomRoomCode
+    ? location.state?.randomRoomCode
+    : location.state?.roomCode;
+
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
-
   };
 
   useEffect(() => {
-    socket.emit('joined', roomCode) 
-  }, [])
-
-  useEffect(() => {
-    socket.on("users-in-room", (data) => {
+    console.log("test1");
+    socket.on("receive_users", (data) => {
       console.log(data);
-    })
-    
-  }, [socket])
+      setUsers(data.users);
+    });
+  }, [socket]);
 
   return (
     <>
       <div className="roomGrid">
-        <Camera username={username} score={420} />
+        {users &&
+          users.map((user) => {
+            return <Camera key={user} username={user} score={0}></Camera>;
+          })}
         <div className="roomContent">
-          <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={value} />
+          <Lobby
+            roomCode={roomCode?.toString()}
+            onClick={handleReadyClick}
+            players={value}
+          />
           <AudioVideoControls />
         </div>
       </div>
