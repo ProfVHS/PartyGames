@@ -24,6 +24,8 @@ export default function RoomPage() {
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
+    const newReady = !ready;
+    setReady(newReady);
   };
 
   console.log(roomCode);
@@ -41,6 +43,7 @@ export default function RoomPage() {
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
             players={value}
+            isReady={ready}
           />
           <AudioVideoControls />
         </div>
