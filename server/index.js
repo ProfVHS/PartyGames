@@ -50,8 +50,6 @@ io.on("connection", (socket) => {
 
     console.log(`user ${user} connected to ${room}`);
 
-    socket.to(room).emit("joined", { user });
-
     const query = { roomcode: room, users: [user] };
     const userQuery = activeRooms.has(room)
       ? await users.updateOne({ roomcode: room }, { $push: { users: user } })
