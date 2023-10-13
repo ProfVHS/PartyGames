@@ -22,8 +22,6 @@ export default function HomePage({ socket }: HomePageProps) {
 
   const navigate = useNavigate();
 
-  const navigate = useNavigate();
-  
   useEffect(() => {
     setRandomRoomCode(
       Math.round(Math.random() * (90000 - 10000) + 10000).toString()
@@ -55,7 +53,7 @@ export default function HomePage({ socket }: HomePageProps) {
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
     if (username) {
-      username ? socket.emit("join-room", randomRoomCode, username) : "";  
+      username ? socket.emit("join-room", randomRoomCode, username) : "";
       startLoadingAnimation();
       setTimeout(() => {
         navigate("/lobby", { state: { username, randomRoomCode } });

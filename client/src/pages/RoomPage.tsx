@@ -8,7 +8,6 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
-
 import { Socket } from "socket.io-client";
 
 interface RoomPageProps {
@@ -27,6 +26,10 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const roomCode: string = location.state?.randomRoomCode
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
+
+  useEffect(() => {
+    socket.emit("joined", roomCode);
+  }, []);
 
   useEffect(() => {
     socket.on("receive_users", (data) => {

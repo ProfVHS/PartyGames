@@ -58,7 +58,9 @@ io.on("connection", (socket) => {
       : await users.insertOne(query);
 
     activeRooms.add(room);
+  });
 
+  socket.on("joined", async (room) => {
     const data = await users.findOne({ roomcode: room });
 
     console.log(data);
