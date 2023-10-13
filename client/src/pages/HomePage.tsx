@@ -4,20 +4,31 @@ import Logo from "../assets/svgs/logo.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import { io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 
-export default function HomePage() {
+interface HomePageProps {
+  socket: Socket;
+}
+
+export default function HomePage({ socket }: HomePageProps) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
-  const socket = io("http://localhost:3000");
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    setRandomRoomCode(
+      Math.round(Math.random() * (90000 - 10000) + 10000).toString()
+    );
+  }, []);
 
   const inputHandler = (room: string) => {
     setRoomCode(room);
@@ -43,10 +54,13 @@ export default function HomePage() {
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
-    startLoadingAnimation();
-    setTimeout(() => {
-      navigate("/lobby", { state: { username, roomCode } });
-    }, 2250);
+    if (username) {
+      username ? socket.emit("join-room", randomRoomCode, username) : "";  
+      startLoadingAnimation();
+      setTimeout(() => {
+        navigate("/lobby", { state: { username, randomRoomCode } });
+      }, 2250);
+    }
   };
 
   return (
