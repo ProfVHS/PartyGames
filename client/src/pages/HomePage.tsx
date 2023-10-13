@@ -18,8 +18,17 @@ export default function HomePage({ socket }: HomePageProps) {
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
+
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    setRandomRoomCode(
+      Math.round(Math.random() * (90000 - 10000) + 10000).toString()
+    );
+  }, []);
 
   const inputHandler = (room: string) => {
     setRoomCode(room);
@@ -29,29 +38,30 @@ export default function HomePage({ socket }: HomePageProps) {
     });
   };
 
+  const startLoadingAnimation = () => {
+    setIsLoading(true);
+  };
+
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
 
-    if (roomExistence && username) {
+    roomExistence ? socket.emit("join-room", roomCode, username) : "";
+    startLoadingAnimation();
+    setTimeout(() => {
       navigate("/lobby", { state: { username, roomCode } });
-      roomExistence ? socket.emit("join-room", roomCode, username) : "";
-    }
+    }, 2250);
   };
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
-
     if (username) {
-      navigate("/lobby", { state: { username, randomRoomCode } });
-      username ? socket.emit("join-room", randomRoomCode, username) : "";
+      username ? socket.emit("join-room", randomRoomCode, username) : "";  
+      startLoadingAnimation();
+      setTimeout(() => {
+        navigate("/lobby", { state: { username, randomRoomCode } });
+      }, 2250);
     }
   };
-
-  useEffect(() => {
-    setRandomRoomCode(
-      Math.round(Math.random() * (90000 - 10000) + 10000).toString()
-    );
-  }, []);
 
   return (
     <div className="box">
@@ -87,6 +97,7 @@ export default function HomePage({ socket }: HomePageProps) {
           Create Room
         </button>
       </div>
+      {isLoading && <div className="home__loadingScreen">Party Games</div>}
     </div>
   );
 }

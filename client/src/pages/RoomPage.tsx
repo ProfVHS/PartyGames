@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
+
 import { Socket } from "socket.io-client";
 
 interface RoomPageProps {
@@ -18,25 +19,30 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
 
   const [value, setValue] = useState<number>(0);
-
   const [users, setUsers] = useState<[]>([]);
+  const [ready, setReady] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   //const username = location.state?.username;
   const roomCode: string = location.state?.randomRoomCode
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
 
-  const handleReadyClick = () => {
-    new Audio(ClickSound).play();
-  };
-
   useEffect(() => {
-    console.log("test1");
     socket.on("receive_users", (data) => {
-      console.log(data);
       setUsers(data.users);
     });
   }, [socket]);
+
+  const handleReadyClick = () => {
+    new Audio(ClickSound).play();
+    const newReady = !ready;
+    setReady(newReady);
+  };
+
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 1995);
 
   return (
     <>
@@ -50,10 +56,12 @@ export default function RoomPage({ socket }: RoomPageProps) {
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
             players={value}
+            isReady={ready}
           />
           <AudioVideoControls />
         </div>
       </div>
+      {isLoading && <div className="room__loadingScreen">Party Games</div>}
     </>
   );
 }

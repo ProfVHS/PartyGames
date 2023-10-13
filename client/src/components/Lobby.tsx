@@ -1,13 +1,13 @@
 import "../styles/Lobby.scss";
 
 interface LobbyProps {
-  roomCode: string | undefined
-  onClick: () => void
-  players: number | undefined
+  roomCode: string | undefined;
+  onClick: () => void;
+  players: number | undefined;
+  isReady: boolean;
 }
 
-function Lobby({ roomCode, onClick, players }: LobbyProps) {
-  
+function Lobby({ roomCode, onClick, players, isReady }: LobbyProps) {
   return (
     <div className="lobby">
       <span className="lobby__roomcode">Room Code: {roomCode}</span>
@@ -16,7 +16,7 @@ function Lobby({ roomCode, onClick, players }: LobbyProps) {
         <span className="lobby__playersready-text">players ready</span>
       </div>
       <button className="lobby__button" onClick={onClick}>
-        Ready
+        {isReady ? "Unready" : "Ready"}
       </button>
     </div>
   );
