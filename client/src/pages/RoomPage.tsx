@@ -56,13 +56,12 @@ export default function RoomPage({ socket }: RoomPageProps) {
             return <Camera key={user} username={user} score={0}></Camera>;
           })}
         <div className="roomContent">
-          {/* <Lobby
+          <Lobby
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
             players={value}
             isReady={ready}
-          /> */}
-          <Ctb turn="ultra mango guy" />
+          />
           <AudioVideoControls />
         </div>
       </div>
