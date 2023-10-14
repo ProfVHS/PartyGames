@@ -62,7 +62,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
             players={value}
             isReady={ready}
           /> */}
-          <Ctb />
+          <Ctb turn="ultra mango guy" />
           <AudioVideoControls />
         </div>
       </div>
