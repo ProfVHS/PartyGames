@@ -17,15 +17,31 @@ interface RoomPageProps {
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
 
-  const [value, setValue] = useState<number>(0);
+  const [value, setValue] = useState(0);
   const [users, setUsers] = useState<[]>([]);
   const [ready, setReady] = useState(false);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   //const username = location.state?.username;
   const roomCode: string = location.state?.randomRoomCode
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
+
+  const handleReadyClick = () => {
+    new Audio(ClickSound).play();
+
+    // not working yet
+    setReady(!ready);
+    if (ready) setValue(value - 1);
+    else setValue(value + 1);
+  
+    socket.emit("send_value", roomCode ,value);
+
+    socket.on("receive_value", (data) => {
+      setValue(data);
+    });
+  };
 
   useEffect(() => {
     socket.emit("joined", roomCode);
@@ -36,12 +52,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
       setUsers(data.users);
     });
   }, [socket]);
-
-  const handleReadyClick = () => {
-    new Audio(ClickSound).play();
-    const newReady = !ready;
-    setReady(newReady);
-  };
 
   setTimeout(() => {
     setIsLoading(false);

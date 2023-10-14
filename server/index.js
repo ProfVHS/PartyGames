@@ -41,6 +41,7 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
+  // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
     socket.emit("roomExistenceResponse", activeRooms.has(room) ? true : false);
   });
@@ -58,6 +59,7 @@ io.on("connection", (socket) => {
     activeRooms.add(room);
   });
 
+  // users data
   socket.on("joined", async (room) => {
     const data = await users.findOne({ roomcode: room });
 
@@ -65,4 +67,15 @@ io.on("connection", (socket) => {
 
     socket.nsp.to(room).emit("receive_users", data);
   });
+
+  // ready
+  socket.on("send_value", (room, value) => {
+    const data = value;
+    socket.to(room).emit("receive_value", data);
+  });
+
+});
+
+io.on("disconnect", () => {
+  
 });
