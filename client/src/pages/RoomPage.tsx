@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
+import Ctb from "../components/Ctb";
 
 interface RoomPageProps {
   socket: Socket;
