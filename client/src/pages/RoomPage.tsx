@@ -17,9 +17,10 @@ interface RoomPageProps {
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
 
-  const [value, setValue] = useState<number>(0);
+  const [value, setValue] = useState(0);
   const [users, setUsers] = useState<[]>([]);
   const [ready, setReady] = useState(false);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   //const username = location.state?.username;
@@ -29,6 +30,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
+<<<<<<< HEAD
     const newReady = !ready;
     setReady(newReady);
 
@@ -41,6 +43,21 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setIsLoading(false);
   }, 1995);
 
+=======
+
+    // not working yet
+    setReady(!ready);
+    if (ready) setValue(value - 1);
+    else setValue(value + 1);
+  
+    socket.emit("send_value", roomCode ,value);
+
+    socket.on("receive_value", (data) => {
+      setValue(data);
+    });
+  };
+
+>>>>>>> 2ec637b555eb4335aa3dd90c18d3e38a3838ca3a
   useEffect(() => {
     socket.emit("joined", roomCode);
   }, []);
@@ -54,6 +71,13 @@ export default function RoomPage({ socket }: RoomPageProps) {
     })
   }, [socket]);
 
+<<<<<<< HEAD
+=======
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 1995);
+
+>>>>>>> 2ec637b555eb4335aa3dd90c18d3e38a3838ca3a
   return (
     <>
       <div className="roomGrid">
