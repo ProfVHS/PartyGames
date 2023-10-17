@@ -27,6 +27,20 @@ export default function RoomPage({ socket }: RoomPageProps) {
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
 
+  const handleReadyClick = () => {
+    new Audio(ClickSound).play();
+    const newReady = !ready;
+    setReady(newReady);
+
+    const temp = newReady ? value + 1 : value - 1
+
+    socket.emit("send_value", {roomCode, temp});
+  };
+
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 1995);
+
   useEffect(() => {
     socket.emit("joined", roomCode);
   }, []);
@@ -35,17 +49,10 @@ export default function RoomPage({ socket }: RoomPageProps) {
     socket.on("receive_users", (data) => {
       setUsers(data.users);
     });
+    socket.on("recive_value", (data) => {
+      setValue(value + data)
+    })
   }, [socket]);
-
-  const handleReadyClick = () => {
-    new Audio(ClickSound).play();
-    const newReady = !ready;
-    setReady(newReady);
-  };
-
-  setTimeout(() => {
-    setIsLoading(false);
-  }, 1995);
 
   return (
     <>
@@ -54,6 +61,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           users.map((user) => {
             return <Camera key={user} username={user} score={0}></Camera>;
           })}
+
         <div className="roomContent">
           <Lobby
             roomCode={roomCode?.toString()}

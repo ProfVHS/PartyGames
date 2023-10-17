@@ -43,7 +43,8 @@ export default function HomePage({ socket }: HomePageProps) {
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
 
-    roomExistence ? socket.emit("join-room", roomCode, username) : "";
+    if(username && roomExistence) return;
+    socket.emit("join-room", {roomCode, username});
     startLoadingAnimation();
     setTimeout(() => {
       navigate("/lobby", { state: { username, roomCode } });
@@ -52,13 +53,13 @@ export default function HomePage({ socket }: HomePageProps) {
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
-    if (username) {
-      username ? socket.emit("join-room", randomRoomCode, username) : "";
+    
+    if(username && roomExistence) return;
+      socket.emit("create-room", {randomRoomCode, username});
       startLoadingAnimation();
       setTimeout(() => {
         navigate("/lobby", { state: { username, randomRoomCode } });
       }, 2250);
-    }
   };
 
   return (

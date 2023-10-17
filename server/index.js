@@ -2,14 +2,17 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database(':memory:', (err) => {
+  if (err) {
+    return console.error(err.message);
+  }
+  console.log('Connected to the in-memory SQlite database.');
+});
 
-const { MongoClient } = require("mongodb");
-const { error } = require("console");
 require("dotenv").config();
 
 const activeRooms = new Set();
-
-var users;
 
 const app = express();
 app.use(cors());
@@ -18,17 +21,11 @@ const server = http.createServer(app);
 
 server.listen(3000, async () => {
   console.log("serwer cię słyszy");
-  const url = process.env.urldb;
-  const client = new MongoClient(url);
 
-  try {
-    await client.connect();
-
-    const database = client.db("rooms");
-    users = database.collection("users");
-  } catch (e) {
-    console.log(e);
-  }
+  db.serialize(() => {
+    db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "code" INTEGER NOT NULL);');
+    db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
+  });
 });
 
 const io = new Server(server, {
@@ -45,24 +42,53 @@ io.on("connection", (socket) => {
     socket.emit("roomExistenceResponse", activeRooms.has(room) ? true : false);
   });
 
-  socket.on("join-room", async (room, user) => {
-    socket.join(room);
+  socket.on("create-room", async (data) => {
 
-    console.log(`user ${user} connected to ${room}`);
+    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.randomRoomCode})`, [], (err) => {
+      if (err) {
+        return console.log(err.message);
+      }
+      console.log(`A row has been inserted`);
+    });
+  
+    db.all(`SELECT * FROM users`, [], (err, rows) => {
+      if (err){
+        throw err;
+      }
+      rows.forEach((row) => {
+        console.log(row);
+      });
+    });
 
-    const query = { roomcode: room, users: [user] };
-    const userQuery = activeRooms.has(room)
-      ? await users.updateOne({ roomcode: room }, { $push: { users: user } })
-      : await users.insertOne(query);
-
-    activeRooms.add(room);
+    activeRooms.add(data.roomCode);
   });
 
-  socket.on("joined", async (room) => {
-    const data = await users.findOne({ roomcode: room });
+  socket.on("join-room", async (data) => {
+    socket.join(data.roomCode);
 
-    console.log(data);
+    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES (${socket.id}, "${data.username}", 0, ${data.roomCode})`, [], (err) => {
+      if (err) {
+        return console.log(err.message);
+      }
+      console.log(`A row has been inserted`);
+    });
+  
+    db.all(`SELECT * FROM users`, [], (err, rows) => {
+      if (err){
+        throw err;
+      }
+      rows.forEach((row) => {
+        console.log(row);
+      });
+    });
+  });
 
-    socket.nsp.to(room).emit("receive_users", data);
+  // socket.on("joined", async (room) => {
+  //   socket.nsp.to(room).emit("receive_users", data);
+  // });
+
+  socket.on("send_value", (data) => {
+    socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
   });
 });
+
