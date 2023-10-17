@@ -30,20 +30,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
-<<<<<<< HEAD
-    const newReady = !ready;
-    setReady(newReady);
-
-    const temp = newReady ? value + 1 : value - 1
-
-    socket.emit("send_value", {roomCode, temp});
-  };
-
-  setTimeout(() => {
-    setIsLoading(false);
-  }, 1995);
-
-=======
 
     // not working yet
     setReady(!ready);
@@ -57,27 +43,26 @@ export default function RoomPage({ socket }: RoomPageProps) {
     });
   };
 
->>>>>>> 2ec637b555eb4335aa3dd90c18d3e38a3838ca3a
   useEffect(() => {
     socket.emit("joined", roomCode);
   }, []);
 
   useEffect(() => {
     socket.on("receive_users", (data) => {
-      setUsers(data.users);
+      setUsers(data);
+      console.log(data);
     });
     socket.on("recive_value", (data) => {
       setValue(value + data)
     })
   }, [socket]);
 
-<<<<<<< HEAD
-=======
   setTimeout(() => {
     setIsLoading(false);
   }, 1995);
 
->>>>>>> 2ec637b555eb4335aa3dd90c18d3e38a3838ca3a
+  console.log(users);
+
   return (
     <>
       <div className="roomGrid">
@@ -85,6 +70,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           users.map((user) => {
             return <Camera key={user} username={user} score={0}></Camera>;
           })}
+
 
         <div className="roomContent">
           <Lobby
