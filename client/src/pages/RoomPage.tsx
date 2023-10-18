@@ -18,7 +18,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
 
   const [value, setValue] = useState(0);
-  const [users, setUsers] = useState<[]>([]);
+  const [users, setUsers] = useState<[{id: string, username: string, score: number, id_room: string}]>([{id: "", username: "", score: 0, id_room: ""}]);
   const [ready, setReady] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -31,12 +31,11 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
-    // not working yet
     setReady(!ready);
-    if (ready) setValue(value - 1);
-    else setValue(value + 1);
+    
+    const temp = ready ? value - 1 : value + 1;
   
-    socket.emit("send_value", roomCode ,value);
+    socket.emit("send_value", {roomCode , temp});
 
     socket.on("receive_value", (data) => {
       setValue(data);
@@ -61,14 +60,17 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setIsLoading(false);
   }, 1995);
 
-  console.log(users);
 
   return (
     <>
       <div className="roomGrid">
         {users &&
           users.map((user) => {
-            return <Camera key={user} username={user} score={0}></Camera>;
+            return <Camera 
+            key={user.id} 
+            username={user.username} 
+            score={user.score} 
+            />;
           })}
 
 

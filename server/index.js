@@ -49,48 +49,47 @@ io.on("connection", (socket) => {
 
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.randomRoomCode})`);
   
-    db.all(`SELECT * FROM users`, [], (row) => {
-      socket.nsp.to(data.randomRoomCode).emit("receive_users", row);
+    db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
+      rows.forEach((row) => {row})
+      socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
     });
 
-    activeRooms.add(data.roomCode);
+    activeRooms.add(data.randomRoomCode);
   });
 
-  // users data
+  // join room
   socket.on("join-room", async (data) => {
-    socket.join(data.roomCode);f
+    socket.join(data.roomCode);
 
-    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES (${socket.id}, "${data.username}", 0, ${data.roomCode})`);
+    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.roomCode})`);
   
-    db.all(`SELECT * FROM users`, [], (row) => {
-      socket.nsp.to(data.roomCode).emit("receive_users", row);
+    db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
+      rows.forEach((row) => {row})
+      socket.nsp.to(data.roomCode).emit("receive_users", rows);
     });
   });
 
+  // users get up to date data
   socket.on("joined", async (room) => {
-    const data = await db.all(`SELECT * FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
-      if (err){
-        throw err;
-      }
-      rows.forEach((row) => {
-        console.log(row);
-      });
+    await db.all(`SELECT * FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+      rows.forEach((row) => {row});
+      socket.nsp.to(room).emit("receive_users", rows);
     });
-    socket.nsp.to(room).emit("receive_users", data);
   });
 
+  // how many players are ready
   socket.on("send_value", (data) => {
     socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
   });
 
-  // ready
-  socket.on("send_value", (room, value) => {
-    const data = value;
-    socket.to(room).emit("receive_value", data);
+  socket.on("disconnect", () => {
+    // db.run(`SELECT * FROM users WHERE id = ${socket.id}`, [], (err, rows) => {
+    //   rows.forEach((row) => {row});
+    // });
+    console.log(`User disconnected: ${socket.id}`);
+
+    db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
   });
-
 });
 
-io.on("disconnect", () => {
-  
-});
+

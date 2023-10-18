@@ -43,23 +43,27 @@ export default function HomePage({ socket }: HomePageProps) {
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
 
-    if(username && !roomExistence) return;
-    socket.emit("join-room", {roomCode, username});
-    startLoadingAnimation();
-    setTimeout(() => {
-      navigate("/lobby", { state: { username, roomCode } });
-    }, 2250);
+    console.log(username, roomExistence);
+
+    if(username && roomExistence) {
+      socket.emit("join-room", {roomCode, username});
+      startLoadingAnimation();
+      setTimeout(() => {
+        navigate("/lobby", { state: { username, roomCode } });
+      }, 2250);
+    };
   };
 
   const CreateHandleClick = () => {
     new Audio(ClickSound).play();
     
-    if(username && roomExistence) return;
+    if(username && !roomExistence){
       socket.emit("create-room", {randomRoomCode, username});
       startLoadingAnimation();
       setTimeout(() => {
         navigate("/lobby", { state: { username, randomRoomCode } });
       }, 2250);
+    };
   };
 
   return (
