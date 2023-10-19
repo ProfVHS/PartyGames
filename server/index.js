@@ -20,8 +20,6 @@ app.use(cors());
 const server = http.createServer(app);
 
 server.listen(3000, async () => {
-  console.log("serwer cię słyszy");
-
   db.serialize(() => {
     db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "code" INTEGER NOT NULL);');
     db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
@@ -37,6 +35,8 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
+  
+  var currentRoomId;
 
   // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
@@ -46,6 +46,7 @@ io.on("connection", (socket) => {
   // create room
   socket.on("create-room", async (data) => {
     socket.join(data.randomRoomCode);
+    currentRoomId = data.randomRoomCode;
 
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.randomRoomCode})`);
   
@@ -60,11 +61,12 @@ io.on("connection", (socket) => {
   // join room
   socket.on("join-room", async (data) => {
     socket.join(data.roomCode);
+    currentRoomId = data.roomCode;
 
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.roomCode})`);
   
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
-      rows.forEach((row) => {row})
+      rows.forEach((row) => {row});
       socket.nsp.to(data.roomCode).emit("receive_users", rows);
     });
   });
@@ -83,12 +85,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // db.run(`SELECT * FROM users WHERE id = ${socket.id}`, [], (err, rows) => {
-    //   rows.forEach((row) => {row});
-    // });
+    // data from the user that disconnected
+    db.all(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, rows) => {
+      rows.forEach((row) => {row});
+      socket.nsp.to(currentRoomId).emit("user_disconnected", rows);
+    });
+
+    // info for the console
     console.log(`User disconnected: ${socket.id}`);
 
+    // delete user from database
     db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
+
+    // update users list
+    db.all(`SELECT * FROM users WHERE id_rooms = ${currentRoomId}`, [], (err, rows) => {
+      rows.forEach((row) => {row});
+      socket.nsp.to(currentRoomId).emit("receive_users", rows);
+    });
   });
 });
 

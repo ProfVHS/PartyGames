@@ -54,6 +54,9 @@ export default function RoomPage({ socket }: RoomPageProps) {
     socket.on("recive_value", (data) => {
       setValue(value + data)
     })
+    socket.on("user_disconnected", (data) => {
+      alert(data[0].username + " has left the room");
+    });
   }, [socket]);
 
   setTimeout(() => {
