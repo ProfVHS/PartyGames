@@ -13,6 +13,9 @@ interface HomePageProps {
   socket: Socket;
 }
 
+const adjective = ["Ultra", "Super", "Cool", "Magic", "Banana", "Boring", "Lazy", "Strong", "Infinity"];
+const nouns = ["Mango", "Monkey", "Guy", "Bread", "Ninja", "Sigma", "Banana", "Cat", "Dog", "Cyclop"];
+
 export default function HomePage({ socket }: HomePageProps) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -51,14 +54,13 @@ export default function HomePage({ socket }: HomePageProps) {
   };
 
   const CreateHandleClick = () => {
+    const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
     new Audio(ClickSound).play();
-    if (username) {
-      username ? socket.emit("join-room", randomRoomCode, username) : "";
+    socket.emit("join-room", randomRoomCode, username ? username : randomUsername);
       startLoadingAnimation();
       setTimeout(() => {
         navigate("/lobby", { state: { username, randomRoomCode } });
       }, 2250);
-    }
   };
 
   return (
