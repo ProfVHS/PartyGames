@@ -10,6 +10,7 @@ const db = new sqlite3.Database(':memory:', (err) => {
   console.log('Connected to the in-memory SQlite database.');
 });
 
+
 require("dotenv").config();
 
 const activeRooms = new Set();
@@ -33,6 +34,11 @@ const io = new Server(server, {
   },
 });
 
+//const Join = require("./join-room")(io);
+//const Disconnect = require("./disconnect-room")(io);
+//const Update = require("./update-room")(io);
+
+
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
   
@@ -51,8 +57,10 @@ io.on("connection", (socket) => {
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.randomRoomCode})`);
   
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
-      rows.forEach((row) => {row})
-      socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
+      if(!err){
+        rows.forEach((row) => {row})
+        socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
+      }
     });
 
     activeRooms.add(data.randomRoomCode);
@@ -66,29 +74,34 @@ io.on("connection", (socket) => {
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.roomCode})`);
   
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
-      rows.forEach((row) => {row});
-      socket.nsp.to(data.roomCode).emit("receive_users", rows);
+      if(!err){
+        rows.forEach((row) => {row});
+        socket.nsp.to(data.roomCode).emit("receive_users", rows);
+      }
     });
   });
 
   // users get up to date data
   socket.on("joined", async (room) => {
     await db.all(`SELECT * FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
-      rows.forEach((row) => {row});
-      socket.nsp.to(room).emit("receive_users", rows);
+    rows.forEach((row) => {row});
+    socket.nsp.to(room).emit("receive_users", rows);
     });
   });
 
   // how many players are ready
   socket.on("send_value", (data) => {
-    socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
+      socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
   });
 
+  // disconnect user
   socket.on("disconnect", () => {
     // data from the user that disconnected
     db.all(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, rows) => {
-      rows.forEach((row) => {row});
-      socket.nsp.to(currentRoomId).emit("user_disconnected", rows);
+      if(!err){
+        rows.forEach((row) => {row});
+        socket.nsp.to(currentRoomId).emit("user_disconnected", rows);
+      }
     });
 
     // info for the console
@@ -99,8 +112,10 @@ io.on("connection", (socket) => {
 
     // update users list
     db.all(`SELECT * FROM users WHERE id_rooms = ${currentRoomId}`, [], (err, rows) => {
-      rows.forEach((row) => {row});
-      socket.nsp.to(currentRoomId).emit("receive_users", rows);
+      if(!err){
+        rows.forEach((row) => {row});
+        socket.nsp.to(currentRoomId).emit("receive_users", rows);
+      }
     });
   });
 });

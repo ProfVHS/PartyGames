@@ -5,7 +5,7 @@ import Lobby from "../components/Lobby";
 import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
@@ -28,6 +28,8 @@ export default function RoomPage({ socket }: RoomPageProps) {
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
 
+  const [stream, setStream] = useState<MediaStream | undefined>();
+
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
@@ -42,8 +44,20 @@ export default function RoomPage({ socket }: RoomPageProps) {
     });
   };
 
+  const myVideo = useRef<HTMLVideoElement>(null);
+  const usersVideo = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     socket.emit("joined", roomCode);
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then((currentStream) => {
+          setStream(currentStream);
+          if(myVideo.current !== null){
+            myVideo.current.srcObject = currentStream;
+          }
+      }
+    );
   }, []);
 
   useEffect(() => {
@@ -71,11 +85,11 @@ export default function RoomPage({ socket }: RoomPageProps) {
           users.map((user) => {
             return <Camera 
             key={user.id} 
+            stream={myVideo}
             username={user.username} 
             score={user.score} 
             />;
           })}
-
 
         <div className="roomContent">
           <Lobby
@@ -87,6 +101,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           <AudioVideoControls />
         </div>
       </div>
+      
       {isLoading && <div className="room__loadingScreen">Party Games</div>}
     </>
   );
