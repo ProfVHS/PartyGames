@@ -10,6 +10,7 @@ import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
 
+import Peer from "peerjs";
 interface RoomPageProps {
   socket: Socket;
 }
@@ -28,7 +29,9 @@ export default function RoomPage({ socket }: RoomPageProps) {
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
 
-  const [stream, setStream] = useState<MediaStream | undefined>();
+
+  // const localStream = useRef<MediaStream | undefined>();
+  // const remoteStream = useRef<MediaStream>();
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
@@ -44,20 +47,69 @@ export default function RoomPage({ socket }: RoomPageProps) {
     });
   };
 
-  const myVideo = useRef<HTMLVideoElement>(null);
-  const usersVideo = useRef<HTMLVideoElement>(null);
+  const localStream = useRef<HTMLVideoElement>(null);
+  const remoteStream = useRef<HTMLVideoElement[]>(null);
 
   useEffect(() => {
     socket.emit("joined", roomCode);
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((currentStream) => {
-          setStream(currentStream);
-          if(myVideo.current !== null){
-            myVideo.current.srcObject = currentStream;
+          if(localStream.current !== null){
+            localStream.current.srcObject = currentStream;
           }
       }
     );
+
+    const peer = new Peer(roomCode, {
+      host: "/",
+      port: 3001,
+    });
+
+    const conn = peer.connect(roomCode); 
+
+    const call = peer.call(roomCode, localStream.current?.srcObject as MediaStream);   
+
+    peer.on("connection", (conn) => {
+      conn.on("open", () => {
+        conn.send("hi!");
+      });
+    });
+
+    conn.on("open", () => {
+      conn.on('data', function(data) {
+        console.log('Received', data);
+      });
+
+      conn.send('Hello!');
+    });
+
+    peer.on("call", (call) => {
+      // call.answer(localStream.current?.srcObject as MediaStream);
+      // call.on("stream", (stream) => { //here's where you get the stream
+      //   const index = parseInt(call.peer);
+      //   if(remoteStream.current !== null){
+      //     remoteStream.current[index].srcObject = stream;
+      //   }  
+          
+          
+      //     ("#video-list").append("<video id='video-"+ call.peer +"' autoplay></video>"); 
+          
+      //     ("#video-"+ call.peer).prop("srcObject", stream); 
+      // });
+      
+
+      call.answer(localStream.current?.srcObject as MediaStream);
+
+      call.on("stream", (stream) => {
+        const index = parseInt(call.peer);
+        if(remoteStream.current !== null){
+          remoteStream.current[index].srcObject = stream;
+        }  
+      });
+
+
+    });
   }, []);
 
   useEffect(() => {
@@ -85,7 +137,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           users.map((user) => {
             return <Camera 
             key={user.id} 
-            stream={myVideo}
+            stream={localStream}
             username={user.username} 
             score={user.score} 
             />;
