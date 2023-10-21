@@ -3,6 +3,9 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
+const SimplePeer = require("simple-peer");
+
+
 const db = new sqlite3.Database(':memory:', (err) => {
   if (err) {
     return console.error(err.message);
@@ -38,11 +41,16 @@ const io = new Server(server, {
 //const Disconnect = require("./disconnect-room")(io);
 //const Update = require("./update-room")(io);
 
+const peer = new SimplePeer({initiator: true});
+peer.on('connect', () => {
+    console.log('Connected to peer!')
+})
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
   
   var currentRoomId;
+
 
   // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
