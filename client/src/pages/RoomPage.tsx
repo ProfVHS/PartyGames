@@ -48,10 +48,12 @@ export default function RoomPage({ socket }: RoomPageProps) {
   };
 
   const localStream = useRef<HTMLVideoElement>(null);
-  const remoteStream = useRef<HTMLVideoElement[]>(null);
+  const remoteStream = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    socket.emit("joined", roomCode);
+  const localPeerId = useRef<string>();
+    
+
+    const peer = new Peer(roomCode);
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((currentStream) => {
@@ -60,56 +62,42 @@ export default function RoomPage({ socket }: RoomPageProps) {
           }
       }
     );
-
-    const peer = new Peer(roomCode, {
-      host: "/",
-      port: 3001,
+    
+    peer.on("open", (id) => {
+      localPeerId.current = id;
+      console.log("peer id: " + id);
     });
-
-    const conn = peer.connect(roomCode); 
-
-    const call = peer.call(roomCode, localStream.current?.srcObject as MediaStream);   
-
-    peer.on("connection", (conn) => {
-      conn.on("open", () => {
-        conn.send("hi!");
-      });
-    });
-
-    conn.on("open", () => {
-      conn.on('data', function(data) {
-        console.log('Received', data);
-      });
-
-      conn.send('Hello!');
-    });
-
+    
+    // const call = peer.call(roomCode, localStream.current?.srcObject as MediaStream);   
+    
+    // call.on("stream", (stream) => {
+    //   if(remoteStream.current !== null){
+    //     remoteStream.current.srcObject = stream;
+    //     remoteStream.current.onloadedmetadata = () => {
+    //       if(remoteStream.current !== null){
+    //         remoteStream.current.play()
+    //       }
+    //     };
+    //   }
+    // });
+    
     peer.on("call", (call) => {
-      // call.answer(localStream.current?.srcObject as MediaStream);
-      // call.on("stream", (stream) => { //here's where you get the stream
-      //   const index = parseInt(call.peer);
-      //   if(remoteStream.current !== null){
-      //     remoteStream.current[index].srcObject = stream;
-      //   }  
-          
-          
-      //     ("#video-list").append("<video id='video-"+ call.peer +"' autoplay></video>"); 
-          
-      //     ("#video-"+ call.peer).prop("srcObject", stream); 
-      // });
-      
-
       call.answer(localStream.current?.srcObject as MediaStream);
-
       call.on("stream", (stream) => {
-        const index = parseInt(call.peer);
         if(remoteStream.current !== null){
-          remoteStream.current[index].srcObject = stream;
+          remoteStream.current.srcObject = stream;
+          remoteStream.current.onloadedmetadata = () => {
+            if(remoteStream.current !== null){
+              remoteStream.current.play()
+            }
+          };
         }  
       });
-
-
+    
     });
+
+  useEffect(() => {
+    socket.emit("joined", roomCode);
   }, []);
 
   useEffect(() => {
@@ -143,6 +131,8 @@ export default function RoomPage({ socket }: RoomPageProps) {
             />;
           })}
 
+          
+        
         <div className="roomContent">
           <Lobby
             roomCode={roomCode?.toString()}
