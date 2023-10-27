@@ -10,7 +10,7 @@ import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
 
-import Peer from "peerjs";
+import SimplePeer from "simple-peer";
 interface RoomPageProps {
   socket: Socket;
 }
@@ -28,7 +28,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const roomCode: string = location.state?.randomRoomCode
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
-
 
   // const localStream = useRef<MediaStream | undefined>();
   // const remoteStream = useRef<MediaStream>();
@@ -51,50 +50,19 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const remoteStream = useRef<HTMLVideoElement>(null);
 
   const localPeerId = useRef<string>();
-    
 
-    const peer = new Peer(roomCode);
-
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((currentStream) => {
-          if(localStream.current !== null){
-            localStream.current.srcObject = currentStream;
-          }
-      }
-    );
     
-    peer.on("open", (id) => {
-      localPeerId.current = id;
-      console.log("peer id: " + id);
-    });
-    
-    // const call = peer.call(roomCode, localStream.current?.srcObject as MediaStream);   
-    
-    // call.on("stream", (stream) => {
-    //   if(remoteStream.current !== null){
-    //     remoteStream.current.srcObject = stream;
-    //     remoteStream.current.onloadedmetadata = () => {
-    //       if(remoteStream.current !== null){
-    //         remoteStream.current.play()
-    //       }
-    //     };
-    //   }
-    // });
-    
-    peer.on("call", (call) => {
-      call.answer(localStream.current?.srcObject as MediaStream);
-      call.on("stream", (stream) => {
-        if(remoteStream.current !== null){
-          remoteStream.current.srcObject = stream;
-          remoteStream.current.onloadedmetadata = () => {
-            if(remoteStream.current !== null){
-              remoteStream.current.play()
+    useEffect(() => {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((currentStream) => {
+            if(localStream.current !== null){
+              localStream.current.srcObject = currentStream;
             }
-          };
-        }  
-      });
+        }
+      );
+      
+    }, []);
     
-    });
 
   useEffect(() => {
     socket.emit("joined", roomCode);
@@ -117,7 +85,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setIsLoading(false);
   }, 1995);
 
-
   return (
     <>
       <div className="roomGrid">
@@ -131,8 +98,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
             />;
           })}
 
-          
-        
         <div className="roomContent">
           <Lobby
             roomCode={roomCode?.toString()}
