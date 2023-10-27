@@ -1,0 +1,38 @@
+.leaderboard{
+    background-color: #fff;
+    box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
+
+    width: 300px;
+    height: 320px;
+    gap: 5px;
+    border-radius: 5px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &__title{
+        font-family: "Poppins";
+        font-size: 32px;
+        font-weight: bold;
+        color: #9D4EDD;
+    }
+
+    &__item{
+        width: 95%;
+        height: 30px;
+        padding: 0 10px;
+        
+        border-radius: 5px;
+        
+        box-sizing: border-box;
+        box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.25);
+        background-color: #F1EAF7;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        font-family: "Poppins";
+    }
+}
