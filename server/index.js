@@ -9,6 +9,9 @@ const db = new sqlite3.Database(':memory:', (err) => {
   }
   console.log('Connected to the in-memory SQlite database.');
 });
+const { PeerServer } = require('peer');
+
+const peerServer = PeerServer({ port: 9000 });
 
 require("dotenv").config();
 
@@ -61,7 +64,7 @@ io.on("connection", (socket) => {
         socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
       }
     });
-
+    
     activeRooms.add(data.randomRoomCode);
   });
 
@@ -91,6 +94,14 @@ io.on("connection", (socket) => {
   // how many players are ready
   socket.on("send_value", (data) => {
       socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
+  });
+
+  socket.on("send-signal", payload => {
+    io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID });
+  });
+
+  socket.on("return-signal", payload => {
+    io.to(payload.callerID).emit('receiving returned signal', { signal: payload.signal, id: socket.id });
   });
 
   // disconnect user

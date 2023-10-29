@@ -43,8 +43,6 @@ export default function HomePage({ socket }: HomePageProps) {
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
 
-    console.log(username, roomExistence);
-
     if(username && roomExistence) {
       socket.emit("join-room", {roomCode, username});
       startLoadingAnimation();

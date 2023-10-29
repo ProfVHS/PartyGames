@@ -5,21 +5,22 @@ import Lobby from "../components/Lobby";
 import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { LegacyRef, useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
 
-import Peer from "peerjs";
+import Peer from 'simple-peer';
+
+
 interface RoomPageProps {
   socket: Socket;
 }
 
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
-
   const [value, setValue] = useState(0);
-  const [users, setUsers] = useState<[{id: string, username: string, score: number, id_room: string}]>([{id: "", username: "", score: 0, id_room: ""}]);
+  const [users, setUsers] = useState<{id: string, username: string, score: number, id_room: string}[]>([]);
   const [ready, setReady] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -49,52 +50,53 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
   const localStream = useRef<HTMLVideoElement>(null);
   const remoteStream = useRef<HTMLVideoElement>(null);
+    
+  const [peers, setPeers] = useState([]);
 
-  const localPeerId = useRef<string>();
-    
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+      localStream.current!.srcObject = stream;
 
-    const peer = new Peer(roomCode);
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((currentStream) => {
-          if(localStream.current !== null){
-            localStream.current.srcObject = currentStream;
-          }
-      }
-    );
-    
-    peer.on("open", (id) => {
-      localPeerId.current = id;
-      console.log("peer id: " + id);
-    });
-    
-    // const call = peer.call(roomCode, localStream.current?.srcObject as MediaStream);   
-    
-    // call.on("stream", (stream) => {
-    //   if(remoteStream.current !== null){
-    //     remoteStream.current.srcObject = stream;
-    //     remoteStream.current.onloadedmetadata = () => {
-    //       if(remoteStream.current !== null){
-    //         remoteStream.current.play()
-    //       }
-    //     };
-    //   }
-    // });
-    
-    peer.on("call", (call) => {
-      call.answer(localStream.current?.srcObject as MediaStream);
-      call.on("stream", (stream) => {
-        if(remoteStream.current !== null){
-          remoteStream.current.srcObject = stream;
-          remoteStream.current.onloadedmetadata = () => {
-            if(remoteStream.current !== null){
-              remoteStream.current.play()
-            }
-          };
-        }  
+
+      socket.on("user_joined", (payload) => {
+        const peer = addPeer(payload.signal, payload.callerID, stream);
+
       });
-    
     });
+
+
+  }, []);
+
+  const createPeer = (userToSignal: any, callerID:any, stream:any) => {
+    const peer = new Peer({
+      initiator: true,
+      trickle: false,
+      stream,
+    });
+
+    peer.on("signal", (signal) => {
+      socket.emit("send-signal", { userToSignal, callerID, signal });
+    });
+
+    return peer;  
+  };
+
+  const addPeer = (incomingSignal:any, callerID:any, stream:any) => {
+    const peer = new Peer({
+      initiator: false,
+      trickle: false,
+      stream,
+    });
+
+    peer.on("signal", (signal) => {
+      socket.emit("return-signal", { signal, callerID });
+    });
+
+    peer.signal(incomingSignal);
+
+    return peer;
+  };
 
   useEffect(() => {
     socket.emit("joined", roomCode);
@@ -103,7 +105,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   useEffect(() => {
     socket.on("receive_users", (data) => {
       setUsers(data);
-      console.log(data);
+      console.log("Data - " ,data);
     });
     socket.on("recive_value", (data) => {
       setValue(value + data)
@@ -121,16 +123,36 @@ export default function RoomPage({ socket }: RoomPageProps) {
   return (
     <>
       <div className="roomGrid">
-        {users &&
+        {/* {users &&
           users.map((user) => {
-            return <Camera 
-            key={user.id} 
-            stream={localStream}
-            username={user.username} 
-            score={user.score} 
-            />;
-          })}
-
+            if(user.id == socket.id){
+              return <Camera 
+              key={user.id} 
+              stream={localStream}
+              username={user.username} 
+              score={user.score} 
+              />;
+            } else {
+              return <Camera 
+              key={user.id} 
+              stream={remoteStream}
+              username={user.username} 
+              score={user.score} 
+              />;
+            }
+          })} */}
+        {users &&
+          peers.map((peer, index) => {
+            return (
+              <Camera
+                key={index}
+                stream={peer}
+                username={users[index].username}
+                score={users[index].score}
+              />
+            );
+          })
+        }
           
         
         <div className="roomContent">
@@ -148,3 +170,65 @@ export default function RoomPage({ socket }: RoomPageProps) {
     </>
   );
 }
+
+/*
+
+  
+
+    useEffect(() => {
+      const peer = new Peer(socket.id, {
+        host: "localhost",
+        port: 9000,
+      });
+
+      
+
+      users.forEach(user => {
+        if(user.id !== socket.id){
+          setConn(peer.connect(user.id));
+          console.log("ForEach user - ", user);
+        }
+      });
+
+      peer.on('call', (call) => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then((currentStream) => {
+              if(localStream.current !== null){
+                localStream.current.srcObject = currentStream;
+                localStream.current.play();
+              } 
+            call.answer(currentStream);
+            call.on('stream', (stream) => {
+              if(remoteStream.current !== null){
+                remoteStream.current.srcObject = stream;
+                remoteStream.current.play();
+              }
+            });
+          }
+        );
+      });
+
+      console.log("socket id - ", socket.id);
+      console.log("Peer id - ", localidpeer.current);
+      console.log("peer - ", peer);
+
+      if(users.length > 1){
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then((currentStream) => {
+              if(localStream.current !== null){
+                localStream.current.srcObject = currentStream;
+                localStream.current.play();
+              } 
+          }
+        );
+
+        const call = peer.call(users[1].id, localStream.current?.srcObject as MediaStream);
+
+        call.on('stream', (stream) => {
+          if(remoteStream.current !== null){
+            remoteStream.current.srcObject = stream;
+            remoteStream.current.play();
+          }
+        });
+      }
+    }, [users]);*/
