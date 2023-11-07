@@ -10,8 +10,6 @@ const db = new sqlite3.Database(':memory:', (err) => {
   console.log('Connected to the in-memory SQlite database.');
 });
 
-require("dotenv").config();
-
 const activeRooms = new Set();
 
 const app = express();
@@ -33,8 +31,6 @@ const io = new Server(server, {
   },
 });
 
-const users = {};
-
 //const Join = require("./join-room")(io);
 //const Disconnect = require("./disconnect-room")(io);
 //const Update = require("./update-room")(io);
@@ -43,7 +39,6 @@ io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
   
   var currentRoomId;
-
 
   // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
@@ -92,7 +87,7 @@ io.on("connection", (socket) => {
 
   // how many players are ready
   socket.on("send_value", (data) => {
-      socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
+      socket.nsp.to(data.roomCode).emit("recive_value", data.newPlayersReady);
   });
 
   // disconnect user

@@ -3,7 +3,7 @@ import React from 'react'
 import "../styles/Leaderboard.scss";
 
 interface LeaderboardProps{
-    users: {username: string, score: number}[]
+    users: {id: string, username: string, score: number, id_room: string}[]
 }
 export default function Leaderboard({users}:LeaderboardProps) {
   return (

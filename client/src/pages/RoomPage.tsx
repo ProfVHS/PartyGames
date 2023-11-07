@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
-import Ctb from "../components/Ctb";
+import MiniGames from "../components/MiniGames";
 
 
 interface RoomPageProps {
@@ -80,12 +80,17 @@ export default function RoomPage({ socket }: RoomPageProps) {
           );
         })}        
         <div className="roomContent">
-          <Lobby
+          {playersReady !== users.length 
+          ? <Lobby
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
             players={playersReady}
             isReady={ready}
-          />
+          /> 
+          : <MiniGames 
+            socket={socket}
+            users={users}
+            />}
           <AudioVideoControls />
         </div>
       </div>
