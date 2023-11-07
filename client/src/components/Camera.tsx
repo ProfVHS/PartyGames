@@ -5,7 +5,8 @@ interface CameraProps {
   score: number;
 }
 
-function Camera({ username, score }: CameraProps) {
+function Camera({ username, score}: CameraProps) {
+  
   return (
     <div className="camera">
       <span className="camera__username">{username}</span>
