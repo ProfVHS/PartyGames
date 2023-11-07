@@ -1,14 +1,15 @@
 import { Socket } from "socket.io-client"
 import Leaderboard from "./Leaderboard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Ctb from "./Ctb";
 
 interface MiniGamesProps {
     socket: Socket;
     users: {id: string, username: string, score: number, id_room: string}[];
+    roomCode: string;
 };
 
-export default function MiniGames( { }: MiniGamesProps) {
+export default function MiniGames( { socket,roomCode }: MiniGamesProps) {
     const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
     const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
     
@@ -25,10 +26,18 @@ export default function MiniGames( { }: MiniGamesProps) {
         setIsLoadingGame(true);
     }, 5000);
 
+    useEffect(() => {
+
+    }, []);
+
+    useEffect(() => {
+        // change game
+    }, [currentGame]);
+
     const switchGame = (currentGame: number) => {
         switch(currentGame){
             case 1: 
-                return <Ctb turn="monke" />
+                return <Ctb socket={socket} roomCode={roomCode} />
             case 2:
                 return <div>Gra 2</div>  
             case 3:

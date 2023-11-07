@@ -80,7 +80,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           );
         })}        
         <div className="roomContent">
-          {playersReady !== users.length 
+          {playersReady !== users.length
           ? <Lobby
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
@@ -90,6 +90,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           : <MiniGames 
             socket={socket}
             users={users}
+            roomCode={roomCode}
             />}
           <AudioVideoControls />
         </div>
