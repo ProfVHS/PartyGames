@@ -5,7 +5,7 @@ import Lobby from "../components/Lobby";
 import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
-import { startTransition, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
@@ -18,7 +18,7 @@ interface RoomPageProps {
 
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
-  const [value, setValue] = useState(0);
+  const [playersReady, setPlayersReady] = useState(0);
   const [users, setUsers] = useState<{id: string, username: string, score: number, id_room: string}[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -35,12 +35,12 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
     setReady(!ready);
     
-    const temp = ready ? value - 1 : value + 1;
+    const newPlayersReady = ready ? playersReady - 1 : playersReady + 1;
   
-    socket.emit("send_value", {roomCode , temp});
+    socket.emit("send_value", {roomCode , newPlayersReady});
 
     socket.on("receive_value", (data) => {
-      setValue(data);
+      setPlayersReady(data);
     });
   };         
 
@@ -54,7 +54,8 @@ export default function RoomPage({ socket }: RoomPageProps) {
       console.log("Data - " ,data);
     });
     socket.on("recive_value", (data) => {
-      setValue(value + data)
+      const newPlayersReady = playersReady + data
+      setPlayersReady(newPlayersReady)
     })
     socket.on("user_disconnected", (data) => {
       alert(data[0].username + " has left the room");
@@ -82,7 +83,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           <Lobby
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
-            players={value}
+            players={playersReady}
             isReady={ready}
           />
           <AudioVideoControls />
