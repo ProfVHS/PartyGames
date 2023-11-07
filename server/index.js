@@ -36,6 +36,8 @@ const io = new Server(server, {
   },
 });
 
+const users = {};
+
 //const Join = require("./join-room")(io);
 //const Disconnect = require("./disconnect-room")(io);
 //const Update = require("./update-room")(io);
@@ -94,14 +96,6 @@ io.on("connection", (socket) => {
   // how many players are ready
   socket.on("send_value", (data) => {
       socket.nsp.to(data.roomCode).emit("recive_value", data.temp);
-  });
-
-  socket.on("send-signal", payload => {
-    io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID });
-  });
-
-  socket.on("return-signal", payload => {
-    io.to(payload.callerID).emit('receiving returned signal', { signal: payload.signal, id: socket.id });
   });
 
   // disconnect user

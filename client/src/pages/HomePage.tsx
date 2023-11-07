@@ -17,7 +17,7 @@ export default function HomePage({ socket }: HomePageProps) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
-  const [roomExistence, setRoomExistence] = useState(false);
+  const [roomExistence, setRoomExistence] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
