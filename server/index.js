@@ -9,9 +9,6 @@ const db = new sqlite3.Database(':memory:', (err) => {
   }
   console.log('Connected to the in-memory SQlite database.');
 });
-const { PeerServer } = require('peer');
-
-const peerServer = PeerServer({ port: 9000 });
 
 require("dotenv").config();
 
@@ -58,7 +55,7 @@ io.on("connection", (socket) => {
     socket.join(data.randomRoomCode);
     currentRoomId = data.randomRoomCode;
 
-    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.randomRoomCode})`);
+    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.randomRoomCode})`);
   
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
       if(!err){
@@ -75,7 +72,7 @@ io.on("connection", (socket) => {
     socket.join(data.roomCode);
     currentRoomId = data.roomCode;
 
-    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.username}", 0, ${data.roomCode})`);
+    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.roomCode})`);
   
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
       if(!err){
