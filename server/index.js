@@ -44,6 +44,8 @@ io.on("connection", (socket) => {
   
   var currentRoomId;
   var turn = 0;
+  var max = 0;
+  var user = "";
 
   // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
@@ -57,7 +59,7 @@ io.on("connection", (socket) => {
 
     db.run(`INSERT INTO rooms (id) VALUES (${data.randomRoomCode})`);
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.randomRoomCode})`);
-    db.run(`INSERT INTO bomb (id,turn,counter,max) VALUES (${data.randomRoomCode}, 0, 0, 10)`);
+    db.run(`INSERT INTO bomb (id,turn,counter,max) VALUES (${data.randomRoomCode}, 0, 0, 0)`);
 
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
       if(!err){
@@ -69,22 +71,26 @@ io.on("connection", (socket) => {
     activeRooms.add(data.randomRoomCode);
   });
 
+
   // join room
   socket.on("join-room", async (data) => {
     socket.join(data.roomCode);
     currentRoomId = data.roomCode;
 
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.roomCode})`);
-  
-    db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
+
+    db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, (err, rows) => {
       socket.nsp.to(data.roomCode).emit("receive_users", rows);
-      // min - 1, max - users.lenght * 5
-      const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
-      console.log("Max - ",max);
+      // min - 1, max - users.lenght * 5 (max number of clicks)
+      max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
       turn = Math.round(Math.random() * (rows.length - 1));
-      console.log(rows[turn].username);
-      db.run(`UPDATE bomb SET max = ${max}, turn = "${rows[turn].username}" WHERE id = ${data.roomCode}`);
+      user = rows[turn].username;
+      updateDataBomb(max,user,data.roomCode);
     });
+
+    const updateDataBomb = (max,user,room) => {
+      db.run(`UPDATE bomb SET max = ${max}, turn = "${user}" WHERE id = ${room}`);
+    };
   });
 
   // users get up to date data
@@ -121,11 +127,12 @@ io.on("connection", (socket) => {
   });
   socket.on("send_ctb_turn", (room) => {
     db.all(`SELECT username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
-      if(turn == rows.length){
+      if(turn == (rows.length-1)){
         turn = 0;
       } else {
         turn++;
       }
+      console.log("lenght - ",rows.length);
       console.log("Turn - ",turn);
       console.log(rows[turn].username);
       socket.nsp.to(room).emit("receive_ctb_turn", rows[turn].username);

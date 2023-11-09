@@ -9,7 +9,8 @@ interface MiniGamesProps {
     roomCode: string;
 };
 
-export default function MiniGames( { socket,roomCode }: MiniGamesProps) {
+export default function MiniGames( { socket,roomCode,users }: MiniGamesProps) {
+    const [yourName, setYourName] = useState<string>("");
     const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
     const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
     
@@ -27,7 +28,11 @@ export default function MiniGames( { socket,roomCode }: MiniGamesProps) {
     }, 5000);
 
     useEffect(() => {
-
+        users.forEach(user => {
+            if(user.id === socket.id){
+                setYourName(user.username);
+            }
+        });
     }, []);
 
     useEffect(() => {
@@ -37,7 +42,7 @@ export default function MiniGames( { socket,roomCode }: MiniGamesProps) {
     const switchGame = (currentGame: number) => {
         switch(currentGame){
             case 1: 
-                return <Ctb socket={socket} roomCode={roomCode} />
+                return <Ctb socket={socket} roomCode={roomCode} username={yourName} />
             case 2:
                 return <div>Gra 2</div>  
             case 3:

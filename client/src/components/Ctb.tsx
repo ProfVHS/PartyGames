@@ -9,12 +9,18 @@ import { Socket } from "socket.io-client";
 interface CtbProps {
   socket: Socket;
   roomCode: string;
+  username: string;
 }
-export default function Ctb({ socket, roomCode }: CtbProps) {
+export default function Ctb({ socket, roomCode, username }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(true);
   const [turn, setTurn] = useState<string>("");
   const [clicked, setClicked] = useState<boolean>(false);
+
+  const handleTurn = (bool: boolean) => {
+    setYourTurn(bool);
+    setClicked(false);
+  };
 
   const handleClickButton = () => {
     new Audio(ClickSound).play();
@@ -30,6 +36,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
   };
 
   useEffect(() => {
+    socket.emit("send_ctb_turn", roomCode);
     socket.on("receive_ctb_counter", (data) => {
       setCounter(data);
     });
@@ -41,6 +48,14 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
       setYourTurn(false);
       alert("Wybuchł gracz " + data + "!");
     });
+  }, []);
+
+  useEffect(() => {
+    if(username === turn){
+      handleTurn(true);
+    } else {
+      handleTurn(false);
+    }
   }, []);
 
   return (
