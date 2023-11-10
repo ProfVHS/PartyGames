@@ -21,10 +21,10 @@ const server = http.createServer(app);
 server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
-    db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY);');
+    db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL);');
     db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
     // games table
-    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "turn" VARCHAR(255) NOT NULL, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES rooms ("id"));');
+    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES rooms ("id"));');
   });
 });
 
@@ -39,13 +39,17 @@ const io = new Server(server, {
 //const Disconnect = require("./disconnect-room")(io);
 //const Update = require("./update-room")(io);
 
+const updateDataBomb = (max,room) => {
+  db.run(`UPDATE bomb SET max = ${max} WHERE id = ${room}`);
+};
+const updateRoomTurn = (turn,room) => {
+  db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
+};
+
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
   
   var currentRoomId;
-  var turn = 0;
-  var max = 0;
-  var user = "";
 
   // homepage, check room existence
   socket.on("checkRoomExistence", (room) => {
@@ -57,9 +61,9 @@ io.on("connection", (socket) => {
     socket.join(data.randomRoomCode);
     currentRoomId = data.randomRoomCode;
 
-    db.run(`INSERT INTO rooms (id) VALUES (${data.randomRoomCode})`);
+    db.run(`INSERT INTO rooms (id,turn) VALUES (${data.randomRoomCode}, 0)`);
     db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.randomRoomCode})`);
-    db.run(`INSERT INTO bomb (id,turn,counter,max) VALUES (${data.randomRoomCode}, 0, 0, 0)`);
+    db.run(`INSERT INTO bomb (id,counter,max) VALUES (${data.randomRoomCode}, 0, 0)`);
 
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
       if(!err){
@@ -68,6 +72,8 @@ io.on("connection", (socket) => {
       }
     });
     
+    updateRoomTurn(0,data.randomRoomCode);
+
     activeRooms.add(data.randomRoomCode);
   });
 
@@ -82,15 +88,13 @@ io.on("connection", (socket) => {
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, (err, rows) => {
       socket.nsp.to(data.roomCode).emit("receive_users", rows);
       // min - 1, max - users.lenght * 5 (max number of clicks)
-      max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
-      turn = Math.round(Math.random() * (rows.length - 1));
-      user = rows[turn].username;
-      updateDataBomb(max,user,data.roomCode);
+      const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
+      const turn = Math.round(Math.random() * (rows.length - 1));
+      updateDataBomb(max,data.roomCode);
+      updateRoomTurn(turn,data.roomCode);
     });
 
-    const updateDataBomb = (max,user,room) => {
-      db.run(`UPDATE bomb SET max = ${max}, turn = "${user}" WHERE id = ${room}`);
-    };
+   
   });
 
   // users get up to date data
@@ -126,16 +130,22 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("send_ctb_turn", (room) => {
-    db.all(`SELECT username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
-      if(turn == (rows.length-1)){
-        turn = 0;
-      } else {
-        turn++;
-      }
-      console.log("lenght - ",rows.length);
-      console.log("Turn - ",turn);
-      console.log(rows[turn].username);
-      socket.nsp.to(room).emit("receive_ctb_turn", rows[turn].username);
+    db.all(`SELECT id, username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+      db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+        if(!err){
+          if((rows.length-1) == row.turn){
+            updateRoomTurn(0,room);
+          } else {
+            const turn = row.turn + 1;
+            updateRoomTurn(turn,room);
+          }
+          const turn = row.turn;
+          const username = rows[turn].username;
+          const id = rows[turn].id;
+          console.log(username);
+          socket.nsp.to(room).emit("receive_ctb_turn", {username, id} );
+        }
+      });
     })
   });
 
@@ -162,5 +172,3 @@ io.on("connection", (socket) => {
     });
   });
 });
-
-

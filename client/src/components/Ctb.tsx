@@ -9,17 +9,16 @@ import { Socket } from "socket.io-client";
 interface CtbProps {
   socket: Socket;
   roomCode: string;
-  username: string;
+  users: {id: string, username: string, score: number, id_room: string}[];
 }
-export default function Ctb({ socket, roomCode, username }: CtbProps) {
+export default function Ctb({ socket, roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
-  const [yourTurn, setYourTurn] = useState<boolean>(true);
+  const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
   const [clicked, setClicked] = useState<boolean>(false);
 
   const handleTurn = (bool: boolean) => {
     setYourTurn(bool);
-    setClicked(false);
   };
 
   const handleClickButton = () => {
@@ -36,12 +35,17 @@ export default function Ctb({ socket, roomCode, username }: CtbProps) {
   };
 
   useEffect(() => {
+    console.log("effect");
     socket.emit("send_ctb_turn", roomCode);
+    socket.on("receive_ctb_turn", (data) => {
+      setTurn(data.username);
+      if(data.id === socket.id){
+        handleTurn(true);
+      }
+      console.log(data);
+    });
     socket.on("receive_ctb_counter", (data) => {
       setCounter(data);
-    });
-    socket.on("receive_ctb_turn", (data) => {
-      setTurn(data);
     });
     socket.on("receive_ctb_end", (data) => {
       setClicked(false);
@@ -51,11 +55,21 @@ export default function Ctb({ socket, roomCode, username }: CtbProps) {
   }, []);
 
   useEffect(() => {
-    if(username === turn){
-      handleTurn(true);
-    } else {
-      handleTurn(false);
-    }
+    // if(username === turn){
+    //   handleTurn(true);
+    // } else {
+    //   handleTurn(false);
+    // }
+
+    // users.forEach((user) => {
+    //   if(user.id === socket.id){
+    //     if(user.username === turn){
+    //       handleTurn(true);
+    //     } else {
+    //       handleTurn(false);
+    //     }
+    //   }
+    // });
   }, []);
 
   return (
