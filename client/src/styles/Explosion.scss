@@ -1,0 +1,140 @@
+.explosion {
+  position: relative;
+  &__box {
+    position: absolute;
+
+    top: 0px;
+    left: 0px;
+    opacity: 0%;
+
+    width: 25px;
+    height: 25px;
+    background-color: #ff9e00;
+
+    &#expbox1 {
+      $randomBox1: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox1 1.5s linear;
+      @keyframes moveExpbox1 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: -1 * $randomBox1 - 100 + px;
+          left: -20px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+
+    &#expbox2 {
+      $randomBox2: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox2 1.5s linear;
+      @keyframes moveExpbox2 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: -1 * $randomBox2 + px;
+          left: -1 * $randomBox2 - 200 + px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+
+    &#expbox3 {
+      $randomBox3: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox3 1.5s linear;
+      @keyframes moveExpbox3 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: $randomBox3 + px;
+          left: -1 * $randomBox3 - 200 + px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+
+    &#expbox4 {
+      $randomBox4: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox4 1.5s linear;
+      @keyframes moveExpbox4 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: -1 * $randomBox4 + 50 + px;
+          left: $randomBox4 + 100 + px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+
+    &#expbox5 {
+      $randomBox5: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox5 1.5s linear;
+      @keyframes moveExpbox5 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: $randomBox5 + 50 + px;
+          left: $randomBox5 + 100 + px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+
+    &#expbox6 {
+      $randomBox6: random(
+          $limit: 200,
+        ) + 50;
+      animation: moveExpbox6 1.5s linear;
+      @keyframes moveExpbox6 {
+        from {
+          top: 0;
+          left: 0;
+          transform: rotate(0deg);
+          opacity: 100%;
+        }
+        to {
+          top: $randomBox6 + 150 + px;
+          left: 0 + px;
+          transform: rotate(180deg);
+          opacity: 0%;
+        }
+      }
+    }
+  }
+}

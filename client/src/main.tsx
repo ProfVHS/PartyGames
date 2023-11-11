@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage.tsx";
 import RoomPage from "./pages/RoomPage.tsx";
 
 import { io } from "socket.io-client";
+import Explosion from "./components/Explosion.tsx";
 
 const socket = io("http://localhost:3000");
 
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<HomePage socket={socket} />} />
         <Route path="/Lobby/" element={<RoomPage socket={socket} />} />
+        <Route path="/exp/" element={<Explosion />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
