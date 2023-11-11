@@ -114,10 +114,10 @@ io.on("connection", (socket) => {
     db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = ${room}`);
     db.all(`SELECT max, counter FROM bomb WHERE id = ${room}`, [], (err, rows) => {
       if(rows[0].max == rows[0].counter){
-        db.all(`SELECT username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+        db.all(`SELECT id,username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
           rows.forEach((row) => {
-            if(row.username == socket.id){
-              socket.nsp.to(room).emit("receive_ctb_turn", row.username);
+            if(row.id == socket.id){
+              socket.nsp.to(room).emit("receive_ctb_end", row.username);
               return;
             }
           });
@@ -129,7 +129,8 @@ io.on("connection", (socket) => {
       }
     });
   });
-  socket.on("send_ctb_turn", (room) => {
+
+  socket.on("send_change_ctb_turn", (room) => {
     db.all(`SELECT id, username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
       db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
         if(!err){
@@ -139,10 +140,24 @@ io.on("connection", (socket) => {
             const turn = row.turn + 1;
             updateRoomTurn(turn,room);
           }
+          db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row2) => {
+            const turn = row2.turn;
+            const username = rows[turn].username;
+            const id = rows[turn].id;
+            socket.nsp.to(room).emit("receive_ctb_turn", {username, id} );
+          });
+        }
+      });
+    })
+  });
+
+  socket.on("send_ctb_turn", (room) => {
+    db.all(`SELECT id, username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+      db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+        if(!err){
           const turn = row.turn;
           const username = rows[turn].username;
           const id = rows[turn].id;
-          console.log(username);
           socket.nsp.to(room).emit("receive_ctb_turn", {username, id} );
         }
       });

@@ -16,6 +16,7 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
   const [clicked, setClicked] = useState<boolean>(false);
+  const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const handleTurn = (bool: boolean) => {
     setYourTurn(bool);
@@ -31,18 +32,16 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
     new Audio(ClickSound).play();
     setClicked(false);
     setYourTurn(false);
-    socket.emit("send_ctb_turn", roomCode);
+    socket.emit("send_change_ctb_turn", roomCode);
   };
 
   useEffect(() => {
-    console.log("effect");
     socket.emit("send_ctb_turn", roomCode);
     socket.on("receive_ctb_turn", (data) => {
       setTurn(data.username);
-      if(data.id === socket.id){
+      if(data.id == socket.id){
         handleTurn(true);
       }
-      console.log(data);
     });
     socket.on("receive_ctb_counter", (data) => {
       setCounter(data);
@@ -50,7 +49,8 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
     socket.on("receive_ctb_end", (data) => {
       setClicked(false);
       setYourTurn(false);
-      alert("Wybuchł gracz " + data + "!");
+      setIsEndGame(true);
+      console.log(data);
     });
   }, []);
 
@@ -72,32 +72,42 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
     // });
   }, []);
 
+  setTimeout(() => {
+
+  }, 2000);
+
   return (
     <div className="ctb">
-      <span className="ctb__gamename">Click The Bomb</span>
-      <span className="ctb__turn">{turn}'s turn</span>
-      <div className="ctb__c4">
-        <img src={c4} />
-        <span className="ctb__c4__counter">
-          {counter < 10 ? "0" + counter : counter}
-        </span>
-      </div>
-      <div className="ctb__buttonbox">
-        <button
-          className="ctb__button click"
-          onClick={handleClickButton}
-          disabled={!yourTurn}
-        >
-          Click
-        </button>
-        <button
-          className="ctb__button skip"
-          onClick={handleSkipButton}
-          disabled={!clicked}
-        >
-          {">"}
-        </button>
-      </div>
+      {!isEndGame && (<>
+        <span className="ctb__gamename">Click The Bomb</span>
+        <span className="ctb__turn">{turn}'s turn</span>
+        <div className="ctb__c4">
+          <img src={c4} />
+          <span className="ctb__c4__counter">
+            {counter < 10 ? "0" + counter : counter}
+          </span>
+        </div>
+        <div className="ctb__buttonbox">
+          <button
+            className="ctb__button click"
+            onClick={handleClickButton}
+            disabled={!yourTurn}
+          >
+            Click
+          </button>
+          <button
+            className="ctb__button skip"
+            onClick={handleSkipButton}
+            disabled={!clicked}
+          >
+            {">"}
+          </button>
+        </div>
+      </>)}
+      {isEndGame && (<>
+        <div>Koniec</div>
+      </>)}
+      
     </div>
   );
 }
