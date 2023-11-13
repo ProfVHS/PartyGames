@@ -19,10 +19,6 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
   const [winner, setWinner] = useState<string>("");
 
-  const handleTurn = (bool: boolean) => {
-    setYourTurn(bool);
-  };
-
   const handleClickButton = () => {
     new Audio(ClickSound).play();
     setClicked(true);
@@ -37,11 +33,13 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
   };
 
   useEffect(() => {
-    socket.emit("send_ctb_turn", roomCode);
+    if(counter == 0){
+      socket.emit("send_ctb_turn", roomCode);
+    };
     socket.on("receive_ctb_turn", (data) => {
       setTurn(data.username);
       if(data.id == socket.id){
-        handleTurn(true);
+        setYourTurn(true);
       }
     });
     socket.on("receive_ctb_counter", (data) => {
