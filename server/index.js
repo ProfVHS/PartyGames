@@ -22,7 +22,7 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL);');
-    db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
+    db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" TINYINT(1) NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
     // games table
     db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES rooms ("id"));');
   });
@@ -39,8 +39,8 @@ const io = new Server(server, {
 //const Disconnect = require("./disconnect-room")(io);
 //const Update = require("./update-room")(io);
 
-const updateDataBomb = (max,room) => {
-  db.run(`UPDATE bomb SET max = ${max} WHERE id = ${room}`);
+const updateDataBomb = (max,counter,room) => {
+  db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
 };
 const updateRoomTurn = (turn,room) => {
   db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
@@ -62,7 +62,7 @@ io.on("connection", (socket) => {
     currentRoomId = data.randomRoomCode;
 
     db.run(`INSERT INTO rooms (id,turn) VALUES (${data.randomRoomCode}, 0)`);
-    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.randomRoomCode})`);
+    db.run(`INSERT INTO users (id,username,score,alive,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, 1, ${data.randomRoomCode})`);
     db.run(`INSERT INTO bomb (id,counter,max) VALUES (${data.randomRoomCode}, 0, 0)`);
 
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
@@ -71,8 +71,6 @@ io.on("connection", (socket) => {
         socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
       }
     });
-    
-    updateRoomTurn(0,data.randomRoomCode);
 
     activeRooms.add(data.randomRoomCode);
   });
@@ -83,14 +81,14 @@ io.on("connection", (socket) => {
     socket.join(data.roomCode);
     currentRoomId = data.roomCode;
 
-    db.run(`INSERT INTO users (id,username,score,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, ${data.roomCode})`);
+    db.run(`INSERT INTO users (id,username,score,alive,id_rooms) VALUES ("${socket.id}", "${data.name}", 0, 1, ${data.roomCode})`);
 
     db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, (err, rows) => {
       socket.nsp.to(data.roomCode).emit("receive_users", rows);
       // min - 1, max - users.lenght * 5 (max number of clicks)
       const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
       const turn = Math.round(Math.random() * (rows.length - 1));
-      updateDataBomb(max,data.roomCode);
+      updateDataBomb(max,0,data.roomCode);
       updateRoomTurn(turn,data.roomCode);
     });
 
@@ -113,16 +111,29 @@ io.on("connection", (socket) => {
   socket.on("send_ctb_counter", (room) => {
     db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = ${room}`);
     db.all(`SELECT max, counter FROM bomb WHERE id = ${room}`, [], (err, rows) => {
+      // if max number of clicks is reached
       if(rows[0].max == rows[0].counter){
-        db.all(`SELECT id,username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+        db.all(`SELECT id,username FROM users WHERE id_rooms = ${room} AND alive = 1`, [], (err, rows) => {
           rows.forEach((row) => {
+            // update user as dead and set new max number of clicks
             if(row.id == socket.id){
-              socket.nsp.to(room).emit("receive_ctb_end", row.username);
+              updateAliveUsers();
+              const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
+              updateDataBomb(max,0,room);
+              socket.nsp.to(room).emit("receive_ctb_death", row.id);
               return;
             }
           });
+          // if there are only 2 players left, end the game, reset alive users
+          if(rows.length == 1){
+            if(socket.id == rows[0].id){
+              socket.nsp.to(room).emit("receive_ctb_end", rows[1].username);
+            }
+          } 
         });
-      } else {
+      } 
+      // if max number of clicks is not reached, continue the game
+      else {
         db.all(`SELECT counter FROM bomb WHERE id = ${room}`, [], (err, rows) => {
           socket.nsp.to(room).emit("receive_ctb_counter", rows[0].counter);
         });
@@ -130,8 +141,13 @@ io.on("connection", (socket) => {
     });
   });
 
+  // set user as dead
+  const updateAliveUsers = () => {
+    db.run(`UPDATE users SET alive = 0 WHERE id = "${socket.id}"`);
+  };
+
   socket.on("send_change_ctb_turn", (room) => {
-    db.all(`SELECT id, username FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
+    db.all(`SELECT * FROM users WHERE id_rooms = ${room} AND alive = 1`, [], (err, rows) => {
       db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
         if(!err){
           if((rows.length-1) == row.turn){
@@ -141,10 +157,12 @@ io.on("connection", (socket) => {
             updateRoomTurn(turn,room);
           }
           db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row2) => {
-            const turn = row2.turn;
-            const username = rows[turn].username;
-            const id = rows[turn].id;
-            socket.nsp.to(room).emit("receive_ctb_turn", {username, id} );
+            if(!err){
+              const turn = row2.turn;
+              const username = rows[turn]?.username;
+              const id = rows[turn].id;
+              socket.nsp.to(room).emit("receive_ctb_turn", {username, id} );
+            };
           });
         }
       });

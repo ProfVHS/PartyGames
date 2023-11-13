@@ -9,14 +9,15 @@ import { Socket } from "socket.io-client";
 interface CtbProps {
   socket: Socket;
   roomCode: string;
-  users: {id: string, username: string, score: number, id_room: string}[];
 }
-export default function Ctb({ socket, roomCode, users }: CtbProps) {
+export default function Ctb({ socket, roomCode }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
   const [clicked, setClicked] = useState<boolean>(false);
+  const [isDead, setIsDead] = useState<boolean>(false);
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
+  const [winner, setWinner] = useState<string>("");
 
   const handleTurn = (bool: boolean) => {
     setYourTurn(bool);
@@ -46,11 +47,19 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
     socket.on("receive_ctb_counter", (data) => {
       setCounter(data);
     });
+    socket.on("receive_ctb_death", (data) => {
+      if(data == socket.id){
+        setIsDead(true);
+      } else {
+        console.log("Gracz wybuchł");
+      }
+      handleSkipButton();
+    });
     socket.on("receive_ctb_end", (data) => {
       setClicked(false);
       setYourTurn(false);
       setIsEndGame(true);
-      console.log(data);
+      setWinner(data);
     });
   }, []);
 
@@ -78,7 +87,7 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
 
   return (
     <div className="ctb">
-      {!isEndGame && (<>
+      {!isEndGame && !isDead && (<>
         <span className="ctb__gamename">Click The Bomb</span>
         <span className="ctb__turn">{turn}'s turn</span>
         <div className="ctb__c4">
@@ -106,6 +115,11 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
       </>)}
       {isEndGame && (<>
         <div>Koniec</div>
+        <div>Wygrał {winner}</div>
+      </>)}
+      {isDead && (<>
+        <p>Wybuchłeś</p>
+        <p>-100 pkt</p>
       </>)}
       
     </div>
