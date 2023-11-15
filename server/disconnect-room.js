@@ -1,4 +1,4 @@
-exports = module.exports = function(io, db){
+exports = module.exports = function(io, db, currentRoomId){
     io.sockets.on('connection', function(socket) {
         // disconnect user
         socket.on("disconnect", () => {
