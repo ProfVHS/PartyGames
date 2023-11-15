@@ -10,7 +10,6 @@ exports = module.exports = function(io, db){
 
         db.all(`SELECT * FROM users WHERE id_rooms = ${data.randomRoomCode}`, [], (err, rows) => {
           if(!err){
-            rows.forEach((row) => {row})
             socket.nsp.to(data.randomRoomCode).emit("receive_users", rows);
           }
         });

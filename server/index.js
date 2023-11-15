@@ -33,8 +33,6 @@ const io = new Server(server, {
   },
 });
 
-var currentRoomId;
-
 // set max and counter
 const updateDataBomb = (max,counter,room) => {
   db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
@@ -54,42 +52,13 @@ const updateAliveUsers = (socket) => {
 };
 // change score of the user
 const updateScore = (socket, score) => {
-  db.run(`UPDATE users SET score = ${score} WHERE id = "${socket.id}"`);
+  db.run(`UPDATE users SET score = score + ${score} WHERE id = "${socket.id}"`);
 };
 
-const Join = require("./join-room")(io, db);
-const Disconnect = require("./disconnect-room")(io, db, currentRoomId);
-const Update = require("./update-room")(io, db);
+const Join = require("./join")(io, db);
+const Room = require("./room")(io, db);
 const Ctb = require("./click-the-bomb")(io, db, updateDataBomb, updateRoomTurn, updateAliveUsers);
-
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
-
-  // homepage, check room existence
-  socket.on("checkRoomExistence", (room) => {
-    db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
-      if(!err){
-        socket.emit("roomExistenceResponse", row ? true : false);
-      }
-    });
-  });
-
-  // how many players are ready
-  socket.on("send_value", async (data) => {
-      socket.nsp.to(data.roomCode).emit("recive_value", data.newPlayersReady);
-      await db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
-        if(data.newPlayersReady == rows.length){
-          // min - 1, max - users.lenght * 5 (max number of clicks)
-          const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
-          const turn = Math.round(Math.random() * (rows.length - 1));
-          updateDataBomb(max,0,data.roomCode);
-          updateRoomTurn(turn,data.roomCode,socket);
-          const username = rows[turn].username;
-          const id = rows[turn].id;
-          console.log(turn);
-          socket.nsp.to(data.roomCode).emit("receive_ctb_turn", {username, id});
-        }
-      });
-  });
 });

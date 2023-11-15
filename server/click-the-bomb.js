@@ -1,6 +1,12 @@
 exports = module.exports = function(io, db, updateDataBomb, updateRoomTurn, updateAliveUsers){
     io.sockets.on('connection', function(socket) {
-         // Game 1 - Click The Bomb
+        // Game 1 - Click The Bomb
+        socket.on("start_game_ctb", (roomCode) => {
+            // min - 1, max - users.lenght * 5 (max number of clicks)
+            const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
+            updateDataBomb(max,0,roomCode);
+        });
+        
         socket.on("send_ctb_counter", (room) => {
             db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = ${room}`);
             db.all(`SELECT max, counter FROM bomb WHERE id = ${room}`, [], (err, bomb_rows) => {
