@@ -9,7 +9,7 @@ interface MiniGamesProps {
     roomCode: string;
 };
 
-export default function MiniGames( { socket, roomCode, users }: MiniGamesProps) {
+export default function MiniGames( { socket,roomCode,users }: MiniGamesProps) {
     const [yourName, setYourName] = useState<string>("");
     const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
     const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
@@ -41,9 +41,8 @@ export default function MiniGames( { socket, roomCode, users }: MiniGamesProps) 
 
     const switchGame = (currentGame: number) => {
         switch(currentGame){
-            case 0:
-                return <Leaderboard users={users} />
             case 1: 
+
                 return <Ctb socket={socket} roomCode={roomCode} />
             case 2:
                 return <div>Gra 2</div>  

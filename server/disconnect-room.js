@@ -1,4 +1,4 @@
-exports = module.exports = function(io){
+exports = module.exports = function(io, db){
     io.sockets.on('connection', function(socket) {
         // disconnect user
         socket.on("disconnect", () => {

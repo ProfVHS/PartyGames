@@ -30,12 +30,9 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
     setClicked(false);
     setYourTurn(false);
     socket.emit("send_change_ctb_turn", roomCode);
-  };
+  };  
 
   useEffect(() => {
-    if(counter == 0){
-      socket.emit("send_ctb_turn", roomCode);
-    };
     socket.on("receive_ctb_turn", (data) => {
       setTurn(data.username);
       if(data.id == socket.id){
@@ -49,7 +46,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
       if(data == socket.id){
         setIsDead(true);
       } else {
-        console.log("Gracz wybuchł");
+        console.log("Gracz wybuchł - " + data);
       }
       handleSkipButton();
     });
@@ -59,25 +56,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
       setIsEndGame(true);
       setWinner(data);
     });
-  }, []);
-
-  useEffect(() => {
-    // if(username === turn){
-    //   handleTurn(true);
-    // } else {
-    //   handleTurn(false);
-    // }
-
-    // users.forEach((user) => {
-    //   if(user.id === socket.id){
-    //     if(user.username === turn){
-    //       handleTurn(true);
-    //     } else {
-    //       handleTurn(false);
-    //     }
-    //   }
-    // });
-  }, []);
+  }, [socket]);
 
   setTimeout(() => {
 
