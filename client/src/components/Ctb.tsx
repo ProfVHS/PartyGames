@@ -48,7 +48,6 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
       } else {
         console.log("Gracz wybuchł - " + data);
       }
-      handleSkipButton();
     });
     socket.on("receive_ctb_end", (data) => {
       setClicked(false);
