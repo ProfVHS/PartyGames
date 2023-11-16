@@ -1,5 +1,5 @@
-exports = module.exports = function(io, db){
-    io.sockets.on('connection', function(socket) {
+exports = module.exports = function(io, db, updateRoomTurn){
+  io.sockets.on('connection', function(socket) {
         // users get up to date data
         socket.on("joined", async (room) => {
             await db.all(`SELECT * FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
@@ -25,9 +25,8 @@ exports = module.exports = function(io, db){
                   updateRoomTurn(turn,data.roomCode,socket);
                   const username = rows[turn].username;
                   const id = rows[turn].id;
-
                   socket.nsp.to(data.roomCode).emit("receive_ctb_turn", {username, id});
-                  socket.nsp.to(data.roomCode).emit("start_game_ctb", data.roomCode);                  
+                  socket.emit("start_game_ctb", roomCode);
                 }
             });
         });
@@ -58,4 +57,4 @@ exports = module.exports = function(io, db){
             });
           });
     });
-}
+};

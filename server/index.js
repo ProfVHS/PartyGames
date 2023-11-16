@@ -38,7 +38,7 @@ const updateDataBomb = (max,counter,room) => {
   db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
 };
 // set turn
-const updateRoomTurn = (turn,room, socket) => {
+const updateRoomTurn = (turn,room,socket) => {
   db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
   db.all(`SELECT id, username FROM users WHERE id_rooms = ${room} AND alive = true`, [], (err, rows) => {
     const username = rows[turn].username;
@@ -56,7 +56,7 @@ const updateScore = (socket, score) => {
 };
 
 const Join = require("./join")(io, db);
-const Room = require("./room")(io, db);
+const Room = require("./room")(io, db, updateRoomTurn);
 const Ctb = require("./click-the-bomb")(io, db, updateDataBomb, updateRoomTurn, updateAliveUsers);
 
 io.on("connection", (socket) => {
