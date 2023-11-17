@@ -1,4 +1,4 @@
-exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb){
+exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disconnectUser){
   io.sockets.on('connection', function(socket) {
         // users get up to date data
         socket.on("joined", async (room) => {
@@ -22,12 +22,12 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb){
             await db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
                 if(data.newPlayersReady == rows.length){
                   const turn = Math.round(Math.random() * (rows.length - 1));
-                  updateRoomTurn(turn,data.roomCode);
+                  updateRoomTurn(turn, data.roomCode, socket);
                   const username = rows[turn].username;
                   const id = rows[turn].id;
                   // min - 1, max - users.lenght * 5 (max number of clicks)
                   const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
-                  updateDataBomb(max,0,data.roomCode);
+                  updateDataBomb(max,0, data.roomCode, socket);
                   console.log("max: " + max);
                   socket.nsp.to(data.roomCode).emit("receive_ctb_turn", {username, id});
                   
@@ -36,29 +36,18 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb){
         });
 
         // disconnect user
-        socket.on("disconnect", () => {
+        socket.on("disconnect", async () => {
             var currentRoomId;  
 
             // data from the user that disconnected
-            db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, row) => {
+            await db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, row) => {
               if(!err){
-                currentRoomId = row.id_rooms;
-                socket.nsp.to(currentRoomId).emit("user_disconnected", row);
+                if(row){
+                  currentRoomId = row.id_rooms;
+                  disconnectUser(currentRoomId, row, socket);
+                }
               }
             });
-        
-            // info for the console
-            console.log(`User disconnected: ${socket.id}`);
-        
-            // delete user from database
-            db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-        
-            // update users list
-            db.all(`SELECT * FROM users WHERE id_rooms = ${currentRoomId}`, [], (err, rows) => {
-              if(!err){
-                socket.nsp.to(currentRoomId).emit("receive_users", rows);
-              }
-            });
-          });
+        });
     });
 };
