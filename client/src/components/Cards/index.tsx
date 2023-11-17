@@ -2,6 +2,7 @@ import "./style.scss";
 
 import Card from "./Card";
 import { useState } from "react";
+import Stopwatch from "../Stopwatch";
 
 interface CardObject {
   isPositive: boolean;
@@ -27,6 +28,10 @@ function Cards() {
   return (
     <div className="cards">
       <span className="cards__title">Cards</span>
+      <span>Choose a card</span>
+      <div className="cards__stopwatch">
+        <Stopwatch timeLeft={10} maxTime={15} />
+      </div>
       <div className="cardsWrapper" onClick={() => setFlipped(true)}>
         {cards.map((card, index) => (
           <Card
