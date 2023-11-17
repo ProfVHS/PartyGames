@@ -53,37 +53,42 @@ const disconnectUser = (currentRoomId, row, socket) => {
 const updateDataBomb = (max,counter,room) => {
   db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
 };
+// set users as dead
+const updateAliveUsers = (bool,room) => {
+  db.run(`UPDATE users SET alive = ${bool} WHERE id_rooms = ${room}`);
+};
 // set user as dead 
-const updateAliveUsers = (id) => {
-  db.run(`UPDATE users SET alive = false WHERE id = "${id}"`);
+const updateAliveUser = (bool,id) => {
+  db.run(`UPDATE users SET alive = ${bool} WHERE id = "${id}"`);
 };
 // change score of the user
 const updateScore = (socket, score) => {
   db.run(`UPDATE users SET score = score + ${score} WHERE id = "${socket.id}"`);
 };
 // set turn
-const updateRoomTurn = (turn,room, socket) => {
-  db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
+const updateRoomTurn = async (turn,room, socket) => {
+  await db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
 
   db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
     db.all(`SELECT id, username FROM users WHERE id_rooms = ${room} AND alive = true`, [], (err, rows) => {
-      const username = rows[row.turn].username;
-      const id = rows[row.turn].id;
-      socket.nsp.to(room).emit("receive_ctb_turn", {username, id});
+      if(!err){
+        console.log(rows);
+        console.log(row.turn);
+        const username = rows[row.turn].username;
+        const id = rows[row.turn].id;
+        socket.nsp.to(room).emit("receive_ctb_turn", {username, id});
+      }
     });
   });
 };
 // change turn turn
 const changeRoomTurn = async (room, socket) => {
-  await db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+  db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
     db.all(`SELECT * FROM users WHERE id_rooms = ${room} AND alive = true`, [], (err, rows) => {
       if(!err){
-        console.log("turn: " + row.turn);
         if(row.turn == (rows.length-1)) {
           updateRoomTurn(0, room, socket);
-          console.log("turn = 0");
         } else {
-          console.log("turn + 1: " + row.turn + 1);
           updateRoomTurn(row.turn+1, room, socket);
         }        
       }
@@ -93,7 +98,7 @@ const changeRoomTurn = async (room, socket) => {
 
 const Join = require("./join")(io, db);
 const Room = require("./room")(io, db, updateRoomTurn, updateDataBomb, disconnectUser);
-const Ctb = require("./click-the-bomb")(io, db, updateDataBomb, updateRoomTurn, changeRoomTurn, updateAliveUsers);
+const Ctb = require("./click-the-bomb")(io, db, updateDataBomb, changeRoomTurn, updateAliveUser, updateAliveUsers);
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);

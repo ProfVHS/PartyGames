@@ -63,7 +63,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
 
   return (
     <div className="ctb">
-      {!isEndGame && !isDead && (<>
+      {!isEndGame && (<>
         <span className="ctb__gamename">Click The Bomb</span>
         <span className="ctb__turn">{turn}'s turn</span>
         <div className="ctb__c4">
@@ -72,6 +72,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
             {counter < 10 ? "0" + counter : counter}
           </span>
         </div>
+        {!isDead && 
         <div className="ctb__buttonbox">
           <button
             className="ctb__button click"
@@ -87,15 +88,15 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
           >
             {">"}
           </button>
-        </div>
+        </div>}
+        {isDead && <div>
+            <span className="ctb__death">You died</span>
+          </div>}
+        
       </>)}
       {isEndGame && (<>
         <div>Koniec</div>
         <div>Wygrał {winner}</div>
-      </>)}
-      {isDead && (<>
-        <p>Wybuchłeś</p>
-        <p>-100 pkt</p>
       </>)}
       
     </div>
