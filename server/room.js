@@ -2,8 +2,13 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disc
   io.sockets.on('connection', function(socket) {
         // users get up to date data
         socket.on("joined", async (room) => {
-            await db.all(`SELECT * FROM users WHERE id_rooms = ${room}`, [], (err, rows) => {
-            socket.nsp.to(room).emit("receive_users", rows);
+            await db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
+              socket.nsp.to(room).emit("receive_users", rows);
+            });
+            db.get(`SELECT ready FROM rooms WHERE id = ${room}`, [], (err, row) => {
+              if(!err){
+                socket.nsp.to(room).emit("recive_value", row.ready);
+              }
             });
         });
 
@@ -18,8 +23,14 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disc
 
         // how many players are ready
         socket.on("send_value", async (data) => {
-            socket.nsp.to(data.roomCode).emit("recive_value", data.newPlayersReady);
-            await db.all(`SELECT * FROM users WHERE id_rooms = ${data.roomCode}`, [], (err, rows) => {
+            db.run(`UPDATE rooms SET ready = ${data.newPlayersReady} WHERE id = ${data.roomCode}`);
+            db.get(`SELECT ready FROM rooms WHERE id = ${data.roomCode}`, [], (err, row) => {
+                if(!err){
+                  console.log("ready: " + row.ready);
+                  socket.nsp.to(data.roomCode).emit("recive_value", row.ready);
+                }
+            });
+            await db.all(`SELECT * FROM users WHERE id_room = ${data.roomCode}`, [], (err, rows) => {
                 if(data.newPlayersReady == rows.length){
                   const turn = Math.round(Math.random() * (rows.length - 1));
                   updateRoomTurn(turn, data.roomCode, socket);
@@ -43,7 +54,7 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disc
             await db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, row) => {
               if(!err){
                 if(row){
-                  currentRoomId = row.id_rooms;
+                  currentRoomId = row.id_room;
                   disconnectUser(currentRoomId, row, socket);
                 }
               }

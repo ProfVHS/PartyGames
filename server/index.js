@@ -19,10 +19,10 @@ const server = http.createServer(app);
 server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
-    db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL);');
-    db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_rooms" INTEGER NOT NULL, FOREIGN KEY ("id_rooms") REFERENCES rooms ("id"));');
+    db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL);');
+    db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));');
     // games table
-    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES rooms ("id"));');
+    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES room ("id"));');
   });
 });
 
@@ -42,7 +42,7 @@ const disconnectUser = (currentRoomId, row, socket) => {
   db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
 
   // update users list
-  db.all(`SELECT * FROM users WHERE id_rooms = ${currentRoomId}`, [], (err, rows) => {
+  db.all(`SELECT * FROM users WHERE id_room = ${currentRoomId}`, [], (err, rows) => {
     if(!err){
       socket.nsp.to(currentRoomId).emit("receive_users", rows);
     }
@@ -52,14 +52,16 @@ const disconnectUser = (currentRoomId, row, socket) => {
 // set max and counter
 const updateDataBomb = (max,counter,room) => {
   db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
+  console.log("Bomb updated");
 };
 // set users as dead
 const updateAliveUsers = (bool,room) => {
-  db.run(`UPDATE users SET alive = ${bool} WHERE id_rooms = ${room}`);
+  db.run(`UPDATE users SET alive = ${bool} WHERE id_room = ${room}`);
 };
 // set user as dead 
 const updateAliveUser = (bool,id) => {
   db.run(`UPDATE users SET alive = ${bool} WHERE id = "${id}"`);
+  console.log("user " + id + " is dead");
 };
 // change score of the user
 const updateScore = (socket, score) => {
@@ -70,8 +72,9 @@ const updateRoomTurn = async (turn,room, socket) => {
   await db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
 
   db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
-    db.all(`SELECT id, username FROM users WHERE id_rooms = ${room} AND alive = true`, [], (err, rows) => {
+    db.all(`SELECT id, username FROM users WHERE id_room = ${room} AND alive = true`, [], (err, rows) => {
       if(!err){
+        console.log("Update turn:");
         console.log(rows);
         console.log(row.turn);
         const username = rows[row.turn].username;
@@ -83,10 +86,10 @@ const updateRoomTurn = async (turn,room, socket) => {
 };
 // change turn turn
 const changeRoomTurn = async (room, socket) => {
-  db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
-    db.all(`SELECT * FROM users WHERE id_rooms = ${room} AND alive = true`, [], (err, rows) => {
+  await db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+    db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err, rows) => {
       if(!err){
-        if(row.turn == (rows.length-1)) {
+        if(row.turn + 1 > rows.length - 1) {
           updateRoomTurn(0, room, socket);
         } else {
           updateRoomTurn(row.turn+1, room, socket);

@@ -38,10 +38,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
     const newPlayersReady = ready ? playersReady - 1 : playersReady + 1;
   
     socket.emit("send_value", {roomCode , newPlayersReady});
-
-    socket.on("receive_value", (data) => {
-      setPlayersReady(data);
-    });
   };         
 
   useEffect(() => {
