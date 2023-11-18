@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
-import Ctb from "../components/Ctb";
-import Cards from "../components/Cards";
+
+import MiniGames from "../components/MiniGames";
 
 interface RoomPageProps {
   socket: Socket;
@@ -37,13 +37,9 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setReady(!ready);
 
     const newPlayersReady = ready ? playersReady - 1 : playersReady + 1;
-
-    socket.emit("send_value", { roomCode, newPlayersReady });
-
-    socket.on("receive_value", (data) => {
-      setPlayersReady(data);
-    });
-  };
+    
+    socket.emit("send_value", {roomCode , newPlayersReady});
+  };         
 
   useEffect(() => {
     socket.emit("joined", roomCode);
@@ -81,7 +77,18 @@ export default function RoomPage({ socket }: RoomPageProps) {
             );
           })}
         <div className="roomContent">
-          <Cards />
+          {playersReady !== users.length
+          ? <Lobby
+            roomCode={roomCode?.toString()}
+            onClick={handleReadyClick}
+            players={playersReady}
+            isReady={ready}
+          /> 
+          : <MiniGames 
+            socket={socket}
+            users={users}
+            roomCode={roomCode}
+            />}
           <AudioVideoControls />
         </div>
       </div>
