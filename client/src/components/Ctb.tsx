@@ -94,11 +94,6 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
           </div>}
         
       </>)}
-      {isEndGame && (<>
-        <div>Koniec</div>
-        <div>Wygrał {winner}</div>
-      </>)}
-      
     </div>
   );
 }

@@ -1,10 +1,8 @@
-exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disconnectUser){
+exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disconnectUser, usersData){
   io.sockets.on('connection', function(socket) {
         // users get up to date data
         socket.on("joined", async (room) => {
-            await db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
-              socket.nsp.to(room).emit("receive_users", rows);
-            });
+            usersData(room, socket);
             db.get(`SELECT ready FROM rooms WHERE id = ${room}`, [], (err, row) => {
               if(!err){
                 socket.nsp.to(room).emit("recive_value", row.ready);
@@ -26,7 +24,6 @@ exports = module.exports = function(io, db, updateRoomTurn, updateDataBomb, disc
             db.run(`UPDATE rooms SET ready = ${data.newPlayersReady} WHERE id = ${data.roomCode}`);
             db.get(`SELECT ready FROM rooms WHERE id = ${data.roomCode}`, [], (err, row) => {
                 if(!err){
-                  console.log("ready: " + row.ready);
                   socket.nsp.to(data.roomCode).emit("recive_value", row.ready);
                 }
             });
