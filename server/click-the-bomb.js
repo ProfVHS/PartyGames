@@ -22,6 +22,7 @@ exports = module.exports = function(io, db, updateDataBomb, updateRoomTurn, chan
                         
                     } else {
                         // continue the game
+                        console.log("counter: " + row.counter);
                     }
                 }
             });
