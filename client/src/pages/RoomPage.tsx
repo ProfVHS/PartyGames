@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
 import { Socket } from "socket.io-client";
-import MiniGames from "../components/MiniGames";
 
+import MiniGames from "../components/MiniGames";
 
 interface RoomPageProps {
   socket: Socket;
@@ -19,7 +19,9 @@ interface RoomPageProps {
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
   const [playersReady, setPlayersReady] = useState(0);
-  const [users, setUsers] = useState<{id: string, username: string, score: number, id_room: string}[]>([]);
+  const [users, setUsers] = useState<
+    { id: string; username: string; score: number; id_room: string }[]
+  >([]);
   const [ready, setReady] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,19 +31,13 @@ export default function RoomPage({ socket }: RoomPageProps) {
     ? location.state?.randomRoomCode
     : location.state?.roomCode;
 
-
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
     setReady(!ready);
-    
     const newPlayersReady = ready ? -1 : 1;
-  
-    socket.emit("send_value", {roomCode , newPlayersReady});
 
-    socket.on("receive_value", (data) => {
-      setPlayersReady(data);
-    });
+    socket.emit("send_value", {roomCode , newPlayersReady});
   };         
 
   useEffect(() => {
@@ -51,15 +47,15 @@ export default function RoomPage({ socket }: RoomPageProps) {
   useEffect(() => {
     socket.on("receive_users_data", (data) => {
       setUsers(data);
-      console.log("Data - " ,data);
+      console.log("Data - ", data);
     });
     socket.on("receive_room_data", (data) => {
       setPlayersReady(data.ready);
     });
     socket.on("recive_value", (data) => {
-      const newPlayersReady = playersReady + data
-      setPlayersReady(newPlayersReady)
-    })
+      const newPlayersReady = playersReady + data;
+      setPlayersReady(newPlayersReady);
+    });
     socket.on("user_disconnected", (data) => {
       alert(data[0].username + " has left the room");
     });
@@ -69,19 +65,19 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setIsLoading(false);
   }, 1995);
 
-
   return (
     <>
       <div className="roomGrid">
-        {users && users.map((user) => {
-          return (
-            <Camera 
-            key={user.id} 
-            username={user.username}
-            score={user.score}
-            />
-          );
-        })}        
+        {users &&
+          users.map((user) => {
+            return (
+              <Camera
+                key={user.id}
+                username={user.username}
+                score={user.score}
+              />
+            );
+          })}
         <div className="roomContent">
           {(playersReady == users.length && playersReady !== 1)
           ? <MiniGames 
@@ -98,7 +94,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
           <AudioVideoControls />
         </div>
       </div>
-      
+
       {isLoading && <div className="room__loadingScreen">Party Games</div>}
     </>
   );

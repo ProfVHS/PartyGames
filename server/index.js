@@ -22,7 +22,7 @@ server.listen(3000, async () => {
     db.run('CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL);');
     db.run('CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));');
     // games table
-    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES rooms ("id"));');
+    db.run('CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES room ("id"));');
   });
 });
 
@@ -44,10 +44,9 @@ const disconnectUser = (room, row, socket) => {
   // update users list
   usersData(room, socket);
 }
-// 1 - Game Click the bomb
-// set max and counter
-const updateDataBomb = (max,counter,room) => {
-  db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
+// set users as dead
+const updateAliveUsers = (bool, room) => {
+  db.run(`UPDATE users SET alive = ${bool} WHERE id_room = ${room}`);
 };
 // set user as dead 
 const updateAliveUser = (bool, id) => {
@@ -132,10 +131,27 @@ const roomData = (room, socket) => {
     }
   });
 };
+// send users data
+const usersData = (room, socket) => {
+  db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
+    if(!err){
+      socket.nsp.to(room).emit("receive_users", rows);
+    }
+  });
+};
+// 1 - Game Click the bomb
+// set max and counter
+const updateDataBomb = (max,counter,room) => {
+  db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
+};
+
+// 2 - Cards
+
 
 const Join = require("./join")(io, db, usersData);
 const Room = require("./room")(io, db, usersData, roomData, updateRoomTurn, updateDataBomb, disconnectUser);
 const Ctb = require("./click-the-bomb")(io, db, usersData, updateDataBomb, changeRoomTurn, updateAliveUser, updateAliveUsers, updateScore, updateScoreMultiply);
+
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);

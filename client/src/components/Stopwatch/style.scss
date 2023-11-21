@@ -1,0 +1,50 @@
+.stopwatch {
+  position: relative;
+
+  height: 70px;
+  width: 70px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &__middle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    border-radius: 100%;
+
+    height: 45px;
+    width: 45px;
+
+    background-color: #b87de8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__value {
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+  }
+
+  &__circle {
+    transition: 0.1s ease;
+  }
+  &__button {
+    position: absolute;
+    &.top {
+      top: -6px;
+    }
+    &.left {
+      left: -4px;
+      top: 5px;
+    }
+  }
+}

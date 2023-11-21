@@ -1,3 +1,4 @@
+
 exports = module.exports = function(io, db, usersData, roomData, updateRoomTurn, updateDataBomb, disconnectUser){
   io.sockets.on('connection', function(socket) {
     // homepage, check room existence
@@ -48,7 +49,6 @@ exports = module.exports = function(io, db, usersData, roomData, updateRoomTurn,
         }
       });
     });
-
     // disconnect user
     socket.on("disconnect", async () => {
       var currentRoomId;  
