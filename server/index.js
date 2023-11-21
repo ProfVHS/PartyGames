@@ -32,8 +32,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-const disconnectUser = (currentRoomId, row, socket) => {
-  socket.nsp.to(currentRoomId).emit("user_disconnected", row);   
+const disconnectUser = (room, row, socket) => {
+  socket.nsp.to(room).emit("user_disconnected", row);   
                    
   // info for the console
   console.log(`User disconnected: ${socket.id}`);
@@ -42,11 +42,7 @@ const disconnectUser = (currentRoomId, row, socket) => {
   db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
 
   // update users list
-  db.all(`SELECT * FROM users WHERE id_room = ${currentRoomId}`, [], (err, rows) => {
-    if(!err){
-      socket.nsp.to(currentRoomId).emit("receive_users", rows);
-    }
-  });  
+  usersData(room, socket);
 }
 // 1 - Game Click the bomb
 // set max and counter
@@ -124,13 +120,21 @@ const changeRoomTurn = async (room, socket) => {
 const usersData = (room, socket) => {
   db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
     if(!err){
-      socket.nsp.to(room).emit("receive_users", rows);
+      socket.nsp.to(room).emit("receive_users_data", rows);
+    }
+  });
+};
+// send room data
+const roomData = (room, socket) => {
+  db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+    if(!err){
+      socket.nsp.to(room).emit("receive_room_data", row);
     }
   });
 };
 
-const Join = require("./join")(io, db);
-const Room = require("./room")(io, db, usersData, updateRoomTurn, updateDataBomb, disconnectUser);
+const Join = require("./join")(io, db, usersData);
+const Room = require("./room")(io, db, usersData, roomData, updateRoomTurn, updateDataBomb, disconnectUser);
 const Ctb = require("./click-the-bomb")(io, db, usersData, updateDataBomb, changeRoomTurn, updateAliveUser, updateAliveUsers, updateScore, updateScoreMultiply);
 
 io.on("connection", (socket) => {
