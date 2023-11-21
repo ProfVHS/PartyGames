@@ -35,9 +35,8 @@ export default function RoomPage({ socket }: RoomPageProps) {
     new Audio(ClickSound).play();
 
     setReady(!ready);
+    const newPlayersReady = ready ? -1 : 1;
 
-    const newPlayersReady = ready ? playersReady - 1 : playersReady + 1;
-    
     socket.emit("send_value", {roomCode , newPlayersReady});
   };         
 
@@ -46,9 +45,12 @@ export default function RoomPage({ socket }: RoomPageProps) {
   }, []);
 
   useEffect(() => {
-    socket.on("receive_users", (data) => {
+    socket.on("receive_users_data", (data) => {
       setUsers(data);
       console.log("Data - ", data);
+    });
+    socket.on("receive_room_data", (data) => {
+      setPlayersReady(data.ready);
     });
     socket.on("recive_value", (data) => {
       const newPlayersReady = playersReady + data;
@@ -77,17 +79,17 @@ export default function RoomPage({ socket }: RoomPageProps) {
             );
           })}
         <div className="roomContent">
-          {playersReady !== users.length
-          ? <Lobby
+          {(playersReady == users.length && playersReady !== 1)
+          ? <MiniGames 
+            socket={socket}
+            users={users}
+            roomCode={roomCode}
+            /> 
+          : <Lobby
             roomCode={roomCode?.toString()}
             onClick={handleReadyClick}
             players={playersReady}
             isReady={ready}
-          /> 
-          : <MiniGames 
-            socket={socket}
-            users={users}
-            roomCode={roomCode}
             />}
           <AudioVideoControls />
         </div>

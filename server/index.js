@@ -32,10 +32,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-// Main functions
-// disconnect user
-const disconnectUser = (currentRoomId, row, socket) => {
-  socket.nsp.to(currentRoomId).emit("user_disconnected", row);   
+const disconnectUser = (room, row, socket) => {
+  socket.nsp.to(room).emit("user_disconnected", row);   
                    
   // info for the console
   console.log(`User disconnected: ${socket.id}`);
@@ -44,11 +42,7 @@ const disconnectUser = (currentRoomId, row, socket) => {
   db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
 
   // update users list
-  db.all(`SELECT * FROM users WHERE id_room = ${currentRoomId}`, [], (err, rows) => {
-    if(!err){
-      socket.nsp.to(currentRoomId).emit("receive_users", rows);
-    }
-  });
+  usersData(room, socket);
 }
 // set users as dead
 const updateAliveUsers = (bool, room) => {
@@ -57,42 +51,84 @@ const updateAliveUsers = (bool, room) => {
 // set user as dead 
 const updateAliveUser = (bool, id) => {
   db.run(`UPDATE users SET alive = ${bool} WHERE id = "${id}"`);
-  console.log("user " + id + " is dead");
 };
-// change score of the user (add or substract)
+const updateAliveUsers = (bool, room) => {
+  db.run(`UPDATE users SET alive = ${bool} WHERE id_room = ${room}`);
+};
+// change score of the user
 const updateScore = (score, id) => {
   db.run(`UPDATE users SET score = score + ${score} WHERE id = "${id}"`);
 };
-// change score of the user (multiply)
-const updateScoreMultiply = (score, id) => {
-  db.run(`UPDATE users SET score = score * ${score} WHERE id = "${id}"`);
+const updateScoreMultiply = (multiply, id) => {
+  db.run(`UPDATE users SET score = score * ${multiply} WHERE id = "${id}"`);
 };
 // set turn
-const updateRoomTurn = async (turn, room, socket) => {
-  await db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
+const updateRoomTurn = async (turn,room, socket) => {
+  db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
 
-  db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
-    db.all(`SELECT id, username FROM users WHERE id_room = ${room} AND alive = true`, [], (err, rows) => {
-      if(!err){
-        const username = rows[row.turn].username;
-        const id = rows[row.turn].id;
-        socket.nsp.to(room).emit("receive_ctb_turn", {username, id});
-      }
+  return new Promise((resolve, reject) => {
+    db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, turn_row) => {
+        if(err){
+            reject(err);
+        } else {
+            db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err, users_rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve([turn_row, users_rows]);
+                }
+            });
+        }
     });
+  })
+  .then(([turn_row, users_rows]) => {
+    // send turn info to the client
+    const username = users_rows[turn_row.turn].username;
+    const id = users_rows[turn_row.turn].id;
+    socket.nsp.to(room).emit("receive_ctb_turn", {username, id});
   });
 };
-// change turn turn
+// change turn
 const changeRoomTurn = async (room, socket) => {
-  await db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
-    db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err, rows) => {
-      if(!err){
-        if(row.turn + 1 > rows.length - 1) {
-          updateRoomTurn(0, room, socket);
+  return new Promise((resolve, reject) => {
+    db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, turn_row) => {
+        if(err){
+            reject(err);
         } else {
-          updateRoomTurn(row.turn+1, room, socket);
-        }        
-      }
+            db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err, users_rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve([turn_row, users_rows]);
+                }
+            });
+        }
     });
+  })
+  .then(([turn_row, users_rows]) => {
+    // turn_row.turn (0-7), users_rows.length (2-8)
+    // if last user, turn = 0, else turn + 1
+    if(turn_row.turn >= (users_rows.length-1)) {
+      updateRoomTurn(0, room, socket);
+    } else {
+      updateRoomTurn(turn_row.turn+1, room, socket);
+    }
+  });
+};
+// send users data
+const usersData = (room, socket) => {
+  db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
+    if(!err){
+      socket.nsp.to(room).emit("receive_users_data", rows);
+    }
+  });
+};
+// send room data
+const roomData = (room, socket) => {
+  db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+    if(!err){
+      socket.nsp.to(room).emit("receive_room_data", row);
+    }
   });
 };
 // send users data
@@ -111,9 +147,11 @@ const updateDataBomb = (max,counter,room) => {
 
 // 2 - Cards
 
-const Join = require("./join")(io, db);
-const Room = require("./room")(io, db, updateRoomTurn, updateDataBomb, disconnectUser, usersData);
-const Ctb = require("./click-the-bomb")(io, db, updateDataBomb, changeRoomTurn, updateAliveUser, updateAliveUsers, updateScore, updateScoreMultiply, usersData);
+
+const Join = require("./join")(io, db, usersData);
+const Room = require("./room")(io, db, usersData, roomData, updateRoomTurn, updateDataBomb, disconnectUser);
+const Ctb = require("./click-the-bomb")(io, db, usersData, updateDataBomb, changeRoomTurn, updateAliveUser, updateAliveUsers, updateScore, updateScoreMultiply);
+
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
