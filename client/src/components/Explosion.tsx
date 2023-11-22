@@ -48,8 +48,8 @@ const Explosion = (props: SVGProps<SVGSVGElement>) => (
           id="rect"
           height={rect.size}
           width={rect.size}
-          x={212}
-          y={213}
+          x={240}
+          y={250}
           fill={rect.color}
           animate={{
             y: [0, rect.y],

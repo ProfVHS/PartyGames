@@ -17,6 +17,12 @@
 
   border-radius: 5px;
 
+  &__explode {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+  }
+
   &__gamename {
     font-family: "Spicy Rice";
     font-size: 36px;
