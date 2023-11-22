@@ -52,9 +52,6 @@ const updateAliveUsers = (bool, room) => {
 const updateAliveUser = (bool, id) => {
   db.run(`UPDATE users SET alive = ${bool} WHERE id = "${id}"`);
 };
-const updateAliveUsers = (bool, room) => {
-  db.run(`UPDATE users SET alive = ${bool} WHERE id_room = ${room}`);
-};
 // change score of the user
 const updateScore = (score, id) => {
   db.run(`UPDATE users SET score = score + ${score} WHERE id = "${id}"`);
@@ -128,14 +125,6 @@ const roomData = (room, socket) => {
   db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
     if(!err){
       socket.nsp.to(room).emit("receive_room_data", row);
-    }
-  });
-};
-// send users data
-const usersData = (room, socket) => {
-  db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
-    if(!err){
-      socket.nsp.to(room).emit("receive_users", rows);
     }
   });
 };

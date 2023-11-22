@@ -27,9 +27,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   //const username = location.state?.username;
-  const roomCode: string = location.state?.randomRoomCode
-    ? location.state?.randomRoomCode
-    : location.state?.roomCode;
+  const roomCode: string = location.state?.code
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
