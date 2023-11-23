@@ -39,6 +39,8 @@ exports = module.exports = function(io, db, usersData){
             }
 
             usersData(data.randomRoomCode, socket); 
+          } else {
+            socket.emit("roomFull");
           }
         });
       });

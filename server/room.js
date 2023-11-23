@@ -45,7 +45,6 @@ exports = module.exports = function(io, db, usersData, roomData, updateRoomTurn,
           // min - 1, max - users.lenght * 5 (max number of clicks)
           const max = Math.round(Math.random() * ((rows.length * 5) - 1)) + 1;
           updateDataBomb(max,0,data.roomCode);
-          console.log("max: " + max);
         }
       });
     });

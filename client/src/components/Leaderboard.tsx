@@ -1,5 +1,3 @@
-import React, { useEffect } from 'react'
-
 import "../styles/Leaderboard.scss";
 
 interface LeaderboardProps{

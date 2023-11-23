@@ -57,7 +57,7 @@ const updateScore = (score, id) => {
   db.run(`UPDATE users SET score = score + ${score} WHERE id = "${id}"`);
 };
 const updateScoreMultiply = (multiply, id) => {
-  db.run(`UPDATE users SET score = score * ${multiply} WHERE id = "${id}"`);
+  db.run(`UPDATE users SET score = ROUND(score * ${multiply}) WHERE id = "${id}"`);
 };
 // set turn
 const updateRoomTurn = async (turn,room, socket) => {
@@ -132,6 +132,7 @@ const roomData = (room, socket) => {
 // set max and counter
 const updateDataBomb = (max,counter,room) => {
   db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = ${room}`);
+  console.log("max: " + max);
 };
 
 // 2 - Cards
