@@ -39,21 +39,21 @@ exports = module.exports = function(io, db, usersData, updateDataBomb, changeRoo
                                 socket.nsp.to(room).emit("receive_ctb_end", user_row.username);
                             } else {
                                 // -30% points to the loser
-                                updateScoreMultiply(0.7, user_row.id);
+                                updateScoreMultiply(0.536, user_row.id);
                                 usersData(room, socket);
                             }
                         });
                         updateAliveUsers(true,room);
                     } else {
                         // update new max number of clicks and reset counter
-                        const max = Math.round(Math.random() * ((10 * 5) - 1)) + 1;
+                        const max = Math.round(Math.random() * (((users_rows.length-1) * 5) - 1)) + 1;
                         updateDataBomb(max,0,room);
                         //update turn 
                         changeRoomTurn(room,socket);
                         // update user as dead
                         updateAliveUser(false,socket.id);
                         // -30% points to the loser
-                        updateScoreMultiply(0.7,socket.id);
+                        updateScoreMultiply(0.536,socket.id);
                         // send info to the client
                         usersData(room, socket);
                         socket.nsp.to(room).emit("receive_ctb_counter", 0);

@@ -26,10 +26,14 @@ export default function HomePage({ socket }: HomePageProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    handleRandomRoomCode();
+  }, []);
+
+  const handleRandomRoomCode = () => {
     setRandomRoomCode(
       Math.round(Math.random() * (90000 - 10000) + 10000).toString()
     );
-  }, []);
+  };
 
   const inputHandler = (room: string) => {
     setRoomCode(room);
@@ -39,8 +43,11 @@ export default function HomePage({ socket }: HomePageProps) {
     });
   };
 
-  const startLoadingAnimation = () => {
+  const startLoadingAnimation = (code: string) => {
     setIsLoading(true);
+    setTimeout(() => {
+      navigate("/lobby", { state: { username, code } });
+    }, 2250);
   };
 
   const JoinHandleClick = () => {
@@ -51,22 +58,26 @@ export default function HomePage({ socket }: HomePageProps) {
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
       socket.emit("join-room", { roomCode, name });
-      startLoadingAnimation();
-      setTimeout(() => {
-        navigate("/lobby", { state: { username, roomCode } });
-      }, 2250);
+      socket.on("roomNotFull", () => {
+        startLoadingAnimation(roomCode);
+      });
     };
   };
 
   const CreateHandleClick = () => {
-    const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
-    const name = username ? username : randomUsername;
-    new Audio(ClickSound).play();
-    socket.emit("create-room", { randomRoomCode, name });
-    startLoadingAnimation();
-    setTimeout(() => {
-      navigate("/lobby", { state: { username, randomRoomCode } });
-    }, 2250);
+    socket.emit("checkRoomExistence", randomRoomCode);
+    socket.on("roomExistenceResponse", (exists) => {
+      if (exists) {
+        handleRandomRoomCode();
+        CreateHandleClick();
+      } else {
+        const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
+        const name = username ? username : randomUsername;
+        new Audio(ClickSound).play();
+        socket.emit("create-room", { randomRoomCode, name });
+        startLoadingAnimation(randomRoomCode);
+      }
+    });
   };
 
   return (
