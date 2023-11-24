@@ -1,8 +1,10 @@
 .ctb {
   background-color: #fff;
   width: 350px;
-  height: 40vh;
-  min-height: 325px;
+  height: 90%;
+  min-height: 300px;
+  max-height: 350px;
+
   font-family: "Poppins";
 
   display: flex;
@@ -40,6 +42,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+
+    height: 45%;
 
     &__counter {
       position: absolute;
