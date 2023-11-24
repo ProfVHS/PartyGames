@@ -25,6 +25,7 @@
     font-family: "Poppins";
     font-size: 16px;
     font-weight: 700;
+    text-align: center;
   }
   &__video {
     background-color: #000;
@@ -47,5 +48,11 @@
   .camera {
     width: 125px;
     max-height: 125px;
+    &__username {
+      font-size: 12px;
+    }
+    &__score {
+      font-size: 16px;
+    }
   }
 }

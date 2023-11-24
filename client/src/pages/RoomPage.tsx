@@ -82,7 +82,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
     <>
       <div className="roomGrid">
         {windowSizeX > 600 &&
-          windowSizeY > 600 &&
+          windowSizeY > 700 &&
           users &&
           users.map((user) => {
             return (
