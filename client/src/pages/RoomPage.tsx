@@ -25,6 +25,8 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const [ready, setReady] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [windowSizeX, setWindowSizeX] = useState<number>(0);
+  const [windowSizeY, setWindowSizeY] = useState<number>(0);
 
   //const username = location.state?.username;
   const roomCode: string = location.state?.code
@@ -35,11 +37,22 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setReady(!ready);
     const newPlayersReady = ready ? -1 : 1;
 
-    socket.emit("send_value", {roomCode , newPlayersReady});
-  };         
+    socket.emit("send_value", { roomCode, newPlayersReady });
+  };
+
+  const handleResize = () => {
+    const newWindowSizeX = window.innerWidth;
+    const newWindowSizeY = window.innerHeight;
+    setWindowSizeX(newWindowSizeX);
+    setWindowSizeY(newWindowSizeY);
+  };
 
   useEffect(() => {
     socket.emit("joined", roomCode);
+    handleResize();
+    window.addEventListener("resize", () => {
+      handleResize();
+    });
   }, []);
 
   useEffect(() => {
@@ -66,7 +79,9 @@ export default function RoomPage({ socket }: RoomPageProps) {
   return (
     <>
       <div className="roomGrid">
-        {users &&
+        {windowSizeX > 600 &&
+          windowSizeY > 600 &&
+          users &&
           users.map((user) => {
             return (
               <Camera
@@ -77,18 +92,16 @@ export default function RoomPage({ socket }: RoomPageProps) {
             );
           })}
         <div className="roomContent">
-          {(playersReady == users.length && playersReady !== 1)
-          ? <MiniGames 
-            socket={socket}
-            users={users}
-            roomCode={roomCode}
-            /> 
-          : <Lobby
-            roomCode={roomCode?.toString()}
-            onClick={handleReadyClick}
-            players={playersReady}
-            isReady={ready}
-            />}
+          {playersReady == users.length && playersReady !== 1 ? (
+            <MiniGames socket={socket} users={users} roomCode={roomCode} />
+          ) : (
+            <Lobby
+              roomCode={roomCode?.toString()}
+              onClick={handleReadyClick}
+              players={playersReady}
+              isReady={ready}
+            />
+          )}
           <AudioVideoControls />
         </div>
       </div>

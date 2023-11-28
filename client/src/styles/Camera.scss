@@ -4,8 +4,13 @@
   align-items: center;
   justify-content: center;
 
-  width: 200px;
-  height: 180px;
+  max-width: 200px;
+  max-height: 180px;
+  min-width: 100px;
+  min-height: 140px;
+
+  width: 100%;
+  height: 100%;
 
   padding: 2px 0;
 
@@ -20,11 +25,15 @@
     font-family: "Poppins";
     font-size: 16px;
     font-weight: 700;
+    text-align: center;
   }
   &__video {
     background-color: #000;
-    height: 125px;
-    width: 175px;
+    max-height: 125px;
+    max-width: 175px;
+
+    height: 100%;
+    width: 90%;
   }
   &__score {
     color: #5a189a;
@@ -32,5 +41,18 @@
     font-family: "Poppins";
     font-weight: 700;
     font-size: 20px;
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  .camera {
+    width: 125px;
+    max-height: 125px;
+    &__username {
+      font-size: 12px;
+    }
+    &__score {
+      font-size: 16px;
+    }
   }
 }
