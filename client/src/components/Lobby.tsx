@@ -8,9 +8,14 @@ interface LobbyProps {
 }
 
 function Lobby({ roomCode, onClick, players, isReady }: LobbyProps) {
+  
+  const CopyRoom = () => {
+    navigator.clipboard.writeText(roomCode!);
+  };
+  
   return (
     <div className="lobby">
-      <span className="lobby__roomcode">Room Code: {roomCode}</span>
+      <span className="lobby__roomcode" onClick={CopyRoom}>Room Code: {roomCode}</span>
       <div className="lobby__playersready">
         <span className="lobby__playersready-count">{players}</span>
         <span className="lobby__playersready-text">players ready</span>

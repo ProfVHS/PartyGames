@@ -29,9 +29,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const [windowSizeY, setWindowSizeY] = useState<number>(0);
 
   //const username = location.state?.username;
-  const roomCode: string = location.state?.randomRoomCode
-    ? location.state?.randomRoomCode
-    : location.state?.roomCode;
+  const roomCode: string = location.state?.code
 
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
