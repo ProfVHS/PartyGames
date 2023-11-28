@@ -13,8 +13,29 @@ interface HomePageProps {
   socket: Socket;
 }
 
-const adjective = ["Ultra", "Super", "Cool", "Magic", "Banana", "Boring", "Lazy", "Strong", "Infinity"];
-const nouns = ["Mango", "Monkey", "Guy", "Bread", "Ninja", "Sigma", "Banana", "Cat", "Dog", "Cyclop"];
+const adjective = [
+  "Ultra",
+  "Super",
+  "Cool",
+  "Magic",
+  "Banana",
+  "Boring",
+  "Lazy",
+  "Strong",
+  "Infinity",
+];
+const nouns = [
+  "Mango",
+  "Monkey",
+  "Guy",
+  "Bread",
+  "Ninja",
+  "Sigma",
+  "Banana",
+  "Cat",
+  "Dog",
+  "Cyclop",
+];
 
 export default function HomePage({ socket }: HomePageProps) {
   const [username, setUsername] = useState("");
@@ -47,7 +68,10 @@ export default function HomePage({ socket }: HomePageProps) {
     new Audio(ClickSound).play();
 
     if (roomExistence) {
-      const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
+      const randomUsername =
+        adjective[Math.floor(Math.random() * adjective.length)] +
+        " " +
+        nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
       socket.emit("join-room", { roomCode, name });
@@ -55,11 +79,14 @@ export default function HomePage({ socket }: HomePageProps) {
       setTimeout(() => {
         navigate("/lobby", { state: { username, roomCode } });
       }, 2250);
-    };
+    }
   };
 
   const CreateHandleClick = () => {
-    const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
+    const randomUsername =
+      adjective[Math.floor(Math.random() * adjective.length)] +
+      " " +
+      nouns[Math.floor(Math.random() * nouns.length)];
     const name = username ? username : randomUsername;
     new Audio(ClickSound).play();
     socket.emit("create-room", { randomRoomCode, name });
@@ -70,10 +97,10 @@ export default function HomePage({ socket }: HomePageProps) {
   };
 
   return (
-    <div className="box">
-      <img src={Logo} />
-      <span className="name">Party Games</span>
-      <div className="formWrapper">
+    <div className="home">
+      <img src={Logo} className="home__logo" />
+      <span className="home__name">Party Games</span>
+      <div className="home__formWrapper">
         <input
           className="input"
           placeholder="Username"

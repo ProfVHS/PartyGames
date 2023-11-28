@@ -57,6 +57,8 @@
 
   height: 90%;
   width: 90%;
+
+  padding: 10px;
 }
 .gui {
   width: 100vw;
@@ -68,11 +70,11 @@
 }
 @media only screen and (max-width: 900px) {
   .roomGrid {
-    grid-template-columns: 15% 70% 15%;
+    grid-template-columns: 15% 65% 15%;
     grid-template-rows: 20% 60% 20%;
   }
 }
-@media only screen and (max-width: 600px), (max-height: 700px) {
+@media only screen and (max-width: 600px), (max-height: 600px) {
   .roomGrid {
     display: flex;
     justify-content: center;
