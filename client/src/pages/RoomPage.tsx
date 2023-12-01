@@ -20,7 +20,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<
-    { id: string; username: string; score: number; id_room: string }[]
+    { id: string; username: string; score: number; alive: boolean; id_room: string }[]
   >([]);
   const [ready, setReady] = useState(false);
 
@@ -50,6 +50,10 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
   useEffect(() => {
     socket.emit("usersData", roomCode);
+    socket.emit("roomData", roomCode);
+  }, []);
+
+  useEffect(() => {
     handleResize();
     window.addEventListener("resize", () => {
       handleResize();
@@ -65,6 +69,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
       setUsersReady(data.ready);
+      console.log("Room data - ", data);
     });
     // User disconnected
     // socket.on("user_disconnected", (data) => {

@@ -14,6 +14,7 @@ export interface User {
 };
 
 const roomModule = require("./modules/room");
+const bombModule = require("./modules/clickthebomb");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -36,7 +37,7 @@ server.listen(3000, async () => {
     db.run(
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
-    // games table
+    // games tables
     db.run(
       'CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES room ("id"));'
     );
@@ -48,7 +49,6 @@ server.listen(3000, async () => {
       methods: ["GET", "POST"],
     },
   });
-
 
   // info about users and room
   const usersData = (room: string, socket: Socket) => {
@@ -70,6 +70,7 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData);
+    bombModule(io, socket, db, usersData, roomData);
   };
 
   io.on("connection", handleModulesOnConnection);

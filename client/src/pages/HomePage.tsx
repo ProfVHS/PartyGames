@@ -74,6 +74,7 @@ export default function HomePage({ socket }: HomePageProps) {
 
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
+    
 
     if (roomExistence) {
       const randomUsername =

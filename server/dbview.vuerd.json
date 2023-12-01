@@ -3,8 +3,8 @@
     "version": "2.2.11",
     "width": 2000,
     "height": 2000,
-    "scrollTop": -231.2,
-    "scrollLeft": -53.60000000000002,
+    "scrollTop": -196.20000139077504,
+    "scrollLeft": -76.0999991059304,
     "zoomLevel": 0.8,
     "show": {
       "tableComment": true,
@@ -298,7 +298,7 @@
           "active": false,
           "left": 72.4985,
           "top": 364.9998,
-          "zIndex": 7,
+          "zIndex": 33,
           "widthName": 60,
           "widthComment": 60,
           "color": "#6200BB"
@@ -381,10 +381,10 @@
           }
         ],
         "ui": {
-          "active": true,
-          "left": 589.9994,
-          "top": 60.0022,
-          "zIndex": 9,
+          "active": false,
+          "left": 598.3319,
+          "top": 395.4177,
+          "zIndex": 42,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFDB00"
@@ -436,7 +436,7 @@
             "22591335-213f-4efc-b0fa-abc52a6a8429"
           ],
           "x": 422.7604018554688,
-          "y": 450.7498,
+          "y": 407.8748,
           "direction": "right"
         },
         "end": {
@@ -444,8 +444,8 @@
           "columnIds": [
             "3c71e6e5-9316-4796-a096-9f01849cf70b"
           ],
-          "x": 589.9994,
-          "y": 125.2522,
+          "x": 598.3319,
+          "y": 460.6677,
           "direction": "left"
         },
         "constraintName": "fk_rooms_to_bomb",

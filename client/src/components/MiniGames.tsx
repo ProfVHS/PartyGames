@@ -1,45 +1,56 @@
 import { Socket } from "socket.io-client";
 import Leaderboard from "./Leaderboard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Ctb from "./Ctb";
 
 interface MiniGamesProps {
   socket: Socket;
-  users: { id: string; username: string; score: number; id_room: string }[];
+  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
   roomCode: string;
 }
 
-export default function MiniGames({ socket, roomCode, users }: MiniGamesProps) {
-  const [isLoadingLeaderboard, setIsLoadingLeaderboard] =
-    useState<boolean>(true);
+export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
-
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
-  const allGames = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // all
-  const currentGames = [1, 5, 4, 2, 1]; // 1-Ctb, 2-Diamond, ...
+  const [gamesArray, setGamesArray] = useState<number[]>();
+  const currentGame = useRef<number | undefined>(1);
 
-  const [currentGame, setCurrentGame] = useState<number>(currentGames[0]);
-
-  setTimeout(() => {
-    setIsLoadingLeaderboard(false);
-    setIsLoadingGame(true);
-  }, 5000);
+  const onceDone = useRef<boolean>(false);
 
   useEffect(() => {
-    socket.on("receive_ctb_end", (data) => {
-      setTimeout(() => setIsEndGame(true), 1250);
-    });
-  }, [currentGame]);
+    if(onceDone.current) return;
 
-  const switchGame = (currentGame: number) => {
+    if(users.length > 0){
+      if(users[0].id === socket.id){
+        socket.emit("gamesArray", roomCode);
+      }
+    }
+    
+    onceDone.current = true;
+  }, []);
+
+  useEffect(() => {
+    socket.on("receiveGamesArray", (data) => {
+      setGamesArray(data);
+      //currentGame.current = data[0];
+    });
+  }, [socket]);
+
+  const switchGame = (currentGame: number | undefined) => {
     switch (currentGame) {
       case 1:
+        socket.emit("startGameCtb", { roomCode, users } );
         return <Ctb socket={socket} roomCode={roomCode} />;
       case 2:
         return <div>Gra 2</div>;
       case 3:
         return <div>Gra 3</div>;
+      case 4:
+        return <div>Gra 4</div>;
+      case 5:
+        return <div>Gra 5</div>;
       default:
         return <div>Error</div>;
     }
@@ -48,8 +59,7 @@ export default function MiniGames({ socket, roomCode, users }: MiniGamesProps) {
   // server-side : socket.emit(;end-game', roomCode )
   return (
     <>
-      {!isEndGame && switchGame(currentGame)}
-      {isEndGame && <Leaderboard users={users} />}
+      {switchGame(currentGame.current)}
     </>
   );
 }

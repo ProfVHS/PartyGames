@@ -18,8 +18,7 @@ module.exports = (
 
     db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max) VALUES (${data.randomRoomCode}, 0, 0, 0, 0)`);
     db.run(`INSERT INTO users (id,username,score,alive,id_room) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.randomRoomCode})`);
-    db.run(`INSERT INTO bomb (id,counter,max) VALUES (${data.randomRoomCode}, 0, 0)`);
-    usersData(data.randomRoomCode, socket);
+    
   });
 
   socket.on("joinRoom", async (data: { roomCode: string, name: string }) => {
@@ -58,8 +57,7 @@ module.exports = (
           db.run(`INSERT INTO users (id,username,score,alive,id_room) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.roomCode})`);
         } else {
           db.run(`INSERT INTO users (id,username,score,alive,id_room) VALUES ("${socket.id}", "${data.name} (${count_row[0].count})", 100, true, ${data.roomCode})`);
-        }
-        usersData(data.roomCode, socket);
+        }     
       } else {
         socket.emit("roomFull");
       }
@@ -79,11 +77,27 @@ module.exports = (
     usersData(room, socket);
   });
 
+  socket.on("roomData", ( room: string ) => {
+    roomData(room, socket);
+  });
+
   socket.on("usersReady", (data: { roomCode: string, ready: boolean }) => {
     const ready = data.ready ? -1 : 1;
     db.run(`UPDATE rooms SET ready = ready + ${ready} WHERE id = ${data.roomCode}`);
 
     roomData(data.roomCode, socket);
+  });
+
+  socket.on("gamesArray", async ( room: string ) => {
+    const gamesArray: Set<number> = new Set();
+
+    while (gamesArray.size < 8 ){
+      gamesArray.add(Math.floor(Math.random() * (20 - 1 + 1)) + 1);
+    }
+
+    console.log(gamesArray);
+
+    socket.nsp.to(room).emit("receiveGamesArray", Array.from(gamesArray));
   });
 
 };
