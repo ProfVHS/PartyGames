@@ -1,6 +1,7 @@
 import "./TrickyDiamonds.scss";
 import { TrickyCard } from "./TrickyCard";
 import { useState } from "react";
+import Stopwatch from "../Stopwatch";
 
 export function TrickyDiamonds() {
   const [selectedDiamond, setSelectedDiamond] =

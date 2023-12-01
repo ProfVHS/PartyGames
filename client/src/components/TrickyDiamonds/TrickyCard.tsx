@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BlueDiamond, PurpleDiamond, RedDiamond } from "./Diamonds";
+import { Shiny } from "./Shiny";
 
 interface TrickyCard {
   points: number;
@@ -21,9 +22,14 @@ export const TrickyCard = ({
       }`}
       onClick={() => handleClick(color)}
     >
-      {color === "BLUE" && <BlueDiamond />}
-      {color === "PURPLE" && <PurpleDiamond />}
-      {color === "RED" && <RedDiamond />}
+      <div className="tricky__cards__item__diamond">
+        {color === "BLUE" && <BlueDiamond />}
+        {color === "PURPLE" && <PurpleDiamond />}
+        {color === "RED" && <RedDiamond />}
+        {color === selectedColor && (
+          <Shiny className="tricky__cards__item__shiny" />
+        )}
+      </div>
       <span>+{points} points</span>
       {color === selectedColor && (
         <span className="tricky__cards__selected">selected</span>

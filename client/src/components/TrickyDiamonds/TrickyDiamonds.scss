@@ -24,6 +24,9 @@
     color: #5a189a;
   }
 
+  &__stopwatch {
+  }
+
   &__cards {
     position: relative;
     display: flex;
@@ -60,6 +63,16 @@
       font-weight: bold;
 
       transition: 0.3s ease;
+
+      &__diamond {
+        position: relative;
+      }
+
+      &__shiny {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
 
       &:hover {
         scale: 1.02;
