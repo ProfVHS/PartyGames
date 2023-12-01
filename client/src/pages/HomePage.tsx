@@ -35,6 +35,7 @@ const nouns = [
   "Cat",
   "Dog",
   "Cyclop",
+  "Bro",
 ];
 
 export default function HomePage({ socket }: HomePageProps) {
@@ -81,11 +82,16 @@ export default function HomePage({ socket }: HomePageProps) {
         nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
-      socket.emit("join-room", { roomCode, name });
+      socket.emit("joinRoom", { roomCode, name });
       socket.on("roomNotFull", () => {
         startLoadingAnimation(roomCode);
       });
-    };
+      socket.on("roomFull", () => {
+        alert("Room is full");
+      });
+    } else {
+      alert("Room doesn't exist");
+    }
   };
 
   const CreateHandleClick = () => {
@@ -98,7 +104,7 @@ export default function HomePage({ socket }: HomePageProps) {
         const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
-        socket.emit("create-room", { randomRoomCode, name });
+        socket.emit("createRoom", { name, randomRoomCode });
         startLoadingAnimation(randomRoomCode);
       }
     });

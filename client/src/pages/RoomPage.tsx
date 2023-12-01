@@ -18,7 +18,7 @@ interface RoomPageProps {
 
 export default function RoomPage({ socket }: RoomPageProps) {
   const location = useLocation();
-  const [playersReady, setPlayersReady] = useState(0);
+  const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<
     { id: string; username: string; score: number; id_room: string }[]
   >([]);
@@ -31,15 +31,16 @@ export default function RoomPage({ socket }: RoomPageProps) {
   //const username = location.state?.username;
   const roomCode: string = location.state?.code
 
+  // Ready button
   const handleReadyClick = () => {
     new Audio(ClickSound).play();
 
     setReady(!ready);
-    const newPlayersReady = ready ? -1 : 1;
 
-    socket.emit("send_value", { roomCode, newPlayersReady });
+    socket.emit("usersReady", { roomCode, ready });
   };
 
+  // Resize window (Frontend)
   const handleResize = () => {
     const newWindowSizeX = window.innerWidth;
     const newWindowSizeY = window.innerHeight;
@@ -48,7 +49,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
   };
 
   useEffect(() => {
-    socket.emit("joined", roomCode);
+    socket.emit("usersData", roomCode);
     handleResize();
     window.addEventListener("resize", () => {
       handleResize();
@@ -56,20 +57,19 @@ export default function RoomPage({ socket }: RoomPageProps) {
   }, []);
 
   useEffect(() => {
-    socket.on("receive_users_data", (data) => {
+    // Users data
+    socket.on("receiveUsersData", (data) => {
       setUsers(data);
       console.log("Data - ", data);
     });
-    socket.on("receive_room_data", (data) => {
-      setPlayersReady(data.ready);
+    // Room data (players ready)
+    socket.on("receiveRoomData", (data) => {
+      setUsersReady(data.ready);
     });
-    socket.on("recive_value", (data) => {
-      const newPlayersReady = playersReady + data;
-      setPlayersReady(newPlayersReady);
-    });
-    socket.on("user_disconnected", (data) => {
-      alert(data[0].username + " has left the room");
-    });
+    // User disconnected
+    // socket.on("user_disconnected", (data) => {
+    //   alert(data[0].username + " has left the room");
+    // });
   }, [socket]);
 
   setTimeout(() => {
@@ -92,16 +92,21 @@ export default function RoomPage({ socket }: RoomPageProps) {
             );
           })}
         <div className="roomContent">
-          {playersReady == users.length && playersReady !== 1 ? (
-            <MiniGames socket={socket} users={users} roomCode={roomCode} />
-          ) : (
-            <Lobby
-              roomCode={roomCode?.toString()}
-              onClick={handleReadyClick}
-              players={playersReady}
-              isReady={ready}
-            />
-          )}
+          {usersReady == users.length && usersReady !== 1 
+          ? 
+          <MiniGames 
+            socket={socket} 
+            users={users} 
+            roomCode={roomCode} 
+          />
+          : 
+          <Lobby
+            roomCode={roomCode?.toString()}
+            onClick={handleReadyClick}
+            players={usersReady}
+            isReady={ready} 
+          />
+          }
           <AudioVideoControls />
         </div>
       </div>

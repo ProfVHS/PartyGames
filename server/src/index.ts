@@ -5,6 +5,14 @@ import cors from "cors";
 
 import sqlite3 from "sqlite3";
 
+export interface User {
+  id: string, 
+  username: string, 
+  score: number, 
+  alive: boolean, 
+  id_room: number
+};
+
 const roomModule = require("./modules/room");
 
 const db = new sqlite3.Database(":memory:", (err) => {
@@ -41,17 +49,27 @@ server.listen(3000, async () => {
     },
   });
 
+
+  // info about users and room
   const usersData = (room: string, socket: Socket) => {
     db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
       if (!err) {
-        console.log(rows);
+        socket.nsp.to(room).emit("receiveUsersData", rows);
+      }
+    });
+  };
+  const roomData = (room: string, socket: Socket) => {
+    db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
+      if (!err) {
+        socket.nsp.to(room).emit("receiveRoomData", row);
       }
     });
   };
 
+
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, usersData);
+    roomModule(io, socket, db, usersData, roomData);
   };
 
   io.on("connection", handleModulesOnConnection);
