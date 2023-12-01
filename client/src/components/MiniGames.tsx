@@ -2,6 +2,7 @@ import { Socket } from "socket.io-client";
 import Leaderboard from "./Leaderboard";
 import { useEffect, useState } from "react";
 import Ctb from "./Ctb";
+import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 
 interface MiniGamesProps {
   socket: Socket;
@@ -17,7 +18,7 @@ export default function MiniGames({ socket, roomCode, users }: MiniGamesProps) {
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const allGames = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // all
-  const currentGames = [1, 5, 4, 2, 1]; // 1-Ctb, 2-Diamond, ...
+  const currentGames = [2, 5, 4, 2, 1]; // 1-Ctb, 2-Diamond, ...
 
   const [currentGame, setCurrentGame] = useState<number>(currentGames[0]);
 
@@ -37,7 +38,7 @@ export default function MiniGames({ socket, roomCode, users }: MiniGamesProps) {
       case 1:
         return <Ctb socket={socket} roomCode={roomCode} />;
       case 2:
-        return <div>Gra 2</div>;
+        return <TrickyDiamonds />;
       case 3:
         return <div>Gra 3</div>;
       default:

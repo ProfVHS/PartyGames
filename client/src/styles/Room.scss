@@ -68,13 +68,13 @@
   justify-content: center;
   align-items: center;
 }
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 950px) {
   .roomGrid {
     grid-template-columns: 15% 65% 15%;
     grid-template-rows: 20% 60% 20%;
   }
 }
-@media only screen and (max-width: 600px), (max-height: 600px) {
+@media only screen and (max-width: 800px), (max-height: 600px) {
   .roomGrid {
     display: flex;
     justify-content: center;
