@@ -13,6 +13,14 @@ export interface User {
   id_room: number
 };
 
+export interface Room {
+  id: number, 
+  turn: number, 
+  ready: number, 
+  time_left: number, 
+  time_max: number
+};
+
 const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
 
@@ -39,7 +47,7 @@ server.listen(3000, async () => {
     );
     // games tables
     db.run(
-      'CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" VARCHAR(255) NOT NULL, "max" INTEGER NOT NULL, FOREIGN KEY ("id") REFERENCES room ("id"));'
+      'CREATE TABLE bomb ("id" INTEGER NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);'
     );
   });
 
@@ -66,11 +74,106 @@ server.listen(3000, async () => {
     });
   };
 
+  // update turn
+  const updateRoomTurn = async (room: string, turn: number, socket: Socket) => {
+    db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
+  
+    return new Promise<[Room, User[]]>((resolve, reject) => {
+      Promise.all([
+        new Promise<Room>((resolveRoom, rejectRoom) => {
+          db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
+            if (err) {
+              rejectRoom(err);
+            } else {
+              resolveRoom(room_row);
+            }
+          });
+        }),
+        new Promise<User[]>((resolveUsers, rejectUsers) => {
+          db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
+            if (err) {
+              rejectUsers(err);
+            } else {
+              resolveUsers(users_rows);
+            }
+          });
+        }),
+      ]).then(([room_row, users_rows]) => {
+        resolve([room_row, users_rows]);
+      }).catch((error) => {
+        reject(error);
+      });
+    }).then(([room_row, users_rows]) => {
+      // send turn info to the client
+      const username = users_rows[room_row.turn].username;
+      const id = users_rows[room_row.turn].id;
+      console.log(`Turn: ${username} (${id})`);
+      socket.nsp.to(room).emit("receiveTurnCtb", { username, id });
+    });
+  };
+  // change turn
+  const changeRoomTurn = async (room: string, socket: Socket) => {
+    console.log("changeRoomTurn");
+    return new Promise<[Room, User[]]>((resolve, reject) => {
+      Promise.all([
+        new Promise<Room>((resolveRoom, rejectRoom) => {
+          db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
+            if (err) {
+              rejectRoom(err);
+            } else {
+              resolveRoom(room_row);
+            }
+          });
+        }),
+        new Promise<User[]>((resolveUsers, rejectUsers) => {
+          db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
+            if (err) {
+              rejectUsers(err);
+            } else {
+              resolveUsers(users_rows);
+            }
+          });
+        }),
+      ]).then(([room_row, users_rows]) => {
+        resolve([room_row, users_rows]);
+      }).catch((error) => {
+        reject(error);
+      });
+    }).then(([room_row, users_rows]) => {
+      // turn_row.turn (0-7), users_rows.length (2-8)
+      // if last user, turn = 0, else turn + 1
+      if (room_row.turn >= users_rows.length - 1) {
+        updateRoomTurn(room, 0, socket);
+        console.log("first user");
+      } else {
+        updateRoomTurn(room, room_row.turn + 1, socket);
+        console.log("next user");
+      }
+    });
+  };
+
+  // change alive user
+  const updateUserAlive = (id: string, alive: boolean) => {
+    db.run(`UPDATE users SET alive = ${alive} WHERE id = "${id}"`);
+  };
+  // change alive users
+  const updateUsersAlive = (room: string, alive: boolean) => {
+    db.run(`UPDATE users SET alive = ${alive} WHERE id_room = ${room}`);
+  };
+
+  // update user score by adding score
+  const updateUserScore = (id: string, score: number) => {
+    db.run(`UPDATE users SET score = score + ${score} WHERE id = "${id}"`);
+  };
+  // update user score by multiplying score
+  const updateUserScoreMultiply = (id: string, score: number) => {
+    db.run(`UPDATE users SET score = ROUND(score * ${score}) WHERE id = "${id}"`);
+  };
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData);
-    bombModule(io, socket, db, usersData, roomData);
+    bombModule(io, socket, db, usersData, roomData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
   };
 
   io.on("connection", handleModulesOnConnection);

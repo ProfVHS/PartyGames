@@ -13,6 +13,7 @@ module.exports = (
   usersData: (room: string, socket: Socket) => void, 
   roomData: (room: string, socket: Socket) => void) => {
 
+  // create room
   socket.on("createRoom", (data : { randomRoomCode: string, name : string }) => {
     socket.join(data.randomRoomCode);
 
@@ -21,6 +22,7 @@ module.exports = (
     
   });
 
+  // join room
   socket.on("joinRoom", async (data: { roomCode: string, name: string }) => {
     socket.join(data.roomCode);
     
@@ -65,6 +67,7 @@ module.exports = (
     
   });
 
+  // check room existence
   socket.on("checkRoomExistence", ( room: string ) => {
     db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err, row) => {
       if(!err){
@@ -73,26 +76,31 @@ module.exports = (
     });
   });
 
+  // users data
   socket.on("usersData", ( room: string ) => {
     usersData(room, socket);
   });
 
+  // room data
   socket.on("roomData", ( room: string ) => {
     roomData(room, socket);
   });
 
-  socket.on("usersReady", (data: { roomCode: string, ready: boolean }) => {
+  // users ready
+  socket.on("usersReady", (data: { roomCode: string, ready: boolean}) => {
     const ready = data.ready ? -1 : 1;
+
     db.run(`UPDATE rooms SET ready = ready + ${ready} WHERE id = ${data.roomCode}`);
 
     roomData(data.roomCode, socket);
   });
 
+  // generate random games array
   socket.on("gamesArray", async ( room: string ) => {
     const gamesArray: Set<number> = new Set();
 
-    while (gamesArray.size < 8 ){
-      gamesArray.add(Math.floor(Math.random() * (20 - 1 + 1)) + 1);
+    while (gamesArray.size < 5 ){
+      gamesArray.add(Math.floor(Math.random() * (5 - 1 + 1)) + 1);
     }
 
     console.log(gamesArray);

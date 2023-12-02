@@ -10,6 +10,7 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
+
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
@@ -41,8 +42,7 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
   const switchGame = (currentGame: number | undefined) => {
     switch (currentGame) {
       case 1:
-        socket.emit("startGameCtb", { roomCode, users } );
-        return <Ctb socket={socket} roomCode={roomCode} />;
+        return <Ctb socket={socket} roomCode={roomCode} users={users} />;
       case 2:
         return <div>Gra 2</div>;
       case 3:
@@ -51,15 +51,22 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
         return <div>Gra 4</div>;
       case 5:
         return <div>Gra 5</div>;
+      case 6:
+        return <div>Gra 6</div>;
+      case 7:
+        return <div>Gra 7</div>;
+      case 8:
+        return <div>Gra 8</div>;
       default:
         return <div>Error</div>;
     }
   };
 
-  // server-side : socket.emit(;end-game', roomCode )
+  // server-side : socket.emit('end-game', roomCode )
   return (
     <>
       {switchGame(currentGame.current)}
     </>
   );
-}
+  }
+
