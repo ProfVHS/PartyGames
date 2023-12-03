@@ -26,7 +26,9 @@ export const TrickyCard = ({
         {color === "BLUE" && (
           <BlueDiamond isCracked={color === selectedColor} />
         )}
-        {color === "PURPLE" && <PurpleDiamond />}
+        {color === "PURPLE" && (
+          <PurpleDiamond isCracked={color === selectedColor} />
+        )}
         {color === "RED" && <RedDiamond />}
         {color === selectedColor && (
           <Shiny className="tricky__cards__item__shiny" />
