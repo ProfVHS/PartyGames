@@ -64,8 +64,13 @@
 
       transition: 0.3s ease;
 
+      &__value {
+        position: absolute;
+        bottom: 20px;
+      }
+
       &__diamond {
-        position: relative;
+        position: absolute;
       }
 
       &__shiny {

@@ -11,7 +11,6 @@ export function TrickyDiamonds() {
     const newColor = color;
     setSelectedDiamond(newColor);
   };
-  console.log(selectedDiamond);
   return (
     <div className="tricky">
       <div className="tricky__header">Tricky Diamonds</div>

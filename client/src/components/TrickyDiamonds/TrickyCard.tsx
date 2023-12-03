@@ -23,14 +23,16 @@ export const TrickyCard = ({
       onClick={() => handleClick(color)}
     >
       <div className="tricky__cards__item__diamond">
-        {color === "BLUE" && <BlueDiamond />}
+        {color === "BLUE" && (
+          <BlueDiamond isCracked={color === selectedColor} />
+        )}
         {color === "PURPLE" && <PurpleDiamond />}
         {color === "RED" && <RedDiamond />}
         {color === selectedColor && (
           <Shiny className="tricky__cards__item__shiny" />
         )}
       </div>
-      <span>+{points} points</span>
+      <span className="tricky__cards__item__value">+{points} points</span>
       {color === selectedColor && (
         <span className="tricky__cards__selected">selected</span>
       )}
