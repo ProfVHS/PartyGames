@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import "../styles/Ctb.scss";
 
 import c4 from "../assets/svgs/C4.svg";
@@ -66,7 +66,7 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
     });
   }, [socket]);
 
-  // make sure that the game starts only once
+  // make sure that the game starts only once by host
   useEffect(() => {
     if(onceDone.current) return;
 

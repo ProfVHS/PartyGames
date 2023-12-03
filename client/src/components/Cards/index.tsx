@@ -1,45 +1,90 @@
 import "./style.scss";
 
 import Card from "./Card";
-import { useState } from "react";
 import Stopwatch from "../Stopwatch";
 
+import { useEffect, useState, useRef } from "react";
+
+import { Socket } from "socket.io-client";
 interface CardObject {
   isPositive: boolean;
   score: number;
 }
 
-function Cards() {
-  const cards: CardObject[] = [
-    { isPositive: true, score: 50 },
-    { isPositive: true, score: 50 },
-    { isPositive: false, score: 50 },
-    { isPositive: false, score: 50 },
-    { isPositive: true, score: 50 },
+interface CardsProps {
+  socket: Socket;
+  roomCode: string;
+  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
+}
 
-    { isPositive: true, score: 50 },
-    { isPositive: true, score: 50 },
-    { isPositive: true, score: 50 },
-    { isPositive: false, score: 50 },
-  ];
+function Cards({ socket, roomCode, users }: CardsProps) {
+  const [cards, setCards] = useState<CardObject[]>();
+  const [time, setTime] = useState<number>(15);
 
   const [flipped, setFlipped] = useState<boolean>(false);
+  
+  const onceDone = useRef<boolean>(false);
+
+  // make sure that the game starts only once by host
+  useEffect(() => {
+    if(onceDone.current) return;
+
+    if(users.length > 0){
+      if(users[0].id === socket.id){
+        socket.emit("startGameCards", roomCode );
+        socket.emit("timeCards", roomCode);
+      }
+    }
+
+    onceDone.current = true;
+  }, []);
+
+  useEffect(() => {
+    socket.on("receiveCardsArray", (data) => {
+      setCards(data);
+      console.log(data);
+    });
+    socket.on("receiveTimeCards", (data) => {
+      setTime(data);
+    });
+  }, [socket]);
+
+  useEffect(() => {
+    if (time === 0) {
+      setFlipped(true);
+      setTimeout(() => {
+        if(cards !== undefined){
+          const score = cards[selectedCard!].isPositive ? cards[selectedCard!].score : -cards[selectedCard!].score;
+          console.log(score);
+          socket.emit("pointsCards", { roomCode, score });
+        }
+      }, 3000);
+    }
+  }, [time]);
+
+  const [selectedCard, setSelectedCard] = useState<number>();
+
+  const handleCardSelect = (id: number) => {
+    setSelectedCard(id);
+  };
 
   return (
     <div className="cards">
       <span className="cards__title">Cards</span>
       <span>Choose a card</span>
       <div className="cards__stopwatch">
-        <Stopwatch timeLeft={10} maxTime={15} />
+        <Stopwatch timeLeft={time} maxTime={15} />
       </div>
-      <div className="cardsWrapper" onClick={() => setFlipped(true)}>
-        {cards.map((card, index) => (
+      <div className="cardsWrapper">
+        {cards?.map((card, index) => (
           <Card
             key={index}
+            id={index}
             isPositive={card.isPositive}
             flip={flipped}
             score={card.score}
-            index={index}
+            onSelect={handleCardSelect}
+            selected={selectedCard === index}
           />
         ))}
       </div>

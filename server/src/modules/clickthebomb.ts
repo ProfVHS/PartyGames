@@ -14,7 +14,6 @@ module.exports = (
     socket: Socket, 
     db: Database, 
     usersData: (room: string, socket: Socket) => void, 
-    roomData: (room: string, socket: Socket) => void,
     updateRoomTurn: (room: string, turn: number, socket: Socket) => Promise<void>,
     changeRoomTurn: (room: string, socket: Socket) => Promise<void>,
     updateUserScore: (id: string, score: number) => void,
@@ -31,8 +30,6 @@ module.exports = (
         const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
         // (generate turn) min - 0, max - users.lenght - 1
         const turn = Math.round(Math.random() * (data.usersLength - 1));
-        console.log("turn: " + turn);
-        console.log("max: " + max);
         updateRoomTurn(data.roomCode,turn,socket);
         updateDataBomb(max,0,data.roomCode);
     });
@@ -76,7 +73,6 @@ module.exports = (
         }).then(([bomb_row, users_rows]) => {
             // bomb explode
             if(bomb_row.counter == bomb_row.max){
-                console.log("bomb");
                 // end the game
                 if(users_rows.length == 2){
                     users_rows.forEach((user) => {
@@ -94,7 +90,6 @@ module.exports = (
                     socket.nsp.to(room).emit("receiveEndCtb");
                 } else {
                     // user explode
-                    console.log("explode");
                     // update new max number of clicks and reset counter
                     const max = Math.round(Math.random() * (((users_rows.length - 1) * 5) - 1)) + 1;
                     updateDataBomb(max,0,room);

@@ -23,6 +23,7 @@ export interface Room {
 
 const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
+const cardsModule = require("./modules/cards");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -107,13 +108,11 @@ server.listen(3000, async () => {
       // send turn info to the client
       const username = users_rows[room_row.turn].username;
       const id = users_rows[room_row.turn].id;
-      console.log(`Turn: ${username} (${id})`);
       socket.nsp.to(room).emit("receiveTurnCtb", { username, id });
     });
   };
   // change turn
   const changeRoomTurn = async (room: string, socket: Socket) => {
-    console.log("changeRoomTurn");
     return new Promise<[Room, User[]]>((resolve, reject) => {
       Promise.all([
         new Promise<Room>((resolveRoom, rejectRoom) => {
@@ -144,10 +143,8 @@ server.listen(3000, async () => {
       // if last user, turn = 0, else turn + 1
       if (room_row.turn >= users_rows.length - 1) {
         updateRoomTurn(room, 0, socket);
-        console.log("first user");
       } else {
         updateRoomTurn(room, room_row.turn + 1, socket);
-        console.log("next user");
       }
     });
   };
@@ -173,7 +170,9 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData);
-    bombModule(io, socket, db, usersData, roomData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    cardsModule(io, socket, db, usersData, updateUserScore);
+    
   };
 
   io.on("connection", handleModulesOnConnection);

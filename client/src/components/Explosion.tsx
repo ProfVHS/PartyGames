@@ -45,6 +45,7 @@ const Explosion = (props: SVGProps<SVGSVGElement>) => (
     <g id="rects">
       {rects.map((rect, index) => (
         <motion.rect
+          key={index}
           id="rect"
           height={rect.size}
           width={rect.size}

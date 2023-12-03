@@ -4,14 +4,22 @@ import CardFrontPositive from "./CardFrontPositive";
 import CardFrontNegative from "./CardFrontNegative";
 
 interface CardProps {
+  id: number;
   isPositive: boolean;
   flip: boolean;
   score: number;
-  index: number;
+  onSelect: (id: number) => void;
+  selected: boolean;
 }
-export default function Card({ isPositive, flip, score, index }: CardProps) {
+export default function Card({ id, isPositive, flip, score, onSelect, selected }: CardProps) {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [frontShow, setFrontShow] = useState<boolean>(false);
+
+  const handleClick = () => {
+    if(!flip){
+      onSelect(id);
+    };
+  };
 
   const handleFlip = (flip: boolean) => {
     setTimeout(() => {
@@ -23,16 +31,15 @@ export default function Card({ isPositive, flip, score, index }: CardProps) {
         setFrontShow(newFrontShow);
         setIsFlipped(false);
       }, 325);
-    }, 325 * index);
+    }, 325 * id);
   };
 
   useEffect(() => {
-    console.log("Card - " + flip);
     handleFlip(flip);
   }, [flip]);
 
   return (
-    <div className={`cardBox ${isFlipped ? "flip" : ""}`}>
+    <div className={`cardBox ${isFlipped ? "flip" : ""} ${selected ? "cardBox selected" : ""}`} onClick={handleClick} >
       {frontShow ? (
         isPositive ? (
           <CardFrontPositive score={score} />

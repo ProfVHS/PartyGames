@@ -107,4 +107,10 @@
   &.flip {
     transform: rotateY(90deg);
   }
+
+  &.selected {
+    border: #000000 5px solid;
+  }
 }
+
+
