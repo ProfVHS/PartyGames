@@ -20,6 +20,7 @@ interface CardsProps {
 function Cards({ socket, roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(15);
+  const [turn, setTurn] = useState<number>(0);
 
   const [flipped, setFlipped] = useState<boolean>(false);
   
@@ -29,9 +30,14 @@ function Cards({ socket, roomCode, users }: CardsProps) {
   useEffect(() => {
     if(onceDone.current) return;
 
+    const newTurn = turn + 1;
+    setTurn(newTurn);
+
     if(users.length > 0){
       if(users[0].id === socket.id){
-        socket.emit("startGameCards", roomCode );
+        const bombs_value = turn + 2;
+        const cards_value = 7 - turn;
+        socket.emit("startGameCards", { roomCode, bombs_value, cards_value } );
         socket.emit("timeCards", roomCode);
       }
     }
@@ -59,6 +65,25 @@ function Cards({ socket, roomCode, users }: CardsProps) {
           socket.emit("pointsCards", { roomCode, score });
         }
       }, 3000);
+      setTimeout(() => {
+        setFlipped(false);
+        setTime(15);
+      }, 4000);
+      if(turn <= 3){
+        setTimeout(() => {
+          const newTurn = turn + 1;
+          setTurn(newTurn);
+          if(users.length > 0){
+            if(users[0].id === socket.id){
+              const bombs_value = turn + 2;
+              const cards_value = 7 - turn;
+              socket.emit("startGameCards", { roomCode, bombs_value, cards_value } );
+              socket.emit("timeCards", roomCode);
+            }
+          }
+        }, 5000);  
+      }
+
     }
   }, [time]);
 

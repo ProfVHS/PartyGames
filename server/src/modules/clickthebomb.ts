@@ -20,6 +20,7 @@ module.exports = (
     updateUserScoreMultiply: (id: string, score: number) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (room: string, alive: boolean) => void,
+    updateRoomInGame: (room: string, in_game: boolean) => void,
 ) => {
     const updateDataBomb = (max: number, counter: number, room: string) => {
         db.run(`INSERT or IGNORE INTO bomb (id,counter,max) VALUES (${room},${counter},${max})`);
@@ -32,6 +33,7 @@ module.exports = (
         const turn = Math.round(Math.random() * (data.usersLength - 1));
         updateRoomTurn(data.roomCode,turn,socket);
         updateDataBomb(max,0,data.roomCode);
+        updateRoomInGame(data.roomCode,true);
     });
 
     // send turn to the next player
@@ -83,6 +85,8 @@ module.exports = (
                             updateUserScore(user.id, 50);
                         }
                     });
+                    // update in game to false 
+                    updateRoomInGame(room, false);
                     // update alive users to true
                     updateUsersAlive(room, true);
                     // send data to the client

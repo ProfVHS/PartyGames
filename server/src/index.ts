@@ -18,7 +18,8 @@ export interface Room {
   turn: number, 
   ready: number, 
   time_left: number, 
-  time_max: number
+  time_max: number,
+  in_game: boolean
 };
 
 const roomModule = require("./modules/room");
@@ -41,7 +42,7 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" INTEGER NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL);'
     );
     db.run(
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
@@ -167,11 +168,21 @@ server.listen(3000, async () => {
     db.run(`UPDATE users SET score = ROUND(score * ${score}) WHERE id = "${id}"`);
   };
 
+  // set is room in game
+  const updateRoomInGame = (room: string, in_game: boolean) => {
+    db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${room}`);
+  };
+
+  // set time in room
+  const updateRoomTime = (room: string, time_left: number, time_max: number) => {
+    db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${room}`);
+  };
+
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData);
-    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
-    cardsModule(io, socket, db, usersData, updateUserScore);
+    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
+    cardsModule(io, socket, db, usersData, updateUserScore, updateRoomInGame, updateRoomTime);
     
   };
 

@@ -90,6 +90,9 @@ export default function HomePage({ socket }: HomePageProps) {
       socket.on("roomFull", () => {
         alert("Room is full");
       });
+      socket.on("roomInGame", () => {
+        alert("Room is in game");
+      });
     } else {
       alert("Room doesn't exist");
     }

@@ -14,6 +14,8 @@ module.exports = (
     db: Database, 
     usersData: (room: string, socket: Socket) => void,
     updateUserScore: (id: string, score: number) => void,
+    updateRoomInGame: (room: string, in_game: boolean) => void,
+    updateRoomTime: (room: string, time_left: number, time_max: number) => void,
 ) => {
     // arrays with ponts for cards in 3 different turns
     const scoreArrays = (bombs: number) => {
@@ -81,17 +83,13 @@ module.exports = (
         socket.nsp.to(room).emit("receiveCardsArray", cardsArray);
     };
 
-    socket.on("startGameCards", (room: string) => {
-        // generate cards for first turn
-        generateCards(room, socket, 3, 6);
-        db.run(`UPDATE rooms SET time_left = 15, time_max = 15 WHERE id = ${room}`);
+    socket.on("startGameCards", (data: {roomCode: string, bombs_value: number, cards_value: number}) => {
+        // generate cards for turn, set time_left to 15 and time_max to 15
+        generateCards(data.roomCode, socket, data.bombs_value, data.cards_value);
+        updateRoomTime(data.roomCode, 15, 15);
+        updateRoomInGame(data.roomCode, true);
     });
 
-    socket.on("nextTurnCards", ( roomCode: string ) => {
-        // generate cards for next turn
-        generateCards(roomCode, socket, 4, 5);
-        db.run(`UPDATE rooms SET time_left = 15, time_max = 15 WHERE id = ${roomCode}`);
-    });
 
     socket.on("timeCards", async (room) => {
         // set interval to decrease time_left every second
@@ -110,8 +108,6 @@ module.exports = (
                 row.time_left >= 0 ? socket.nsp.to(room).emit("receiveTimeCards", row.time_left) : clearInterval(cardsTimeInterval);
             });
         }, 1000);
-
-        db.run(`UPDATE rooms SET time_left = 15, time_max = 15 WHERE id = ${room}`);
     });
 
     socket.on("pointsCards", (data: { roomCode: string, score: number }) => {
@@ -121,3 +117,5 @@ module.exports = (
         usersData(data.roomCode, socket);
     });
 };
+
+// end the game - update in_game to false, alive to true, turn to 0

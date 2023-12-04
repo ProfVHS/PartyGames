@@ -292,13 +292,36 @@
               "widthDefault": 60
             },
             "id": "792815b5-328f-4093-9dbe-d4009f26116b"
+          },
+          {
+            "name": "in_game",
+            "comment": "",
+            "dataType": "BOOLEAN",
+            "default": "false",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 62.98297119140625,
+              "widthDefault": 60
+            },
+            "id": "0f0267b5-94d3-4ed7-862c-c0f911c650b2"
           }
         ],
         "ui": {
-          "active": false,
-          "left": 72.4985,
+          "active": true,
+          "left": 71.4568,
           "top": 364.9998,
-          "zIndex": 33,
+          "zIndex": 13,
           "widthName": 60,
           "widthComment": 60,
           "color": "#6200BB"
@@ -384,7 +407,7 @@
           "active": false,
           "left": 598.3319,
           "top": 395.4177,
-          "zIndex": 42,
+          "zIndex": 3,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFDB00"
@@ -409,7 +432,7 @@
           "columnIds": [
             "22591335-213f-4efc-b0fa-abc52a6a8429"
           ],
-          "x": 247.62945092773438,
+          "x": 248.0792365234375,
           "y": 364.9998,
           "direction": "top"
         },
@@ -435,8 +458,8 @@
           "columnIds": [
             "22591335-213f-4efc-b0fa-abc52a6a8429"
           ],
-          "x": 422.7604018554688,
-          "y": 407.8748,
+          "x": 424.701673046875,
+          "y": 460.9998,
           "direction": "right"
         },
         "end": {
