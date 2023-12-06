@@ -61,14 +61,14 @@ server.listen(3000, async () => {
   });
 
   // info about users and room
-  const usersData = (room: string, socket: Socket) => {
+  const usersData = async (room: string, socket: Socket) => {
     db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err, rows) => {
       if (!err) {
         socket.nsp.to(room).emit("receiveUsersData", rows);
       }
     });
   };
-  const roomData = (room: string, socket: Socket) => {
+  const roomData = async (room: string, socket: Socket) => {
     db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err, row) => {
       if (!err) {
         socket.nsp.to(room).emit("receiveRoomData", row);
@@ -160,8 +160,21 @@ server.listen(3000, async () => {
   };
 
   // update user score by adding score
-  const updateUserScore = (id: string, score: number) => {
-    db.run(`UPDATE users SET score = score + ${score} WHERE id = "${id}"`);
+  const updateUserScore = async (id: string, score: number) => {
+    db.run(`UPDATE users SET score = ROUND(score + ${score}) WHERE id = "${id}"`);
+
+    console.log(id, score);
+    // return new Promise<User>((resolve, reject) => {
+    //   db.get(`SELECT * FROM users WHERE id = "${id}"`, [], (err: Error, row: User) => {
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       resolve(row);
+    //     }
+    //   });
+    // }).then((row) => {
+    //   return row.score;
+    // });
   };
   // update user score by multiplying score
   const updateUserScoreMultiply = (id: string, score: number) => {

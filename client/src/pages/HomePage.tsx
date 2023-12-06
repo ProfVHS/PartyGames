@@ -69,7 +69,7 @@ export default function HomePage({ socket }: HomePageProps) {
     setIsLoading(true);
     setTimeout(() => {
       navigate("/lobby", { state: { username, code } });
-    }, 2250);
+    }, 50);
   };
 
   const JoinHandleClick = () => {

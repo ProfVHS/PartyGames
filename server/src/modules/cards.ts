@@ -8,6 +8,18 @@ interface Cards {
     score: number
 };
 
+interface selectedCards {
+    user_id: string,
+    selectedCard: number
+};
+
+interface arraySelectedCards {
+    id_room: string,
+    array_cards: selectedCards[]
+};
+
+const selectedCardsArray: arraySelectedCards[] = [];
+
 module.exports = (
     io: Server, 
     socket: Socket, 
@@ -84,7 +96,7 @@ module.exports = (
     socket.on("startGameCards", (data: {roomCode: string, bombs_value: number, cards_value: number}) => {
         // generate cards for turn, set time_left to 15 and time_max to 15
         generateCards(data.roomCode, socket, data.bombs_value, data.cards_value);
-        updateRoomTime(data.roomCode, 15, 15);
+        updateRoomTime(data.roomCode, 5, 5);
         updateRoomInGame(data.roomCode, true);
     });
 
@@ -108,16 +120,57 @@ module.exports = (
         }, 1000);
     });
 
-    socket.on("pointsCards", (data: { roomCode: string, selectedCard: number, cards: Cards[] }) => {
-        console.log(data.selectedCard);
-        console.log(data.cards);
+    const pp = async (score: number, penaltyUsers: selectedCards[]) => {
+        penaltyUsers.forEach((element) => {
+            console.log(element.user_id);
+            updateUserScore(element.user_id, score);
+        });
+    };
 
-        socket.nsp.to(data.roomCode).emit("receivePointsCards", {selectedCard: data.selectedCard, id: socket.id});
+    const checkSelectedCards = async (room: string, cards: Cards[]) => {
+        // check if there are users who selected same card
+        const selectedArray = selectedCardsArray.find((element) => element.id_room == room);
+
+        // cards = [{isPositive: true, score: 50}, {isPositive: false, score: 100}, ...]
+        // selectedArray = [{user_id: "socket.id", selectedCard: 0}, {user_id: "socket.id", selectedCard: 1}, ...]
+
+        // if there are, send doubled points to the users
+        if(selectedArray){
+            for(let i = 0; i < 9; i++){
+                const penaltyUsers = selectedArray.array_cards.filter((element) => element.selectedCard == i);
+                if(cards[i].isPositive && penaltyUsers.length > 0){
+                    // if card is positive, add points to users who selected it
+                    const score = cards[i].score / penaltyUsers.length;
+                    console.log(score);
+                    await pp(score, penaltyUsers);
+                } else if(penaltyUsers.length > 0) {
+                    // if card is negative, multiply points to users who selected it
+                    const score = -cards[i].score * penaltyUsers.length;
+                    console.log(score);
+                    await pp(score, penaltyUsers);
+                }
+            }
+        } 
+    };
+
+    socket.on("selectedCards", (data: { roomCode: string, selectedCard: number }) => {
+        if(selectedCardsArray.find((element) => element.id_room == data.roomCode) == undefined){
+            selectedCardsArray.push({id_room: data.roomCode, array_cards: [{user_id: socket.id, selectedCard: data.selectedCard}]});
+        } else{
+            selectedCardsArray.find((element) => element.id_room == data.roomCode)?.array_cards.push({user_id: socket.id, selectedCard: data.selectedCard});
+        }
     });
 
-    socket.on("endGameCards", (room: string) => {
+    socket.on("endGameCards", async (data: {roomCode: string, cards: Cards[]}) => {
+        await checkSelectedCards(data.roomCode, data.cards);
+
+        usersData(data.roomCode, socket);
+
+        // clear selectedCardsArray
+        selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == data.roomCode), 1);
+
         // update in_game to false, alive to true, turn to 0
-        updateRoomInGame(room, false);
+        updateRoomInGame(data.roomCode, false);
     });
 };
 

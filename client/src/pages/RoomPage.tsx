@@ -90,7 +90,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
 
   setTimeout(() => {
     setIsLoading(false);
-  }, 1995);
+  }, 50);
 
   
 
