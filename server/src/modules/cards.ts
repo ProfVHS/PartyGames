@@ -77,8 +77,6 @@ module.exports = (
             }
         }
 
-        console.log(cardsArray);
-
         // send cardsArray to all users in room
         socket.nsp.to(room).emit("receiveCardsArray", cardsArray);
     };
@@ -110,11 +108,16 @@ module.exports = (
         }, 1000);
     });
 
-    socket.on("pointsCards", (data: { roomCode: string, score: number }) => {
-        console.log(data.roomCode);
-        console.log(data.score);
-        updateUserScore(socket.id, data.score);
-        usersData(data.roomCode, socket);
+    socket.on("pointsCards", (data: { roomCode: string, selectedCard: number, cards: Cards[] }) => {
+        console.log(data.selectedCard);
+        console.log(data.cards);
+
+        socket.nsp.to(data.roomCode).emit("receivePointsCards", {selectedCard: data.selectedCard, id: socket.id});
+    });
+
+    socket.on("endGameCards", (room: string) => {
+        // update in_game to false, alive to true, turn to 0
+        updateRoomInGame(room, false);
     });
 };
 

@@ -11,6 +11,11 @@ interface CardObject {
   score: number;
 }
 
+interface SelectedCards {
+  id: string;
+  selectedCard: number;
+}
+
 interface CardsProps {
   socket: Socket;
   roomCode: string;
@@ -20,7 +25,8 @@ interface CardsProps {
 function Cards({ socket, roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(15);
-  const [turn, setTurn] = useState<number>(0);
+  const [turn, setTurn] = useState<number>(1);
+  const [selectedCards, setSelectedCards] = useState<SelectedCards[]>([]);
 
   const [flipped, setFlipped] = useState<boolean>(false);
   
@@ -47,8 +53,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
 
   useEffect(() => {
     socket.on("receiveCardsArray", (data) => {
-      setCards(data);
-      console.log(data);
+      setCards(data);   
     });
     socket.on("receiveTimeCards", (data) => {
       setTime(data);
@@ -57,12 +62,14 @@ function Cards({ socket, roomCode, users }: CardsProps) {
 
   useEffect(() => {
     if (time === 0) {
-      setFlipped(true);
+      setFlipped(true); 
       setTimeout(() => {
         if(cards !== undefined){
-          const score = cards[selectedCard!].isPositive ? cards[selectedCard!].score : -cards[selectedCard!].score;
-          console.log(score);
-          socket.emit("pointsCards", { roomCode, score });
+          socket.emit("pointsCards", { roomCode, selectedCard, cards });
+          socket.on("receivePointsCards", (data) => {
+            console.log("Gracz: ", data.id, " wybrał: ", data.selectedCard);
+            setSelectedCards((prev) => [...prev, data]);
+          });
         }
       }, 3000);
       setTimeout(() => {
@@ -81,7 +88,11 @@ function Cards({ socket, roomCode, users }: CardsProps) {
               socket.emit("timeCards", roomCode);
             }
           }
-        }, 5000);  
+        }, 5000);   
+      } else if(turn == 4){
+        setTimeout(() => {
+          socket.emit("endGameCards", roomCode);
+        }, 6000);
       }
 
     }
