@@ -15,6 +15,9 @@ export const TrickyCard = ({
   selectedColor,
   handleClick,
 }: TrickyCard) => {
+  const [turnEnd, setTurnEnd] = useState<boolean>(false);
+
+  setTimeout(() => setTurnEnd(true), 2500);
   return (
     <div
       className={`tricky__cards__item ${
@@ -23,17 +26,15 @@ export const TrickyCard = ({
       onClick={() => handleClick(color)}
     >
       <div className="tricky__cards__item__diamond">
-        {color === "BLUE" && (
-          <BlueDiamond isCracked={color === selectedColor} />
-        )}
+        {color === "BLUE" && <BlueDiamond isCracked={turnEnd} isFake={true} />}
         {color === "PURPLE" && (
-          <PurpleDiamond isCracked={color === selectedColor} />
+          <PurpleDiamond isCracked={turnEnd} isFake={false} />
         )}
-        {color === "RED" && <RedDiamond />}
-        {color === selectedColor && (
-          <Shiny className="tricky__cards__item__shiny" />
-        )}
+        {color === "RED" && <RedDiamond isCracked={turnEnd} isFake={true} />}
       </div>
+      {color === selectedColor && !turnEnd && (
+        <Shiny className="tricky__cards__item__shiny" />
+      )}
       <span className="tricky__cards__item__value">+{points} points</span>
       {color === selectedColor && (
         <span className="tricky__cards__selected">selected</span>
