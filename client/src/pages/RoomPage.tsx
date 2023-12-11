@@ -92,8 +92,6 @@ export default function RoomPage({ socket }: RoomPageProps) {
     setIsLoading(false);
   }, 50);
 
-  
-
   return (
     <>
       <div className="roomGrid">

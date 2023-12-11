@@ -60,8 +60,6 @@ export default function Ctb({ socket, roomCode, users }: CtbProps) {
       setYourTurn(false);
       setIsExploded(true);
 
-      alert("Game ended");
-
       setTimeout(() => setIsExploded(false), 1250);
     });
   }, [socket]);

@@ -79,7 +79,7 @@ server.listen(3000, async () => {
   // update turn
   const updateRoomTurn = async (room: string, turn: number, socket: Socket) => {
     db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
-  
+    console.log("Update Turn - ",turn);
     return new Promise<[Room, User[]]>((resolve, reject) => {
       Promise.all([
         new Promise<Room>((resolveRoom, rejectRoom) => {
@@ -107,6 +107,8 @@ server.listen(3000, async () => {
       });
     }).then(([room_row, users_rows]) => {
       // send turn info to the client
+      console.log(room_row);
+      console.log(users_rows);
       const username = users_rows[room_row.turn].username;
       const id = users_rows[room_row.turn].id;
       socket.nsp.to(room).emit("receiveTurnCtb", { username, id });
@@ -151,19 +153,26 @@ server.listen(3000, async () => {
   };
 
   // change alive user
-  const updateUserAlive = (id: string, alive: boolean) => {
+  const updateUserAlive = async (id: string, alive: boolean) => {
     db.run(`UPDATE users SET alive = ${alive} WHERE id = "${id}"`);
   };
   // change alive users
-  const updateUsersAlive = (room: string, alive: boolean) => {
+  const updateUsersAlive = async (room: string, alive: boolean) => {
     db.run(`UPDATE users SET alive = ${alive} WHERE id_room = ${room}`);
   };
 
   // update user score by adding score
   const updateUserScore = async (id: string, score: number) => {
-    db.run(`UPDATE users SET score = ROUND(score + ${score}) WHERE id = "${id}"`);
+    const updateScore = `UPDATE 'users' SET "score" = ROUND(score + ${score}) WHERE "id" = '${id}'`;
 
-    console.log(id, score);
+    db.run(updateScore, (err) => {
+      if(err){
+        console.log(err);
+      } else {
+        // console.log("Update Score - ",id, score);
+      }
+    });
+
     // return new Promise<User>((resolve, reject) => {
     //   db.get(`SELECT * FROM users WHERE id = "${id}"`, [], (err: Error, row: User) => {
     //     if (err) {
@@ -173,21 +182,29 @@ server.listen(3000, async () => {
     //     }
     //   });
     // }).then((row) => {
-    //   return row.score;
+    //   if(row.score < 0){
+    //     db.run(`UPDATE users SET "score" = 0 WHERE "id" = '${id}'`, (err) => {
+    //       if(err){
+    //         console.log(err);
+    //       } else {
+    //         console.log("Update Score - ",id, "0");
+    //       }
+    //     });
+    //   }
     // });
   };
   // update user score by multiplying score
-  const updateUserScoreMultiply = (id: string, score: number) => {
+  const updateUserScoreMultiply = async (id: string, score: number) => {
     db.run(`UPDATE users SET score = ROUND(score * ${score}) WHERE id = "${id}"`);
   };
 
   // set is room in game
-  const updateRoomInGame = (room: string, in_game: boolean) => {
+  const updateRoomInGame = async (room: string, in_game: boolean) => {
     db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${room}`);
   };
 
   // set time in room
-  const updateRoomTime = (room: string, time_left: number, time_max: number) => {
+  const updateRoomTime = async (room: string, time_left: number, time_max: number) => {
     db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${room}`);
   };
 
