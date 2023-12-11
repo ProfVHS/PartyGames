@@ -24,12 +24,10 @@ module.exports = (
 ) => {
     const setDataBomb = async (max: number, counter: number, room: string) => {
         db.run(`INSERT INTO bomb (id,counter,max) VALUES (${room},${counter},${max})`);
-        console.log("Set Bomb - ",room, max, counter);
     };
 
     const updateDataBomb = async (max: number, counter: number, room: string) => {
         db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = "${room}"`);
-        console.log("Update Bomb - ",room, max, counter);
     };
 
     const incrementCounter = async (room: string) => {
@@ -51,7 +49,6 @@ module.exports = (
         const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
         // (generate turn) min - 0, max - users.lenght - 1
         const turn = Math.round(Math.random() * ((data.usersLength * 1) - 1));
-        console.log("Start Game - ",data.roomCode, max, turn);
         updateRoomTurn(data.roomCode,turn,socket);
         setDataBomb(max,0,data.roomCode);
         updateRoomInGame(data.roomCode,true);
@@ -94,7 +91,6 @@ module.exports = (
                     reject(error);
                 });
             }).then(async ([bomb_row, users_rows]) => {
-                console.log(bomb_row.counter);
                 // bomb explode
                 if(bomb_row.counter == bomb_row.max){
                     // end the game

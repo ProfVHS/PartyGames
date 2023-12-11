@@ -78,40 +78,48 @@ server.listen(3000, async () => {
 
   // update turn
   const updateRoomTurn = async (room: string, turn: number, socket: Socket) => {
-    db.run(`UPDATE rooms SET turn = ${turn} WHERE id = ${room}`);
-    console.log("Update Turn - ",turn);
-    return new Promise<[Room, User[]]>((resolve, reject) => {
-      Promise.all([
-        new Promise<Room>((resolveRoom, rejectRoom) => {
-          db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
-            if (err) {
-              rejectRoom(err);
+    return new Promise<void>((resolve, reject) => {
+        const turnQuery = `UPDATE rooms SET turn = ${turn} WHERE id = ${room}`;
+
+        db.run(turnQuery, (err) => {
+            if(err){
+                reject(err);
             } else {
-              resolveRoom(room_row);
+                resolve();
             }
-          });
-        }),
-        new Promise<User[]>((resolveUsers, rejectUsers) => {
-          db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
-            if (err) {
-              rejectUsers(err);
-            } else {
-              resolveUsers(users_rows);
-            }
-          });
-        }),
-      ]).then(([room_row, users_rows]) => {
-        resolve([room_row, users_rows]);
-      }).catch((error) => {
-        reject(error);
+        });
+    }).then(async () => {
+      return new Promise<[Room, User[]]>((resolve, reject) => {
+        Promise.all([
+          new Promise<Room>((resolveRoom, rejectRoom) => {
+            db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
+              if (err) {
+                rejectRoom(err);
+              } else {
+                resolveRoom(room_row);
+              }
+            });
+          }),
+          new Promise<User[]>((resolveUsers, rejectUsers) => {
+            db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
+              if (err) {
+                rejectUsers(err);
+              } else {
+                resolveUsers(users_rows);
+              }
+            });
+          }),
+        ]).then(([room_row, users_rows]) => {
+          resolve([room_row, users_rows]);
+        }).catch((error) => {
+          reject(error);
+        });
+      }).then(([room_row, users_rows]) => {
+        // send turn info to the client
+        const username = users_rows[room_row.turn].username;
+        const id = users_rows[room_row.turn].id;
+        socket.nsp.to(room).emit("receiveTurnCtb", { username, id });
       });
-    }).then(([room_row, users_rows]) => {
-      // send turn info to the client
-      console.log(room_row);
-      console.log(users_rows);
-      const username = users_rows[room_row.turn].username;
-      const id = users_rows[room_row.turn].id;
-      socket.nsp.to(room).emit("receiveTurnCtb", { username, id });
     });
   };
   // change turn

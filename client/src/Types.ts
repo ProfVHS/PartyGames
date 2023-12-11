@@ -1,4 +1,4 @@
-export interface User {
+export type User = {
     id: string,
     username: string,
     score: number,
@@ -6,7 +6,7 @@ export interface User {
     id_room: string
 };
 
-export interface Room {
+export type Room = {
     id: string,
     turn: number,
     ready: number,
