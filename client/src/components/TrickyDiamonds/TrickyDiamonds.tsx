@@ -1,6 +1,7 @@
 import "./TrickyDiamonds.scss";
 import { TrickyCard } from "./TrickyCard";
 import { useState } from "react";
+import { Stopwatch } from "../Stopwatch/Stopwatch";
 
 export function TrickyDiamonds() {
   const [selectedDiamond, setSelectedDiamond] =
@@ -12,7 +13,12 @@ export function TrickyDiamonds() {
   };
   return (
     <div className="tricky">
-      <div className="tricky__header">Tricky Diamonds</div>
+      <div className="tricky__header">
+        <div className="tricky__stopwatch">
+          <Stopwatch maxTime={10} timeLeft={10} size={50} />
+        </div>
+        Tricky Diamonds
+      </div>
       <div className="tricky__cards">
         <TrickyCard
           points={200}

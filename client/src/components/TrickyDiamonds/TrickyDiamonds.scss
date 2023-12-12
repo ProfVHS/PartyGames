@@ -6,6 +6,7 @@
   user-select: none;
 
   &__header {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -22,6 +23,11 @@
     font-family: "Spicy Rice";
     font-size: 36px;
     color: #5a189a;
+  }
+
+  &__stopwatch {
+    position: absolute;
+    left: 15px;
   }
 
   &__cards {
