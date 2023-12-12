@@ -10,6 +10,7 @@ function Camera({ username, score }: CameraProps) {
   return (
     <motion.div
       className="camera"
+      initial={{ scale: 0.0 }}
       animate={{ scale: [0.0, 1.0] }}
       transition={{ duration: 1, type: "spring" }}
     >
