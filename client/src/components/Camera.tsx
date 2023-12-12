@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import "../styles/Camera.scss";
 import { motion } from "framer-motion";
 
@@ -6,7 +7,34 @@ interface CameraProps {
   score: number;
 }
 
+const scoreAnimationDuration = 0.5;
+
 function Camera({ username, score }: CameraProps) {
+  const [userScore, setUserScore] = useState<number>(0);
+
+  const interval = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    return () => clearInterval(interval.current);
+  }, []);
+
+  useEffect(() => {
+    if (score > userScore) {
+      interval.current = setInterval(() => {
+        setUserScore((prevScore) => prevScore + 1);
+      }, scoreAnimationDuration / score);
+    } else {
+      interval.current = setInterval(() => {
+        setUserScore((prevScore) => prevScore - 1);
+      }, scoreAnimationDuration / score);
+    }
+  }, [score]);
+
+  useEffect(() => {
+    if (userScore === score) clearInterval(interval.current);
+  }, [userScore]);
+
+  console.log(userScore);
   return (
     <motion.div
       className="camera"
@@ -16,7 +44,7 @@ function Camera({ username, score }: CameraProps) {
     >
       <span className="camera__username">{username}</span>
       <video className="camera__video" autoPlay={true} />
-      <span className="camera__score">Score: {score}</span>
+      <span className="camera__score">Score: {userScore}</span>
     </motion.div>
   );
 }
