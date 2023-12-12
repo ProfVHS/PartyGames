@@ -1,11 +1,8 @@
-import { BlueDiamond } from "../components/TrickyDiamonds/Diamonds";
-import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
-
+import { Stopwatch } from "../components/Stopwatch/Stopwatch";
 export default function TestPage() {
   return (
     <>
-      <TrickyDiamonds />
-      {/* <BlueDiamond /> */}
+      <Stopwatch size={75} maxTime={15} timeLeft={6} />
     </>
   );
 }
