@@ -25,7 +25,7 @@ module.exports = (
     socket: Socket, 
     db: Database, 
     usersData: (room: string, socket: Socket) => void,
-    updateUserScore: (id: string, score: number) => void,
+    updateUserScore: (id: string, score: number, socket: Socket) => void,
     updateRoomInGame: (room: string, in_game: boolean) => void,
     updateRoomTime: (room: string, time_left: number, time_max: number) => void,
 ) => {
@@ -120,43 +120,37 @@ module.exports = (
         }, 1000);
     });
 
-    const pp = async (array: {id: string, score: number}[]) => {
-        array.forEach(async (element) => {
-            await updateUserScore(element.id, element.score);
-        });
-    };
-
     const checkSelectedCards = async (room: string, cards: Cards[]) => {
-        // check if there are users who selected same card
-        const selectedArray = selectedCardsArray.find((element) => element.id_room == room);
-        const ScoreUsers: {id: string, score: number}[] = [];
-        // cards = [{isPositive: true, score: 50}, {isPositive: false, score: 100}, ...]
-        // selectedArray = [{user_id: "socket.id", selectedCard: 0}, {user_id: "socket.id", selectedCard: 1}, ...]
-        
-        // if there are, send doubled points to the users
-        if(selectedArray){
-            for(let i = 0; i < 9; i++){
-                const penaltyUsers = selectedArray.array_cards.filter((element) => element.selectedCard == i);
-                console.log(penaltyUsers);
-                if(cards[i].isPositive && penaltyUsers.length > 0){
-                    // if card is positive, add points to users who selected it
-                    const score: number = cards[i].score / penaltyUsers.length;
-                    console.log(score);
-                    penaltyUsers.forEach(async (element) => {
-                        ScoreUsers.push({id: element.user_id, score: score});
-                    });
-                } else if(penaltyUsers.length > 0) {
-                    // if card is negative, multiply points to users who selected it
-                    const score: number = -cards[i].score * penaltyUsers.length;
-                    console.log(score);
-                    penaltyUsers.forEach(async (element) => {
-                        ScoreUsers.push({id: element.user_id, score: score});
-                    });
+            // check if there are users who selected same card
+            const selectedArray = selectedCardsArray.find((element) => element.id_room == room);
+            const ScoreUsers: {id: string, score: number, selectedCard: number}[] = [];
+            // cards = [{isPositive: true, score: 50}, {isPositive: false, score: 100}, ...]
+            // selectedArray = [{user_id: "socket.id", selectedCard: 0}, {user_id: "socket.id", selectedCard: 1}, ...]
+            
+            // if there are, send doubled points to the users
+            if(selectedArray){
+                for(let i = 0; i < 9; i++){
+                    const penaltyUsers = selectedArray.array_cards.filter((element) => element.selectedCard == i);
+                    console.log(penaltyUsers);
+                    if(cards[i].isPositive && penaltyUsers.length > 0){
+                        // if card is positive, add points to users who selected it
+                        const score: number = cards[i].score / penaltyUsers.length;
+                        console.log(score);
+                        penaltyUsers.forEach(async (element) => {
+                            ScoreUsers.push({id: element.user_id, score: score, selectedCard: element.selectedCard});
+                        });
+                    } else if(penaltyUsers.length > 0) {
+                        // if card is negative, multiply points to users who selected it
+                        const score: number = -cards[i].score * penaltyUsers.length;
+                        console.log(score);
+                        penaltyUsers.forEach(async (element) => {
+                            ScoreUsers.push({id: element.user_id, score: score, selectedCard: element.selectedCard});
+                        });
+                    }
                 }
+
+                return ScoreUsers;
             }
-        }
-        
-        pp(ScoreUsers);
     };
 
     socket.on("selectedCards", (data: { roomCode: string, selectedCard: number }) => {
@@ -167,15 +161,28 @@ module.exports = (
         }
     });
 
+    socket.on("checkCard", async (data: {room: string, id: number, cards: Cards[]}) => {
+
+    });
+
     socket.on("endGameCards", async (data: {roomCode: string, cards: Cards[]}) => {
-        await checkSelectedCards(data.roomCode, data.cards);
-
-        usersData(data.roomCode, socket);
-
-        // clear selectedCardsArray
-        selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == data.roomCode), 1);
-
-        // update in_game to false, alive to true, turn to 0
-        updateRoomInGame(data.roomCode, false);
+        
+        await checkSelectedCards(data.roomCode, data.cards).then((ScoreUsers) => {
+            ScoreUsers?.forEach((element) => {
+                updateUserScore(element.id, element.score, socket);
+            });
+        })
+        .then(() => {
+            console.log("UserData endGameCards");
+            // usersData(data.roomCode, socket);
+        }).then(() => {
+            // clear selectedCardsArray
+            console.log("selectedCardsArray");
+            selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == data.roomCode), 1);
+        }).then(() => {
+            console.log("selectedCardsArray endGameCards");
+            // update in_game to false, alive to true, turn to 0
+            updateRoomInGame(data.roomCode, false);
+        });
     });
 };

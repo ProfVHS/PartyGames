@@ -75,6 +75,7 @@ export default function RoomPage({ socket }: RoomPageProps) {
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
       usersLength.current = data.length;
+      console.log(data);
     });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {

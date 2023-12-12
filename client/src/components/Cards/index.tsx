@@ -81,8 +81,6 @@ function Cards({ socket, roomCode, users }: CardsProps) {
         setEndGame(newEndGame);
       }
 
-      await delay(1000);
-
       // the game ends after 3 turns
       if(turn <= 3){
         // flip the cards and reset the time
@@ -173,7 +171,6 @@ function Cards({ socket, roomCode, users }: CardsProps) {
             score={card.score}
             onSelect={handleCardSelect}
             selected={selectedCard === index}
-            endGame={endGame}
           />
         ))}
       </div>

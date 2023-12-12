@@ -16,8 +16,8 @@ module.exports = (
     usersData: (room: string, socket: Socket) => void, 
     updateRoomTurn: (room: string, turn: number, socket: Socket) => Promise<void>,
     changeRoomTurn: (room: string, socket: Socket) => Promise<void>,
-    updateUserScore: (id: string, score: number) => void,
-    updateUserScoreMultiply: (id: string, score: number) => void,
+    updateUserScore: (id: string, score: number, socket: Socket) => void,
+    updateUserScoreMultiply: (id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (room: string, alive: boolean) => void,
     updateRoomInGame: (room: string, in_game: boolean) => void,
@@ -98,9 +98,9 @@ module.exports = (
                         users_rows.forEach((user) => {
                             // -30% points to the user
                             if( user.id == socket.id ){
-                                updateUserScoreMultiply(user.id, 0.7);
+                                updateUserScoreMultiply(user.id, 0.7, socket);
                             } else {
-                                updateUserScore(user.id, 50);
+                                updateUserScore(user.id, 50, socket);
                             }
                         });
                         // update in game to false 
@@ -122,18 +122,18 @@ module.exports = (
                             await changeRoomTurn(room, socket);
                         }).then(() => {
                             // -30% points to the user
-                            updateUserScoreMultiply(socket.id, 0.7);
+                            updateUserScoreMultiply(socket.id, 0.7, socket);
                         }).then(() => {
                             // send data to the client
-                        usersData(room, socket);
-                        socket.nsp.to(room).emit("receiveCounterCtb", 0);
-                        socket.nsp.to(room).emit("receiveExplosionCtb", socket.id);
+                            usersData(room, socket);
+                            socket.nsp.to(room).emit("receiveCounterCtb", 0);
+                            socket.nsp.to(room).emit("receiveExplosionCtb", socket.id);
                         });
                     }
                 } else {
                     // continue the game, +10 points to the user
                     socket.nsp.to(room).emit("receiveCounterCtb", bomb_row.counter);    
-                    updateUserScore(socket.id, 10);
+                    updateUserScore(socket.id, 10, socket);
                     usersData(room, socket);
                 }
             });

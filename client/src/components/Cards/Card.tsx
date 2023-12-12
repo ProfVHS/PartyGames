@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import CardBack from "./CardBack";
 import CardFrontPositive from "./CardFrontPositive";
 import CardFrontNegative from "./CardFrontNegative";
+import { Socket } from "socket.io-client";
 
 interface CardProps {
   id: number;
@@ -10,9 +11,9 @@ interface CardProps {
   score: number;
   onSelect: (id: number) => void;
   selected: boolean;
-  endGame: boolean;
+  
 }
-export default function Card({ id, isPositive, flip, score, onSelect, selected, endGame }: CardProps) {
+export default function Card({ id, isPositive, flip, score, onSelect, selected }: CardProps) {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [frontShow, setFrontShow] = useState<boolean>(false);
 
@@ -23,8 +24,7 @@ export default function Card({ id, isPositive, flip, score, onSelect, selected, 
   };
 
   const handleFlip = (flip: boolean) => {
-    const index = endGame ? 1 : id;
-
+    if(!flip) return;
     setTimeout(() => {
       const newIsFlipped = flip;
       setIsFlipped(newIsFlipped);
@@ -33,8 +33,9 @@ export default function Card({ id, isPositive, flip, score, onSelect, selected, 
         const newFrontShow = flip;
         setFrontShow(newFrontShow);
         setIsFlipped(false);
+
       }, 325);
-    }, 325 * index);
+    }, 325 * id);
   };
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function Card({ id, isPositive, flip, score, onSelect, selected, 
   }, [flip]);
 
   return (
-    <div className={`cardBox ${isFlipped ?  "flip " : ""} ${selected ? " selected " : ""}`} onClick={handleClick} >
+    <div className={`cardBox ${isFlipped ? "flip" : ""} ${selected ? "cardBox selected" : ""}`} onClick={handleClick} >
       {frontShow ? (
         isPositive ? (
           <CardFrontPositive score={score} />

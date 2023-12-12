@@ -23,19 +23,53 @@ const adjective = [
   "Lazy",
   "Strong",
   "Infinity",
+  "Party",
+  "Funny",
+  "Crazy",
+  "Happy",
+  "Sad",
+  "Angry",
+  "Epic",
+  "Legendary",
+  "Pro",
+  "Noob",
+  "Dumb",
+  "Smart",
+  "Fast",
+  "Slow",
+  "Big",
+  "Small",
+  "Mr",
+  "Mrs",
+  "Sensei",
+  "Master",
+  "King",
+  "Queen",
+  "Lord",
+  "Sir",
+
 ];
 const nouns = [
   "Mango",
   "Monkey",
+  "Kiwi",
   "Guy",
   "Bread",
   "Ninja",
+  "Panda",
+  "Potato",
   "Sigma",
   "Banana",
   "Cat",
   "Dog",
   "Cyclop",
   "Bro",
+  "Dude",
+  "Doc",
+  "Buffalo",
+  "Chicken",
+  "Turtle",
+  "Penguin",
 ];
 
 export default function HomePage({ socket }: HomePageProps) {
@@ -53,7 +87,8 @@ export default function HomePage({ socket }: HomePageProps) {
 
   const handleRandomRoomCode = () => {
     setRandomRoomCode(
-      Math.round(Math.random() * (90000 - 10000) + 10000).toString()
+      // Math.round(Math.random() * (90000 - 10000) + 10000).toString()
+      '00010'
     );
   };
 
