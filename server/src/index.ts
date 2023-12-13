@@ -10,11 +10,11 @@ export interface User {
   username: string, 
   score: number, 
   alive: boolean, 
-  id_room: number
+  id_room: string
 };
 
 export interface Room {
-  id: number, 
+  id: string, 
   turn: number, 
   ready: number, 
   time_left: number, 
@@ -48,8 +48,13 @@ server.listen(3000, async () => {
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
+    // click the bomb
     db.run(
-      'CREATE TABLE bomb ("id" VARCHAR NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);'
+      'CREATE TABLE bomb ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);'
+    );
+    // cards
+    db.run(
+      'CREATE TABLE cards ("id" INTEGER NOT NULL PRIMARY KEY, "id_card" INTEGER NOT NULL, "id_room" VARCHAR(5) NOT NULL, "isPositive" BOOLEAN NOT NULL, "score" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
   });
 
@@ -63,7 +68,7 @@ server.listen(3000, async () => {
   // info about users and room
   const usersData = async (room: string, socket: Socket) => {
     return new Promise<User[]>((resolve, reject) => { 
-      db.all(`SELECT * FROM users WHERE id_room = ${room}`, [], (err: Error, rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${room}"`, [], (err: Error, rows: User[]) => {
         if(err) {
           reject(err);
         } else {
@@ -71,13 +76,13 @@ server.listen(3000, async () => {
         }
       });
     }).then((rows) => {
-      console.log(rows);
       socket.nsp.to(room).emit("receiveUsersData", rows);
     });
   };
+
   const roomData = async (room: string, socket: Socket) => {
     return new Promise<Room>((resolve, reject) => { 
-      db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, row: Room) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err: Error, row: Room) => {
         if(err) {
           reject(err);
         } else {
@@ -92,7 +97,7 @@ server.listen(3000, async () => {
   // update turn
   const updateRoomTurn = async (room: string, turn: number, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
-        const turnQuery = `UPDATE rooms SET turn = ${turn} WHERE id = ${room}`;
+        const turnQuery = `UPDATE rooms SET turn = ${turn} WHERE id = "${room}"`;
 
         db.run(turnQuery, (err) => {
             if(err){
@@ -105,7 +110,7 @@ server.listen(3000, async () => {
       return new Promise<[Room, User[]]>((resolve, reject) => {
         Promise.all([
           new Promise<Room>((resolveRoom, rejectRoom) => {
-            db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err: Error, room_row: Room) => {
               if (err) {
                 rejectRoom(err);
               } else {
@@ -114,7 +119,7 @@ server.listen(3000, async () => {
             });
           }),
           new Promise<User[]>((resolveUsers, rejectUsers) => {
-            db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${room}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
               if (err) {
                 rejectUsers(err);
               } else {
@@ -140,7 +145,7 @@ server.listen(3000, async () => {
     return new Promise<[Room, User[]]>((resolve, reject) => {
       Promise.all([
         new Promise<Room>((resolveRoom, rejectRoom) => {
-          db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, room_row: Room) => {
+          db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err: Error, room_row: Room) => {
             if (err) {
               rejectRoom(err);
             } else {
@@ -149,7 +154,7 @@ server.listen(3000, async () => {
           });
         }),
         new Promise<User[]>((resolveUsers, rejectUsers) => {
-          db.all(`SELECT * FROM users WHERE id_room = ${room} AND alive = true`, [], (err: Error, users_rows: User[]) => {
+          db.all(`SELECT * FROM users WHERE id_room = "${room}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
             if (err) {
               rejectUsers(err);
             } else {
@@ -209,6 +214,7 @@ server.listen(3000, async () => {
       ])
       .then(async ([row]) => {
         console.log("Then updateScore");
+        console.log(id, score);
         await usersData(row.id_room.toString(), socket);
       });
   });

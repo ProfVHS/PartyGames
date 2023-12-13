@@ -11,9 +11,11 @@ interface CardProps {
   score: number;
   onSelect: (id: number) => void;
   selected: boolean;
-  
+  socket: Socket;
+  room: string;
+  user: string; 
 }
-export default function Card({ id, isPositive, flip, score, onSelect, selected }: CardProps) {
+export default function Card({ id, isPositive, flip, score, onSelect, selected, socket, room, user }: CardProps) {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [frontShow, setFrontShow] = useState<boolean>(false);
 
@@ -33,9 +35,21 @@ export default function Card({ id, isPositive, flip, score, onSelect, selected }
         const newFrontShow = flip;
         setFrontShow(newFrontShow);
         setIsFlipped(false);
+        if(user == socket.id){
+          socket.emit("checkCard", { room, id });
+        }
+        // if(id == 9){
+        //   // robi ture
+        //   if(tura <= 3){
 
-      }, 325);
-    }, 325 * id);
+        //   } else {
+        //     if(user == socket.id){
+        //       socket.emit("endGameCards", room);
+        //     }
+        //   }
+        // }
+      }, 400);
+    }, 400 * id);
   };
 
   useEffect(() => {

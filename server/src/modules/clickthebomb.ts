@@ -4,7 +4,7 @@ import { Database } from 'sqlite3';
 import { User } from '../index';
 
 interface Bomb {
-    id: number,
+    id: string,
     counter: number,
     max: number
 };
@@ -23,7 +23,7 @@ module.exports = (
     updateRoomInGame: (room: string, in_game: boolean) => void,
 ) => {
     const setDataBomb = async (max: number, counter: number, room: string) => {
-        db.run(`INSERT INTO bomb (id,counter,max) VALUES (${room},${counter},${max})`);
+        db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${room}",${counter},${max})`);
     };
 
     const updateDataBomb = async (max: number, counter: number, room: string) => {

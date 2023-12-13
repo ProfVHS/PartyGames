@@ -7,11 +7,7 @@ import ClickSound from "../assets/audio/click.mp3";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import { Socket } from "socket.io-client";
-
-interface HomePageProps {
-  socket: Socket;
-}
+import {socket} from "../socket";
 
 const adjective = [
   "Ultra",
@@ -72,7 +68,7 @@ const nouns = [
   "Penguin",
 ];
 
-export default function HomePage({ socket }: HomePageProps) {
+export default function HomePage() {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
@@ -87,8 +83,7 @@ export default function HomePage({ socket }: HomePageProps) {
 
   const handleRandomRoomCode = () => {
     setRandomRoomCode(
-      // Math.round(Math.random() * (90000 - 10000) + 10000).toString()
-      '00010'
+      Math.round(Math.random() * 90000).toString()
     );
   };
 

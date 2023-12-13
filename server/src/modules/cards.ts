@@ -4,6 +4,7 @@ import { Database } from 'sqlite3';
 import { Room } from '../index';
 
 interface Cards {
+    id: number,
     isPositive: boolean,
     score: number
 };
@@ -15,7 +16,7 @@ interface selectedCards {
 
 interface arraySelectedCards {
     id_room: string,
-    array_cards: selectedCards[]
+    cards: selectedCards[]
 };
 
 const selectedCardsArray: arraySelectedCards[] = [];
@@ -54,60 +55,69 @@ module.exports = (
     };
 
     // generate cards array for actual game
-    const generateCards = (room: string, socket: Socket, bombs: number, cards: number) => {
-        const cardsArray: Cards[] = [];
-        // check if there are too many cards by mistake
-        if(bombs + cards > 9) return console.log("Error: too many cards");
+    const generateCards = async (room: string, socket: Socket, bombs: number, cards: number) => {        
+        return new Promise<Cards[]>((resolve, reject) => {
+            const array: Cards[] = [];
+            // check if there are too many cards by mistake
+            if(bombs + cards > 9) return reject("Error: too many cards");
 
-        const { bombScore, cardsScore } = scoreArrays(bombs);
+            const { bombScore, cardsScore } = scoreArrays(bombs);
 
-        // fill cardsArray with data from bombScore and cardsScore arrays
-        while(cardsArray.length < 9){
-            const isPositive = Math.random() < 0.5;
-            if(isPositive){
-                if(cards > 0){
-                    // get random index from cardsScore and remove it
-                    const index = Math.floor(Math.random() * cardsScore.length);
-                    const score = cardsScore[index];
-                    cardsScore.splice(index, 1);
-                    // add positive card
-                    cardsArray.push({ isPositive, score });
-                    // decrease cards counter to stop adding cards when there are no more cards needed
-                    cards--;
-                }
-            } else {
-                if(bombs > 0){
-                    // get random index from bombScore and remove it
-                    const index = Math.floor(Math.random() * bombScore.length);
-                    const score = bombScore[index];
-                    bombScore.splice(index, 1);
-                    // add negative card
-                    cardsArray.push({ isPositive, score: score });
-                    // decrease bombs counter to stop adding bombs when there are no more bombs needed
-                    bombs--;
+            var id = 0;
+            // fill cardsArray with data from bombScore and cardsScore arrays
+            while(array.length < 9){
+                const isPositive = Math.random() < 0.5;
+                if(isPositive){
+                    if(cards > 0){
+                        // get random index from cardsScore and remove it
+                        const index = Math.floor(Math.random() * cardsScore.length);
+                        const score = cardsScore[index];
+                        cardsScore.splice(index, 1);
+                        // add positive card
+                        array.push({id, isPositive, score });   
+                        // decrease cards counter to stop adding cards when there are no more cards needed
+                        cards--;
+                        id++;
+                    }
+                } else {
+                    if(bombs > 0){
+                        // get random index from bombScore and remove it
+                        const index = Math.floor(Math.random() * bombScore.length);
+                        const score = bombScore[index];
+                        bombScore.splice(index, 1);
+                        // add negative card
+                        array.push({id, isPositive, score: score });
+                        // decrease bombs counter to stop adding bombs when there are no more bombs needed
+                        bombs--;
+                        id++;
+                    }
                 }
             }
-        }
-
-        // send cardsArray to all users in room
-        socket.nsp.to(room).emit("receiveCardsArray", cardsArray);
+            resolve(array);
+        });
     };
 
     socket.on("startGameCards", (data: {roomCode: string, bombs_value: number, cards_value: number}) => {
         // generate cards for turn, set time_left to 15 and time_max to 15
-        generateCards(data.roomCode, socket, data.bombs_value, data.cards_value);
+        generateCards(data.roomCode, socket, data.bombs_value, data.cards_value).then((cards: Cards[]) => {
+            // send cardsArray to all users in room
+            socket.nsp.to(data.roomCode).emit("receiveCardsArray", cards);
+            cards.forEach((card) => {
+                db.run(`INSERT INTO cards (id_card,id_room,isPositive,score) VALUES (${card.id},${data.roomCode}, ${card.isPositive}, ${card.score})`);
+            });
+        });
         updateRoomTime(data.roomCode, 5, 5);
         updateRoomInGame(data.roomCode, true);
     });
 
 
-    socket.on("timeCards", async (room) => {
+    socket.on("timeCards", async (room: string) => {
         // set interval to decrease time_left every second
         const cardsTimeInterval = setInterval( async () => {
             db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = ${room}`);
-
+            // send time_left to all users in room
             return new Promise<Room>((resolve, reject) => {
-                db.get(`SELECT * FROM rooms WHERE id = ${room}`, [], (err: Error, row: Room) => {
+                db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err: Error, row: Room) => {
                     if(err){
                         reject(err);
                     } else {
@@ -120,69 +130,46 @@ module.exports = (
         }, 1000);
     });
 
-    const checkSelectedCards = async (room: string, cards: Cards[]) => {
-            // check if there are users who selected same card
-            const selectedArray = selectedCardsArray.find((element) => element.id_room == room);
-            const ScoreUsers: {id: string, score: number, selectedCard: number}[] = [];
-            // cards = [{isPositive: true, score: 50}, {isPositive: false, score: 100}, ...]
-            // selectedArray = [{user_id: "socket.id", selectedCard: 0}, {user_id: "socket.id", selectedCard: 1}, ...]
-            
-            // if there are, send doubled points to the users
-            if(selectedArray){
-                for(let i = 0; i < 9; i++){
-                    const penaltyUsers = selectedArray.array_cards.filter((element) => element.selectedCard == i);
-                    console.log(penaltyUsers);
-                    if(cards[i].isPositive && penaltyUsers.length > 0){
-                        // if card is positive, add points to users who selected it
-                        const score: number = cards[i].score / penaltyUsers.length;
-                        console.log(score);
-                        penaltyUsers.forEach(async (element) => {
-                            ScoreUsers.push({id: element.user_id, score: score, selectedCard: element.selectedCard});
-                        });
-                    } else if(penaltyUsers.length > 0) {
-                        // if card is negative, multiply points to users who selected it
-                        const score: number = -cards[i].score * penaltyUsers.length;
-                        console.log(score);
-                        penaltyUsers.forEach(async (element) => {
-                            ScoreUsers.push({id: element.user_id, score: score, selectedCard: element.selectedCard});
-                        });
-                    }
-                }
-
-                return ScoreUsers;
-            }
-    };
-
     socket.on("selectedCards", (data: { roomCode: string, selectedCard: number }) => {
         if(selectedCardsArray.find((element) => element.id_room == data.roomCode) == undefined){
-            selectedCardsArray.push({id_room: data.roomCode, array_cards: [{user_id: socket.id, selectedCard: data.selectedCard}]});
+            selectedCardsArray.push({id_room: data.roomCode, cards: [{user_id: socket.id, selectedCard: data.selectedCard}]});
         } else{
-            selectedCardsArray.find((element) => element.id_room == data.roomCode)?.array_cards.push({user_id: socket.id, selectedCard: data.selectedCard});
+            selectedCardsArray.find((element) => element.id_room == data.roomCode)?.cards.push({user_id: socket.id, selectedCard: data.selectedCard});
         }
     });
 
-    socket.on("checkCard", async (data: {room: string, id: number, cards: Cards[]}) => {
-
+    // 
+    socket.on("checkCard", async (data: {room: string, id: number}) => {
+        // get card from cardsArray
+        return new Promise<Cards>((resolve, reject) => {
+            db.get(`SELECT * FROM cards WHERE id_room = ${data.room} AND id_card = ${data.id}`, [], (err: Error, row: Cards) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve(row);
+                }
+            });
+        }).then((row) => {
+            const selectedCard = selectedCardsArray.find((room) => room.id_room == data.room)?.cards.filter((card) => card.selectedCard == data.id);
+            const usersLenght = selectedCard?.length;
+            
+            selectedCardsArray.find((room) => room.id_room == data.room)?.cards.filter((card) => card.selectedCard == data.id).forEach((user) => {
+                if(row.isPositive){
+                    const score = row.score / usersLenght!;
+                    updateUserScore(user.user_id, score, socket);
+                } else {
+                    const score = -row.score * usersLenght!;
+                    updateUserScore(user.user_id, score, socket);
+                }
+            });
+        });
     });
 
-    socket.on("endGameCards", async (data: {roomCode: string, cards: Cards[]}) => {
-        
-        await checkSelectedCards(data.roomCode, data.cards).then((ScoreUsers) => {
-            ScoreUsers?.forEach((element) => {
-                updateUserScore(element.id, element.score, socket);
-            });
-        })
-        .then(() => {
-            console.log("UserData endGameCards");
-            // usersData(data.roomCode, socket);
-        }).then(() => {
-            // clear selectedCardsArray
-            console.log("selectedCardsArray");
-            selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == data.roomCode), 1);
-        }).then(() => {
-            console.log("selectedCardsArray endGameCards");
-            // update in_game to false, alive to true, turn to 0
-            updateRoomInGame(data.roomCode, false);
-        });
+    socket.on("endGameCards", async (room: string) => {
+        // delete cards from cards table
+        selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == room), 1);
+        db.run(`DELETE FROM cards WHERE id_room = ${room}`);
+        // update in_game to false, alive to true, turn to 0
+        updateRoomInGame(room, false);
     });
 };

@@ -18,8 +18,8 @@ module.exports = (
   socket.on("createRoom", (data : { randomRoomCode: string, name : string }) => {
     socket.join(data.randomRoomCode);
 
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game) VALUES (${data.randomRoomCode}, 0, 0, 0, 0, false)`);
-    db.run(`INSERT INTO users (id,username,score,alive,id_room) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.randomRoomCode})`);
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game) VALUES ("${data.randomRoomCode}", 0, 0, 0, 0, false)`);
+    db.run(`INSERT INTO users (id,username,score,alive,id_room) VALUES ("${socket.id}", "${data.name}", 100, true, "${data.randomRoomCode}")`);
     
   });
 
@@ -30,7 +30,7 @@ module.exports = (
     return new Promise<[User[], Count[], Room]>((resolve, reject) => {
       Promise.all([
         new Promise<User[]>((resolveUsers, rejectUsers) => {
-          db.all(`SELECT * FROM users WHERE id_room = ${data.roomCode}`, [], (err: Error, users_rows: User[]) => {
+          db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
             if (err) {
               rejectUsers(err);
             } else {
@@ -39,7 +39,7 @@ module.exports = (
           });
         }),
         new Promise<Count[]>((resolveCount, rejectCount) => {
-          db.all(`SELECT COUNT(*) AS "count" FROM users WHERE id_room = ${data.roomCode} AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`, [], (err: Error, count_row: Count[]) => {
+          db.all(`SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`, [], (err: Error, count_row: Count[]) => {
             if (err) {
               rejectCount(err);
             } else {
@@ -48,7 +48,7 @@ module.exports = (
           });
         }),
         new Promise<Room>((resolveRoom, rejectRoom) => {
-          db.get(`SELECT * FROM rooms WHERE id = ${data.roomCode}`, [], (err: Error, room_row: Room) => {
+          db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
             if (err) {
               rejectRoom(err);
             } else {

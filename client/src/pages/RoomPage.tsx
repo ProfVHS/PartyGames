@@ -8,15 +8,12 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
-import { Socket } from "socket.io-client";
 
 import MiniGames from "../components/MiniGames";
+import {socket} from "../socket";
 
-interface RoomPageProps {
-  socket: Socket;
-}
 
-export default function RoomPage({ socket }: RoomPageProps) {
+export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<
