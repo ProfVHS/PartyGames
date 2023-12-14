@@ -47,7 +47,6 @@ export const BlueDiamond = ({ props, isCracked, isFake }: DiamondsProps) => {
 
   useEffect(() => {
     if (isCracked) crackingAnimation();
-    console.log(isCracked);
   }, [isCracked]);
 
   return (
@@ -154,7 +153,6 @@ export const PurpleDiamond = ({ props, isCracked, isFake }: DiamondsProps) => {
 
   useEffect(() => {
     if (isCracked) crackingAnimation();
-    console.log(isCracked);
   }, [isCracked]);
 
   return (
@@ -256,7 +254,6 @@ export const RedDiamond = ({ props, isCracked, isFake }: DiamondsProps) => {
 
   useEffect(() => {
     if (isCracked) crackingAnimation();
-    console.log(isCracked);
   }, [isCracked]);
 
   return (
