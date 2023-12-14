@@ -26,7 +26,7 @@ interface CardsProps {
 function Cards({ socket, roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(5);
-  const [turn, setTurn] = useState<number>(1);
+  const [turn, setTurn] = useState<number>(0);
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<boolean>(false);
   
@@ -35,8 +35,11 @@ function Cards({ socket, roomCode, users }: CardsProps) {
   const startGame = async () => {
     if(users.length > 0){
       if(users[0].id == socket.id){
-        const bombs_value = turn + 2;
-        const cards_value = 7 - turn;
+        const newTurn = turn + 1;
+        setTurn(newTurn);
+        console.log("start game", turn);
+        const bombs_value = turn + 3;
+        const cards_value = 6 - turn;
         socket.emit("startGameCards", { roomCode, bombs_value, cards_value } );
         socket.emit("timeCards", roomCode);
       }
@@ -46,9 +49,6 @@ function Cards({ socket, roomCode, users }: CardsProps) {
   // make sure that the game starts only once by host
   useEffect(() => {
     if(onceDone.current) return;
-
-    const newTurn = turn + 1;
-    setTurn(newTurn);
 
     if(users.length > 0){
       if(users[0].id === socket.id){
@@ -78,22 +78,28 @@ function Cards({ socket, roomCode, users }: CardsProps) {
       if(cards !== undefined){
         socket.emit("selectedCards", selectedCard);
       }
-      // flip the cards
 
-      // // the game ends after 3 turns
-      // if(turn > 3){
-      //   // end the game
-      //   if(users.length > 0){
-      //     if(users[0].id === socket.id){
-      //       socket.emit("endGameCards", { roomCode, cards });
-      //     }
-      //   }
-      // } else {
-      //   startGame();
-      //   // flip the cards and reset the time
-      //   setFlipped(false);
-      //   setTime(5);
-      // }
+      // flip the cards
+      delay(4500).then(() => {
+        console.log("done");
+        console.log(turn);
+        // all cards at the same time flip back (animation Rafał)
+
+         // the game ends after 3 turns
+        if(turn > 2){
+          // end the game
+          if(users.length > 0){
+            if(users[0].id === socket.id){
+              socket.emit("endGameCards", { roomCode, cards });
+              return;
+            }
+          }
+        } 
+        startGame();
+        // flip the cards and reset the time
+        setFlipped(false);
+        setTime(5);
+      });
   };
 
   useEffect(() => {
