@@ -1,25 +1,13 @@
 import { Server, Socket } from 'socket.io';
 import { Database } from 'sqlite3';
 
-import { Room } from '../index';
+import { Room, User } from '../index';
 
 interface Cards {
     id: number,
     isPositive: boolean,
     score: number
 };
-
-interface selectedCards {
-    user_id: string,
-    selectedCard: number
-};
-
-interface arraySelectedCards {
-    id_room: string,
-    cards: selectedCards[]
-};
-
-const selectedCardsArray: arraySelectedCards[] = [];
 
 module.exports = (
     io: Server, 
@@ -29,6 +17,7 @@ module.exports = (
     updateUserScore: (id: string, score: number, socket: Socket) => void,
     updateRoomInGame: (room: string, in_game: boolean) => void,
     updateRoomTime: (room: string, time_left: number, time_max: number) => void,
+    updateUserSelected: (id: string, selected: number) => void,
 ) => {
     // arrays with ponts for cards in 3 different turns
     const scoreArrays = (bombs: number) => {
@@ -55,7 +44,7 @@ module.exports = (
     };
 
     // generate cards array for actual game
-    const generateCards = async (room: string, socket: Socket, bombs: number, cards: number) => {        
+    const generateCards = async (bombs: number, cards: number) => {        
         return new Promise<Cards[]>((resolve, reject) => {
             const array: Cards[] = [];
             // check if there are too many cards by mistake
@@ -99,7 +88,7 @@ module.exports = (
 
     socket.on("startGameCards", (data: {roomCode: string, bombs_value: number, cards_value: number}) => {
         // generate cards for turn, set time_left to 15 and time_max to 15
-        generateCards(data.roomCode, socket, data.bombs_value, data.cards_value).then((cards: Cards[]) => {
+        generateCards(data.bombs_value, data.cards_value).then((cards: Cards[]) => {
             // send cardsArray to all users in room
             socket.nsp.to(data.roomCode).emit("receiveCardsArray", cards);
             cards.forEach((card) => {
@@ -130,36 +119,46 @@ module.exports = (
         }, 1000);
     });
 
-    socket.on("selectedCards", (data: { roomCode: string, selectedCard: number }) => {
-        if(selectedCardsArray.find((element) => element.id_room == data.roomCode) == undefined){
-            selectedCardsArray.push({id_room: data.roomCode, cards: [{user_id: socket.id, selectedCard: data.selectedCard}]});
-        } else{
-            selectedCardsArray.find((element) => element.id_room == data.roomCode)?.cards.push({user_id: socket.id, selectedCard: data.selectedCard});
-        }
+    socket.on("selectedCards", (selectedCard: number) => {
+        updateUserSelected(socket.id, selectedCard);
     });
 
     // 
     socket.on("checkCard", async (data: {room: string, id: number}) => {
         // get card from cardsArray
-        return new Promise<Cards>((resolve, reject) => {
-            db.get(`SELECT * FROM cards WHERE id_room = ${data.room} AND id_card = ${data.id}`, [], (err: Error, row: Cards) => {
-                if(err){
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
+        return new Promise<[Cards, User[]]>((resolve, reject) => {
+            Promise.all([
+                new Promise<Cards>((resolveCards, rejectCards) => {
+                    db.get(`SELECT * FROM cards WHERE id_room = ${data.room} AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
+                        if(err){
+                            rejectCards(err);
+                        } else {
+                            resolveCards(card_row);
+                        }
+                    })
+                }),
+                new Promise<User[]>((resolveUsers, rejectUsers) => {
+                    db.all(`SELECT * FROM users WHERE id_room = ${data.room} AND id_selected = ${data.id}`, [], (err: Error, users_rows: User[]) => {
+                        if(err){
+                            rejectUsers(err);
+                        } else {
+                            resolveUsers(users_rows);
+                        }
+                    })
+                })
+            ]).then(([card_row, users_rows]) => {
+                resolve([card_row, users_rows]);
+            }).catch((error) => {
+                reject(error);
             });
-        }).then((row) => {
-            const selectedCard = selectedCardsArray.find((room) => room.id_room == data.room)?.cards.filter((card) => card.selectedCard == data.id);
-            const usersLenght = selectedCard?.length;
-            
-            selectedCardsArray.find((room) => room.id_room == data.room)?.cards.filter((card) => card.selectedCard == data.id).forEach((user) => {
-                if(row.isPositive){
-                    const score = row.score / usersLenght!;
-                    updateUserScore(user.user_id, score, socket);
+        }).then(([card_row, users_rows]) => {
+            users_rows.forEach((user) => {
+                if(card_row.isPositive){
+                    const score = card_row.score / users_rows.length;
+                    updateUserScore(user.id, score, socket);
                 } else {
-                    const score = -row.score * usersLenght!;
-                    updateUserScore(user.user_id, score, socket);
+                    const score = -card_row.score * users_rows.length;
+                    updateUserScore(user.id, score, socket);
                 }
             });
         });
@@ -167,7 +166,6 @@ module.exports = (
 
     socket.on("endGameCards", async (room: string) => {
         // delete cards from cards table
-        selectedCardsArray.splice(selectedCardsArray.findIndex((element) => element.id_room == room), 1);
         db.run(`DELETE FROM cards WHERE id_room = ${room}`);
         // update in_game to false, alive to true, turn to 0
         updateRoomInGame(room, false);

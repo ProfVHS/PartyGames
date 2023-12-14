@@ -4,7 +4,7 @@
     "width": 2000,
     "height": 2000,
     "scrollTop": 0,
-    "scrollLeft": -54.1666645142768,
+    "scrollLeft": 0,
     "zoomLevel": 1,
     "show": {
       "tableComment": true,
@@ -141,7 +141,7 @@
           {
             "name": "id_room",
             "comment": "",
-            "dataType": "INTEGER",
+            "dataType": "VARCHAR",
             "default": "",
             "option": {
               "autoIncrement": false,
@@ -160,13 +160,36 @@
               "widthDefault": 60
             },
             "id": "5a5ae9eb-6a89-49d3-b5e0-e418df864eea"
+          },
+          {
+            "name": "id_selected",
+            "comment": "",
+            "dataType": "INTEGER",
+            "default": "0",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 69.62588500976562,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "1a4430c8-8e2c-45c3-b49c-80daf159408b"
           }
         ],
         "ui": {
           "active": false,
           "left": 69.1664,
           "top": 54.0005,
-          "zIndex": 2,
+          "zIndex": 17,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFFFFF"
@@ -181,7 +204,7 @@
           {
             "name": "id",
             "comment": "",
-            "dataType": "INTEGER",
+            "dataType": "VARCHAR",
             "default": "",
             "option": {
               "autoIncrement": false,
@@ -321,7 +344,7 @@
           "active": false,
           "left": 71.4568,
           "top": 364.9998,
-          "zIndex": 1,
+          "zIndex": 37,
           "widthName": 60,
           "widthComment": 60,
           "color": "#6200BB"
@@ -336,7 +359,7 @@
           {
             "name": "id",
             "comment": "rooms id",
-            "dataType": "INTEGER",
+            "dataType": "VARCHAR",
             "default": "",
             "option": {
               "autoIncrement": false,
@@ -407,7 +430,7 @@
           "active": false,
           "left": 598.3319,
           "top": 395.4177,
-          "zIndex": 3,
+          "zIndex": 36,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFDB00"
@@ -445,13 +468,13 @@
           {
             "name": "id_card",
             "comment": "",
-            "dataType": "",
+            "dataType": "INTEGER",
             "default": "",
             "option": {
               "autoIncrement": false,
               "primaryKey": false,
               "unique": false,
-              "notNull": false
+              "notNull": true
             },
             "ui": {
               "active": false,
@@ -467,14 +490,14 @@
           },
           {
             "name": "id_room",
-            "comment": "",
-            "dataType": "",
+            "comment": "rooms id",
+            "dataType": "VARCHAR",
             "default": "",
             "option": {
               "autoIncrement": false,
               "primaryKey": false,
               "unique": false,
-              "notNull": false
+              "notNull": true
             },
             "ui": {
               "active": false,
@@ -491,13 +514,13 @@
           {
             "name": "isPositive",
             "comment": "",
-            "dataType": "",
+            "dataType": "BOOLEAN",
             "default": "",
             "option": {
               "autoIncrement": false,
               "primaryKey": false,
               "unique": false,
-              "notNull": false
+              "notNull": true
             },
             "ui": {
               "active": false,
@@ -506,7 +529,7 @@
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 60,
+              "widthDataType": 62.98297119140625,
               "widthDefault": 60
             },
             "id": "abb5fb34-30ac-4101-aa12-fdf34503462a"
@@ -514,13 +537,13 @@
           {
             "name": "score",
             "comment": "",
-            "dataType": "",
+            "dataType": "INTEGER",
             "default": "",
             "option": {
               "autoIncrement": false,
               "primaryKey": false,
               "unique": false,
-              "notNull": false
+              "notNull": true
             },
             "ui": {
               "active": false,
@@ -537,100 +560,15 @@
         ],
         "ui": {
           "active": false,
-          "left": 596.3516,
+          "left": 597.1849,
           "top": 102.0331,
-          "zIndex": 142,
+          "zIndex": 54,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FF2323"
         },
         "visible": true,
         "id": "9a34d87f-0b4e-4f74-b37a-932e8684d14d"
-      },
-      {
-        "name": "selected cards",
-        "comment": "",
-        "columns": [
-          {
-            "name": "id",
-            "comment": "",
-            "dataType": "",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": false
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 60,
-              "widthComment": 60,
-              "widthDataType": 60,
-              "widthDefault": 60
-            },
-            "id": "a8f29360-e1d9-488c-a45d-5a23c8f259bf"
-          },
-          {
-            "name": "id_user",
-            "comment": "",
-            "dataType": "",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": false
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 60,
-              "widthComment": 60,
-              "widthDataType": 60,
-              "widthDefault": 60
-            },
-            "id": "b92277b6-8ee3-403e-88b1-7f7630e66451"
-          },
-          {
-            "name": "id_card",
-            "comment": "",
-            "dataType": "",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": false
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 60,
-              "widthComment": 60,
-              "widthDataType": 60,
-              "widthDefault": 60
-            },
-            "id": "53c1b329-72b9-4fdb-ad48-b7c19f381005"
-          }
-        ],
-        "ui": {
-          "active": false,
-          "left": 1025.8342,
-          "top": 136.366,
-          "zIndex": 141,
-          "widthName": 88.74887084960938,
-          "widthComment": 60
-        },
-        "visible": true,
-        "id": "c7890faa-a05e-4914-9913-41a030d4f541"
       }
     ],
     "indexes": []
@@ -658,8 +596,8 @@
           "columnIds": [
             "5a5ae9eb-6a89-49d3-b5e0-e418df864eea"
           ],
-          "x": 246.04585556640626,
-          "y": 225.5005,
+          "x": 248.97082810058595,
+          "y": 246.0005,
           "direction": "bottom"
         },
         "constraintName": "fk_rooms_to_users",

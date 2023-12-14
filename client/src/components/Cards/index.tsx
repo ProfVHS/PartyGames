@@ -76,7 +76,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
       setFlipped(true);
       // send the selected card to the server (receive points)
       if(cards !== undefined){
-        socket.emit("selectedCards", { roomCode, selectedCard });
+        socket.emit("selectedCards", selectedCard);
       }
       // flip the cards
 

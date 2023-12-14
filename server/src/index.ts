@@ -45,7 +45,7 @@ server.listen(3000, async () => {
       'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -65,21 +65,7 @@ server.listen(3000, async () => {
     },
   });
 
-  // info about users and room
-  const usersData = async (room: string, socket: Socket) => {
-    return new Promise<User[]>((resolve, reject) => { 
-      db.all(`SELECT * FROM users WHERE id_room = "${room}"`, [], (err: Error, rows: User[]) => {
-        if(err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    }).then((rows) => {
-      socket.nsp.to(room).emit("receiveUsersData", rows);
-    });
-  };
-
+  // info about room
   const roomData = async (room: string, socket: Socket) => {
     return new Promise<Room>((resolve, reject) => { 
       db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err: Error, row: Room) => {
@@ -140,6 +126,7 @@ server.listen(3000, async () => {
       });
     });
   };
+
   // change turn
   const changeRoomTurn = async (room: string, socket: Socket) => {
     return new Promise<[Room, User[]]>((resolve, reject) => {
@@ -176,6 +163,36 @@ server.listen(3000, async () => {
         updateRoomTurn(room, room_row.turn + 1, socket);
       }
     });
+  };
+
+  // set is room in game
+  const updateRoomInGame = async (room: string, in_game: boolean) => {
+    db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${room}`);
+  };
+
+  // set time in room
+  const updateRoomTime = async (room: string, time_left: number, time_max: number) => {
+    db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${room}`);
+  };
+  
+
+  // info about users
+  const usersData = async (room: string, socket: Socket) => {
+    return new Promise<User[]>((resolve, reject) => { 
+      db.all(`SELECT * FROM users WHERE id_room = "${room}"`, [], (err: Error, rows: User[]) => {
+        if(err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    }).then((rows) => {
+      socket.nsp.to(room).emit("receiveUsersData", rows);
+    });
+  };
+
+  const updateUserSelected = async (id: string, selected: number) => {
+    db.run(`UPDATE users SET id_selected = ${selected} WHERE id = "${id}"`);
   };
 
   // change alive user
@@ -257,21 +274,13 @@ server.listen(3000, async () => {
     });
   };
 
-  // set is room in game
-  const updateRoomInGame = async (room: string, in_game: boolean) => {
-    db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${room}`);
-  };
-
-  // set time in room
-  const updateRoomTime = async (room: string, time_left: number, time_max: number) => {
-    db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${room}`);
-  };
+  
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
-    cardsModule(io, socket, db, usersData, updateUserScore, updateRoomInGame, updateRoomTime);
+    cardsModule(io, socket, db, usersData, updateUserScore, updateRoomInGame, updateRoomTime, updateUserSelected);
     
   };
 
