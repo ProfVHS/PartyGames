@@ -25,6 +25,7 @@ export interface Room {
 const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
 const cardsModule = require("./modules/cards");
+const diamondModule = require("./modules/diamonds");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -175,7 +176,6 @@ server.listen(3000, async () => {
     db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${room}`);
   };
   
-
   // info about users
   const usersData = async (room: string, socket: Socket) => {
     return new Promise<User[]>((resolve, reject) => { 
@@ -281,7 +281,7 @@ server.listen(3000, async () => {
     roomModule(io, socket, db, usersData, roomData);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, usersData, updateUserScore, updateRoomInGame, updateRoomTime, updateUserSelected);
-    
+    diamondModule(io, socket, db);
   };
 
   io.on("connection", handleModulesOnConnection);

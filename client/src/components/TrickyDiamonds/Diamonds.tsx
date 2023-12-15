@@ -114,6 +114,7 @@ export const BlueDiamond = ({ props, isCracked, isFake }: DiamondsProps) => {
     </svg>
   );
 };
+
 export const PurpleDiamond = ({ props, isCracked, isFake }: DiamondsProps) => {
   const [scope, animate] = useAnimate();
 

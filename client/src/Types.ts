@@ -1,3 +1,4 @@
+// Users and Rooms
 export type User = {
     id: string,
     username: string,
@@ -13,4 +14,19 @@ export type Room = {
     time_left: number,
     time_max: number,
     in_game: boolean,
+};
+
+// Click the bomb
+
+
+// Cards
+
+
+// Tricky Diamonds
+export type TrickyCardColor = "BLUE" | "PURPLE" | "RED";
+
+export type TrickyDiamondType = {
+  points: number;
+  color: TrickyCardColor;
+  isSelected: boolean;
 };

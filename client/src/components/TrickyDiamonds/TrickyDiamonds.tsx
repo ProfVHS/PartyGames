@@ -2,16 +2,23 @@ import "./TrickyDiamonds.scss";
 import { TrickyCard } from "./TrickyCard";
 import { useState } from "react";
 import { Stopwatch } from "../Stopwatch/Stopwatch";
+import { Socket } from "socket.io-client";
 
-import { TrickyCardColor } from "./types";
+import { TrickyCardColor } from "../../Types";
 
-export function TrickyDiamonds() {
+interface TrickyDiamondsProps {
+  socket: Socket;
+  roomCode: string;
+}
+
+export function TrickyDiamonds({socket, roomCode} : TrickyDiamondsProps) {
   const [selectedDiamond, setSelectedDiamond] =
     useState<TrickyCardColor | null>(null);
 
   const handleClick = (color: TrickyCardColor) => {
     const newColor = color;
     setSelectedDiamond(newColor);
+    console.log(roomCode);
   };
   return (
     <div className="tricky">

@@ -52,6 +52,7 @@ const nouns = [
   "Guy",
   "Bread",
   "Ninja",
+  "Samurai",
   "Panda",
   "Potato",
   "Sigma",

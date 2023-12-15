@@ -3,10 +3,12 @@ import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
 import Ctb from "./Ctb";
 import Cards from "./Cards";
+import { User } from "../Types";
+import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 
 interface MiniGamesProps {
   socket: Socket;
-  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
+  users: User[];
   roomCode: string;
 }
 
@@ -17,7 +19,7 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(2);
+  const currentGame = useRef<number | undefined>(3);
 
   const onceDone = useRef<boolean>(false);
 
@@ -47,7 +49,7 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
       case 2:
         return <Cards socket={socket} roomCode={roomCode} users={users} />;
       case 3:
-        return <div>Gra 3</div>;
+        return <TrickyDiamonds socket={socket} roomCode={roomCode} />;
       case 4:
         return <div>Gra 4</div>;
       case 5:
