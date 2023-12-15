@@ -164,6 +164,11 @@ module.exports = (
         });
     });
 
+    socket.on("endTurnCards", async (room: string) => {
+        // delete cards from cards table
+        db.run(`DELETE FROM cards WHERE id_room = ${room}`);
+    });
+
     socket.on("endGameCards", async (room: string) => {
         // delete cards from cards table
         db.run(`DELETE FROM cards WHERE id_room = ${room}`);

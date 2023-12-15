@@ -12,11 +12,6 @@ interface CardObject {
   score: number;
 }
 
-interface SelectedCards {
-  id: string;
-  selectedCard: number;
-}
-
 interface CardsProps {
   socket: Socket;
   roomCode: string;
@@ -90,11 +85,16 @@ function Cards({ socket, roomCode, users }: CardsProps) {
           // end the game
           if(users.length > 0){
             if(users[0].id === socket.id){
-              socket.emit("endGameCards", { roomCode, cards });
+              socket.emit("endGameCards", roomCode); 
               return;
             }
           }
-        } 
+        }
+        if(users.length > 0){
+          if(users[0].id === socket.id){
+            socket.emit("endTurnCards", roomCode); 
+          }
+        }
         startGame();
         // flip the cards and reset the time
         setFlipped(false);
