@@ -34,7 +34,6 @@ function Camera({ username, score }: CameraProps) {
     if (userScore === score) clearInterval(interval.current);
   }, [userScore]);
 
-  console.log(userScore);
   return (
     <motion.div
       className="camera"

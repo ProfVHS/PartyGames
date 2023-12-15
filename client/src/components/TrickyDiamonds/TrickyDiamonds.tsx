@@ -3,6 +3,8 @@ import { TrickyCard } from "./TrickyCard";
 import { useState } from "react";
 import { Stopwatch } from "../Stopwatch/Stopwatch";
 
+import { TrickyCardColor } from "./types";
+
 export function TrickyDiamonds() {
   const [selectedDiamond, setSelectedDiamond] =
     useState<TrickyCardColor | null>(null);
