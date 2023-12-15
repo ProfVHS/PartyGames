@@ -30,7 +30,7 @@ export default function RoomPage() {
   const [windowSizeY, setWindowSizeY] = useState<number>(0);
 
   //const username = location.state?.username;
-  const roomCode: string = location.state?.code
+  const roomCode: string = location.state?.code;
 
   // Ready button
   const handleReadyClick = async () => {
@@ -93,7 +93,7 @@ export default function RoomPage() {
   return (
     <>
       <div className="roomGrid">
-        {windowSizeX > 600 &&
+        {windowSizeX > 800 &&
           windowSizeY > 600 &&
           users &&
           users.map((user) => {

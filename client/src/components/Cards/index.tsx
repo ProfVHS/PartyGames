@@ -1,7 +1,7 @@
 import "./style.scss";
 
 import Card from "./Card";
-import Stopwatch from "../Stopwatch";
+import { Stopwatch } from "../Stopwatch/Stopwatch";
 
 import { useEffect, useState, useRef } from "react";
 import { User } from "../../Types";
@@ -117,7 +117,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
       <span className="cards__title">Cards</span>
       <span>Choose a card</span>
       <div className="cards__stopwatch">
-        <Stopwatch timeLeft={time} maxTime={15} />
+        <Stopwatch maxTime={15} timeLeft={time} size={75} />
       </div>
       <div className="cardsWrapper">
         {cards?.map((card, index) => (
