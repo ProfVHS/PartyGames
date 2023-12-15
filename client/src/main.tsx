@@ -16,9 +16,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage socket={socket} />} />
-        <Route path="/Lobby/" element={<RoomPage socket={socket} />} />
-        <Route path="/test/" element={<TestPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/Lobby/" element={<RoomPage />} />
+        <Route path="/exp/" element={<TestPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

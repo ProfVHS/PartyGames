@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "../styles/Ctb.scss";
 
 import c4 from "../assets/svgs/C4.svg";
@@ -10,8 +10,9 @@ import Explosion from "./Explosion";
 interface CtbProps {
   socket: Socket;
   roomCode: string;
+  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
 }
-export default function Ctb({ socket, roomCode }: CtbProps) {
+export default function Ctb({ socket, roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
@@ -19,30 +20,34 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
   const [isDead, setIsDead] = useState<boolean>(false);
   const [isExploded, setIsExploded] = useState<boolean>(false);
 
+  const onceDone = useRef<boolean>(false);
+
   const handleClickButton = () => {
     new Audio(ClickSound).play();
     setClicked(true);
-    socket.emit("send_ctb_counter", roomCode);
+    socket.emit("counterCtb", roomCode);
   };
 
   const handleSkipButton = () => {
     new Audio(ClickSound).play();
     setClicked(false);
     setYourTurn(false);
-    socket.emit("send_change_ctb_turn", roomCode);
+    socket.emit("changeTurnCtb", roomCode);
   };
 
   useEffect(() => {
-    socket.on("receive_ctb_turn", (data) => {
+    socket.on("receiveTurnCtb", (data) => {
       setTurn(data.username);
       if (data.id == socket.id) {
         setYourTurn(true);
-      }
+      } 
+      console.log(data);
     });
-    socket.on("receive_ctb_counter", (data) => {
+    socket.on("receiveCounterCtb", (data) => {
       setCounter(data);
     });
-    socket.on("receive_ctb_death", (data) => {
+    socket.on("receiveExplosionCtb", (data) => {
+      console.log(data);
       if (data == socket.id) {
         setIsDead(true);
       }
@@ -50,7 +55,7 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
 
       setTimeout(() => setIsExploded(false), 1250);
     });
-    socket.on("receive_ctb_end", (data) => {
+    socket.on("receiveEndCtb", () => {
       setClicked(false);
       setYourTurn(false);
       setIsExploded(true);
@@ -58,6 +63,20 @@ export default function Ctb({ socket, roomCode }: CtbProps) {
       setTimeout(() => setIsExploded(false), 1250);
     });
   }, [socket]);
+
+  // make sure that the game starts only once by host
+  useEffect(() => {
+    if(onceDone.current) return;
+
+    if(users.length > 0){
+      if(users[0].id === socket.id){
+        const usersLength = users.length;
+        socket.emit("startGameCtb", { roomCode, usersLength } );
+      }
+    }
+
+    onceDone.current = true;
+  }, []);
 
   setTimeout(() => {}, 2000);
 

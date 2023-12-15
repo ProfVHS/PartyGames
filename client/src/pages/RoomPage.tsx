@@ -5,24 +5,25 @@ import Lobby from "../components/Lobby";
 import "../styles/Room.scss";
 
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
-import { Socket } from "socket.io-client";
 
 import MiniGames from "../components/MiniGames";
+import {socket} from "../socket";
 
-interface RoomPageProps {
-  socket: Socket;
-}
 
-export default function RoomPage({ socket }: RoomPageProps) {
+export default function RoomPage() {
   const location = useLocation();
-  const [playersReady, setPlayersReady] = useState(0);
+  const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<
-    { id: string; username: string; score: number; id_room: string }[]
+    { id: string; username: string; score: number; alive: boolean; id_room: string }[]
   >([]);
   const [ready, setReady] = useState(false);
+
+  const usersLength = useRef<number>(0);
+  const readyLength = useRef<number>(0);
+  const [startGame, setStartGame] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [windowSizeX, setWindowSizeX] = useState<number>(0);
@@ -31,15 +32,16 @@ export default function RoomPage({ socket }: RoomPageProps) {
   //const username = location.state?.username;
   const roomCode: string = location.state?.code;
 
-  const handleReadyClick = () => {
+  // Ready button
+  const handleReadyClick = async () => {
     new Audio(ClickSound).play();
 
     setReady(!ready);
-    const newPlayersReady = ready ? -1 : 1;
 
-    socket.emit("send_value", { roomCode, newPlayersReady });
+    socket.emit("usersReady", { roomCode, ready });    
   };
 
+  // Resize window (Frontend)
   const handleResize = () => {
     const newWindowSizeX = window.innerWidth;
     const newWindowSizeY = window.innerHeight;
@@ -48,7 +50,17 @@ export default function RoomPage({ socket }: RoomPageProps) {
   };
 
   useEffect(() => {
-    socket.emit("joined", roomCode);
+    // check if all players are ready (must be at least 2 players)
+    if(readyLength.current == usersLength.current && readyLength.current > 1){
+      // change lobby to mini games
+      setStartGame(true);
+    }
+  }, [usersReady]);
+
+  useEffect(() => {
+    socket.emit("usersData", roomCode);
+    socket.emit("roomData", roomCode);
+
     handleResize();
     window.addEventListener("resize", () => {
       handleResize();
@@ -56,25 +68,27 @@ export default function RoomPage({ socket }: RoomPageProps) {
   }, []);
 
   useEffect(() => {
-    socket.on("receive_users_data", (data) => {
+    // Users data
+    socket.on("receiveUsersData", (data) => {
       setUsers(data);
-      console.log("Data - ", data);
+      usersLength.current = data.length;
+      console.log(data);
     });
-    socket.on("receive_room_data", (data) => {
-      setPlayersReady(data.ready);
+    // Room data (players ready)
+    socket.on("receiveRoomData", (data) => {
+      setUsersReady(data.ready);
+      readyLength.current = data.ready;
     });
-    socket.on("recive_value", (data) => {
-      const newPlayersReady = playersReady + data;
-      setPlayersReady(newPlayersReady);
-    });
-    socket.on("user_disconnected", (data) => {
-      alert(data[0].username + " has left the room");
-    });
+    // User disconnected
+    // socket.on("user_disconnected", (data) => {
+    //   alert(data[0].username + " has left the room");
+    // });
+    
   }, [socket]);
 
   setTimeout(() => {
     setIsLoading(false);
-  }, 1995);
+  }, 50);
 
   return (
     <>
@@ -92,16 +106,22 @@ export default function RoomPage({ socket }: RoomPageProps) {
             );
           })}
         <div className="roomContent">
-          {playersReady == users.length && playersReady !== 1 ? (
-            <MiniGames socket={socket} users={users} roomCode={roomCode} />
-          ) : (
+          {startGame && 
+            <MiniGames 
+              socket={socket} 
+              users={users} 
+              roomCode={roomCode}
+            />
+          }
+          {!startGame &&
             <Lobby
               roomCode={roomCode?.toString()}
               onClick={handleReadyClick}
-              players={playersReady}
-              isReady={ready}
+              players={usersReady}
+              isReady={ready} 
             />
-          )}
+          }
+          
           <AudioVideoControls />
         </div>
       </div>

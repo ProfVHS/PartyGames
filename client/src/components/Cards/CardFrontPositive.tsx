@@ -1,5 +1,6 @@
 interface CardFrontPositiveProps {
   score: number;
+
 }
 
 function CardFrontPositive({ score }: CardFrontPositiveProps) {
@@ -9,6 +10,7 @@ function CardFrontPositive({ score }: CardFrontPositiveProps) {
       <span className="card__front__mid">+{score}</span>
       <span className="card__front__corner right">+{score}</span>
     </div>
+    
   );
 }
 
