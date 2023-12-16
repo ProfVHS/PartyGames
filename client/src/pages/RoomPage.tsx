@@ -107,9 +107,9 @@ export default function RoomPage() {
         <div className="roomContent">
           {startGame && 
             <MiniGames 
+              roomCode={roomCode}
               socket={socket} 
               users={users} 
-              roomCode={roomCode}
             />
           }
           {!startGame &&

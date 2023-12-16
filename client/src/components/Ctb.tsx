@@ -7,10 +7,11 @@ import ClickSound from "../assets/audio/click.mp3";
 import { Socket } from "socket.io-client";
 import Explosion from "./Explosion";
 
+import { User } from "../Types";
 interface CtbProps {
   socket: Socket;
   roomCode: string;
-  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
+  users: User[];
 }
 export default function Ctb({ socket, roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);

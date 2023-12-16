@@ -13,28 +13,20 @@ module.exports = (
     io: Server, 
     socket: Socket, 
     db: Database, 
-    usersData: (room: string, socket: Socket) => void, 
-    updateRoomTurn: (room: string, turn: number, socket: Socket) => Promise<void>,
-    changeRoomTurn: (room: string, socket: Socket) => Promise<void>,
+    usersData: (roomCode: string, socket: Socket) => void, 
+    updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => Promise<void>,
+    changeRoomTurn: (roomCode: string, socket: Socket) => Promise<void>,
     updateUserScore: (id: string, score: number, socket: Socket) => void,
     updateUserScoreMultiply: (id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
-    updateUsersAlive: (room: string, alive: boolean) => void,
-    updateRoomInGame: (room: string, in_game: boolean) => void,
+    updateUsersAlive: (roomCode: string, alive: boolean) => void,
+    updateRoomInGame: (roomCode: string, in_game: boolean) => void,
 ) => {
-    const setDataBomb = async (max: number, counter: number, room: string) => {
-        db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${room}",${counter},${max})`);
-    };
-
-    const updateDataBomb = async (max: number, counter: number, room: string) => {
-        db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = "${room}"`);
-    };
-
-    const incrementCounter = async (room: string) => {
+    //#region ctb functions
+    // set data bomb
+    const setDataBomb = async (max: number, counter: number, roomCode: string) => {
         return new Promise<void>((resolve, reject) => {
-            const incrementQuery = `UPDATE bomb SET counter = counter + 1 WHERE id = "${room}"`;
-
-            db.run(incrementQuery, (err) => {
+            db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${roomCode}",${counter},${max})`, (err) => {
                 if(err){
                     reject(err);
                 } else {
@@ -43,7 +35,34 @@ module.exports = (
             });
         });
     };
+    // update data bomb (max, counter)
+    const updateDataBomb = async (max: number, counter: number, roomCode: string) => {
+        return new Promise<void>((resolve, reject) => {
+            db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = "${roomCode}"`, (err) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    };
+    // increment counter by 1
+    const incrementCounter = async (roomCode: string) => {
+        return new Promise<void>((resolve, reject) => {
+            db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = "${roomCode}"`, (err) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    };
+    //#endregion
 
+    //#region ctb sockets
+    // start the game click the bomb
     socket.on("startGameCtb", (data: { roomCode: string, usersLength: number}) => {
         // (generate max number of clicks) min - 1, max - users.lenght * 5
         const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
@@ -55,20 +74,20 @@ module.exports = (
     });
 
     // send turn to the next player
-    socket.on("changeTurnCtb", (room: string) => {
-        changeRoomTurn(room, socket);
+    socket.on("changeTurnCtb", (roomCode: string) => {
+        changeRoomTurn(roomCode, socket);
     });
 
     // counter + 1 and check whtat's happen
     // if counter !== max, add 1 to counter and continue the game
     // if counter === max, user lose (explode) or if 2 players left end the game
-    socket.on("counterCtb", async (room: string) => {
+    socket.on("counterCtb", async (roomCode: string) => {
         
-        incrementCounter(room).then(async () => {
+        incrementCounter(roomCode).then(async () => {
             return new Promise<[Bomb, User[]]>((resolve, reject) => {
                 Promise.all([
                     new Promise<Bomb>((resolveBomb, rejectBomb) => {
-                        db.get(`SELECT * FROM bomb WHERE id = "${room}"`, [], (err: Error, bomb_row: Bomb) => {
+                        db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
                             if (err) {
                                 rejectBomb(err);
                             } else {
@@ -77,7 +96,7 @@ module.exports = (
                         });
                     }),
                     new Promise<User[]>((resolveUsers, rejectUsers) => {
-                        db.all(`SELECT * FROM users WHERE id_room = "${room}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
+                        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
                             if (err) {
                                 rejectUsers(err);
                             } else {
@@ -104,39 +123,40 @@ module.exports = (
                             }
                         });
                         // update in game to false 
-                        updateRoomInGame(room, false);
+                        updateRoomInGame(roomCode, false);
                         // update alive users to true
-                        updateUsersAlive(room, true);
+                        updateUsersAlive(roomCode, true);
                         // send data to the client
-                        usersData(room, socket);
-                        socket.nsp.to(room).emit("receiveEndCtb");
+                        usersData(roomCode, socket);
+                        socket.nsp.to(roomCode).emit("receiveEndCtb");
                     } else {
                         // user explode
                         // update new max number of clicks and reset counter
                         const max = Math.round(Math.random() * (((users_rows.length - 1) * 5) - 1)) + 1;
-                        await updateDataBomb(max,0,room).then(async () => {
+                        await updateDataBomb(max,0,roomCode).then(async () => {
                             // update user as dead
                             updateUserAlive(socket.id, false);
                         }).then(async () => {
                             // update turn
-                            await changeRoomTurn(room, socket);
+                            await changeRoomTurn(roomCode, socket);
                         }).then(() => {
                             // -30% points to the user
                             updateUserScoreMultiply(socket.id, 0.7, socket);
                         }).then(() => {
                             // send data to the client
-                            usersData(room, socket);
-                            socket.nsp.to(room).emit("receiveCounterCtb", 0);
-                            socket.nsp.to(room).emit("receiveExplosionCtb", socket.id);
+                            usersData(roomCode, socket);
+                            socket.nsp.to(roomCode).emit("receiveCounterCtb", 0);
+                            socket.nsp.to(roomCode).emit("receiveExplosionCtb", socket.id);
                         });
                     }
                 } else {
                     // continue the game, +10 points to the user
-                    socket.nsp.to(room).emit("receiveCounterCtb", bomb_row.counter);    
+                    socket.nsp.to(roomCode).emit("receiveCounterCtb", bomb_row.counter);    
                     updateUserScore(socket.id, 10, socket);
-                    usersData(room, socket);
+                    usersData(roomCode, socket);
                 }
             });
         });
     });
+    //#endregion
 };

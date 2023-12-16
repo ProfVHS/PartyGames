@@ -11,18 +11,18 @@ module.exports = (
   io: Server, 
   socket: Socket, 
   db: Database, 
-  usersData: (room: string, socket: Socket) => void, 
-  roomData: (room: string, socket: Socket) => void) => {
-
+  usersData: (roomCode: string, socket: Socket) => void, 
+  roomData: (roomCode: string, socket: Socket) => void,
+  ) => {
+  //#region home functions (homepage, lobby, etc) needed at the beginning of the game
   // create room
-  socket.on("createRoom", (data : { randomRoomCode: string, name : string }) => {
+  socket.on("createRoom", async (data : { randomRoomCode: string, name : string }) => {
     socket.join(data.randomRoomCode);
 
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game) VALUES ("${data.randomRoomCode}", 0, 0, 0, 0, false)`);
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${data.randomRoomCode}", 0, 0, 0, 0, false,0)`);
     db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected) VALUES ("${socket.id}", "${data.name}", 100, true, "${data.randomRoomCode}",0)`);
     
   });
-
   // join room
   socket.on("joinRoom", async (data: { roomCode: string, name: string }) => {
     socket.join(data.roomCode);
@@ -83,37 +83,24 @@ module.exports = (
     });
     
   });
-
   // check room existence
-  socket.on("checkRoomExistence", ( room: string ) => {
-    db.get(`SELECT * FROM rooms WHERE id = "${room}"`, [], (err, row) => {
+  socket.on("checkRoomExistence", async ( roomCode: string ) => {
+    db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err, row) => {
       if(!err){
         socket.emit("roomExistenceResponse", row ? true : false);
       }
     });
   });
-
-  // users data
-  socket.on("usersData", ( room: string ) => {
-    usersData(room, socket);
-  });
-
-  // room data
-  socket.on("roomData", ( room: string ) => {
-    roomData(room, socket);
-  });
-
   // users ready
-  socket.on("usersReady", (data: { roomCode: string, ready: boolean}) => {
+  socket.on("usersReady", async (data: { roomCode: string, ready: boolean}) => {
     const ready = data.ready ? -1 : 1;
 
     db.run(`UPDATE rooms SET ready = ready + ${ready} WHERE id = ${data.roomCode}`);
 
     roomData(data.roomCode, socket);
   });
-
   // generate random games array
-  socket.on("gamesArray", async ( room: string ) => {
+  socket.on("gamesArray", async ( roomCode: string ) => {
     const gamesArray: Set<number> = new Set();
 
     while (gamesArray.size < 5 ){
@@ -122,7 +109,37 @@ module.exports = (
 
     console.log(gamesArray);
 
-    socket.nsp.to(room).emit("receiveGamesArray", Array.from(gamesArray));
+    socket.nsp.to(roomCode).emit("receiveGamesArray", Array.from(gamesArray));
   });
+  //#endregion
 
+  //#region room functions (data, time, etc) needed during the game
+  // users data
+  socket.on("usersData", async ( roomCode: string ) => {
+    usersData(roomCode, socket);
+  });
+  // room data
+  socket.on("roomData", async ( roomCode: string ) => {
+    roomData(roomCode, socket);
+  });
+  // stopwatch time
+  socket.on("stopwatchTime", async (roomCode: string) => {
+    // set interval to decrease time_left every second
+    const cardsTimeInterval = setInterval( async () => {
+        db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = ${roomCode}`);
+        // send time_left to all users in room
+        return new Promise<Room>((resolve, reject) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+                if(err){
+                    reject(err);
+                } else {
+                    resolve(row);
+                }
+            });
+        }).then((row) => {
+            row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
+        });
+    }, 1000);
+  });
+  //#endregion
 };

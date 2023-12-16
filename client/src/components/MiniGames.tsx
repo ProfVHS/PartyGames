@@ -7,9 +7,9 @@ import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 
 interface MiniGamesProps {
+  roomCode: string;
   socket: Socket;
   users: User[];
-  roomCode: string;
 }
 
 export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
@@ -19,7 +19,7 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
   const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(3);
+  const currentGame = useRef<number | undefined>(2);
 
   const onceDone = useRef<boolean>(false);
 

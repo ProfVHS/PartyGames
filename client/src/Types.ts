@@ -4,7 +4,8 @@ export type User = {
     username: string,
     score: number,
     alive: boolean,
-    id_room: string
+    id_room: string,
+    id_selected: number,
 };
 
 export type Room = {
@@ -14,6 +15,7 @@ export type Room = {
     time_left: number,
     time_max: number,
     in_game: boolean,
+    round: number,
 };
 
 // Click the bomb
