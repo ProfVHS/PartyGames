@@ -327,10 +327,10 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
-    cardsModule(io, socket, db, updateUserScore, updateUserSelected, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
-    diamondModule(io, socket, db);
+    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
+    diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
   };
 
   io.on("connection", handleModulesOnConnection);

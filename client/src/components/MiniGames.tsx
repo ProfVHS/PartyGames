@@ -1,5 +1,5 @@
-import { Socket } from "socket.io-client";
-import Leaderboard from "./Leaderboard";
+import { socket } from "../socket";
+//import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
 import Ctb from "./Ctb";
 import Cards from "./Cards";
@@ -8,18 +8,17 @@ import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 
 interface MiniGamesProps {
   roomCode: string;
-  socket: Socket;
   users: User[];
 }
 
-export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
+export default function MiniGames({ users, roomCode }: MiniGamesProps) {
 
-  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
-  const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
-  const [isEndGame, setIsEndGame] = useState<boolean>(false);
+  // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
+  // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
+  // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(2);
+  const currentGame = useRef<number | undefined>(3);
 
   const onceDone = useRef<boolean>(false);
 
@@ -45,11 +44,11 @@ export default function MiniGames({ socket, users, roomCode }: MiniGamesProps) {
   const switchGame = (currentGame: number | undefined) => {
     switch (currentGame) {
       case 1:
-        return <Ctb socket={socket} roomCode={roomCode} users={users} />;
+        return <Ctb roomCode={roomCode} users={users} />;
       case 2:
-        return <Cards socket={socket} roomCode={roomCode} users={users} />;
+        return <Cards roomCode={roomCode} users={users} />;
       case 3:
-        return <TrickyDiamonds socket={socket} roomCode={roomCode} />;
+        return <TrickyDiamonds roomCode={roomCode} users={users} />;
       case 4:
         return <div>Gra 4</div>;
       case 5:

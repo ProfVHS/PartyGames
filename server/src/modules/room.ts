@@ -13,6 +13,7 @@ module.exports = (
   db: Database, 
   usersData: (roomCode: string, socket: Socket) => void, 
   roomData: (roomCode: string, socket: Socket) => void,
+  updateUserSelected: (id: string, selected: number) => void,
   ) => {
   //#region home functions (homepage, lobby, etc) needed at the beginning of the game
   // create room
@@ -121,6 +122,10 @@ module.exports = (
   // room data
   socket.on("roomData", async ( roomCode: string ) => {
     roomData(roomCode, socket);
+  });
+  // update selected object
+  socket.on("selectedObject", async ( selected: number ) => {
+    updateUserSelected(socket.id, selected);
   });
   // stopwatch time
   socket.on("stopwatchTime", async (roomCode: string) => {

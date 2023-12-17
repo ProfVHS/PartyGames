@@ -108,7 +108,6 @@ export default function RoomPage() {
           {startGame && 
             <MiniGames 
               roomCode={roomCode}
-              socket={socket} 
               users={users} 
             />
           }

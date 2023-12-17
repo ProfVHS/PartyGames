@@ -6,19 +6,18 @@ import { Stopwatch } from "../Stopwatch/Stopwatch";
 import { useEffect, useState, useRef } from "react";
 import { User } from "../../Types";
 
-import { Socket } from "socket.io-client";
+import { socket } from "../../socket";
 interface CardObject {
   isPositive: boolean;
   score: number;
 }
 
 interface CardsProps {
-  socket: Socket;
   roomCode: string;
   users: User[];
 }
 
-function Cards({ socket, roomCode, users }: CardsProps) {
+function Cards({ roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(15);
   const [round, setRound] = useState<number>(1);
@@ -71,7 +70,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
       setFlipped(true);
       // send the selected card to the server (receive points)
       if(cards !== undefined){
-        socket.emit("selectedCards", selectedCard);
+        socket.emit("selectedObject", selectedCard);
       }
 
       // flip the cards

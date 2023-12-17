@@ -14,7 +14,6 @@ module.exports = (
     socket: Socket, 
     db: Database, 
     updateUserScore: (id: string, score: number, socket: Socket) => void,
-    updateUserSelected: (id: string, selected: number) => void,
     roomData: (roomCode: string, socket: Socket) => Promise<Room>,
     updateRoomInGame: (roomCode: string, in_game: boolean) => Promise<void>,
     updateRoomTime: (roomCode: string, time_left: number, time_max: number) => Promise<void>,
@@ -106,10 +105,6 @@ module.exports = (
             updateRoomTime(roomCode, 15, 15);
             updateRoomInGame(roomCode, true);
         });
-    });
-    // update id object selected in users table
-    socket.on("selectedCards", async (selectedCard: number) => {
-        updateUserSelected(socket.id, selectedCard);
     });
     // give or take points, depends on card type and number of users who selected this card
     socket.on("checkCard", async (data: {roomCode: string, id: number}) => {
