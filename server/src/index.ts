@@ -275,17 +275,8 @@ server.listen(3000, async () => {
 
   // update user score by adding score
   const updateUserScore = async (id: string, score: number, socket: Socket) => {
-    return new Promise<User | void>((resolve, reject) => {
+    return new Promise<void | User>((resolve, reject) => {
       Promise.all([
-        new Promise<User>((resolve, reject) => {
-          db.get(`SELECT * FROM users WHERE id = "${id}"`, [], (err: Error, row: User) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(row);
-            }
-          });
-        }),
         new Promise<void>((resolve, reject) => {
           const updateScore = `UPDATE users SET "score" = ROUND(score + ${score}) WHERE id = "${id}"`;
 
@@ -297,18 +288,32 @@ server.listen(3000, async () => {
             }
           });
         }),
+        new Promise<User>((resolve, reject) => {
+          db.get(`SELECT * FROM users WHERE id = "${id}"`, [], (err: Error, row: User) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(row);
+            }
+          });
+        }),
       ])
-      .then(async ([row]) => {
+      .then(async ([,row]) => {
         console.log("Then updateScore");
-        console.log(id, score);
-        await usersData(row.id_room.toString(), socket);
+        console.log("Update values - ",id, score);
+        console.log("User values - ",row.id, row.score);
+        if(row.score < 0){
+          updateUserScoreMultiply(row.id_room, row.id, 0, socket);
+        } else {
+          await usersData(row.id_room, socket);
+        }
       });
     });
   };
 
   // update user score by multiplying score
-  const updateUserScoreMultiply = async (id: string, score: number, socket: Socket) => {
-    return new Promise<void>((resolve, reject) => {
+  const updateUserScoreMultiply = async (roomCode: string, id: string, score: number, socket: Socket) => {
+    new Promise((resolve, reject) => {
       const updateScore = `UPDATE users SET score = ROUND(score * ${score}) WHERE id = "${id}"`;
 
       db.run(updateScore, (err) => {
@@ -318,9 +323,9 @@ server.listen(3000, async () => {
           console.log("Update Score - ",id, score);
         }
       });
-    }).then(async () => {
-      await usersData(id, socket);
-    });
+    })
+    await usersData(roomCode, socket);
+  
   };
   //#endregion
   

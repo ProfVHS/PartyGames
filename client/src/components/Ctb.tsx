@@ -7,11 +7,8 @@ import ClickSound from "../assets/audio/click.mp3";
 import { socket } from "../socket";
 import Explosion from "./Explosion";
 
-import { User } from "../Types";
-interface CtbProps {
-  roomCode: string;
-  users: User[];
-}
+import { CtbProps } from "../Types";
+
 export default function Ctb({ roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);

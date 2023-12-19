@@ -14,7 +14,7 @@ interface TrickyDiamondsProps {
 
 export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
   const [selectedDiamond, setSelectedDiamond] = useState<number>(0);
-  //const [turn, setTurn] = useState<number>(0);
+  const [round, setRound] = useState<number>(1);
   const [score, setScore] = useState<number[]>([0, 0, 0]);
   const [time, setTime] = useState<number>(5);
   const [endRound, setEndRound] = useState<boolean>(false);
@@ -27,8 +27,7 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
     console.log(newColor);
   };
 
-  useEffect(() => {
-    if(onceDone.current) return;
+  const startGameDiamonds = () => {
     if(users.length > 0){
       if(users[0].id == socket.id){
         socket.emit("startGameDiamonds", roomCode);
@@ -36,6 +35,14 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
         console.log("startGameDiamonds");
       }
     }
+    setEndRound(false);
+  };
+
+  useEffect(() => {
+    if(onceDone.current) return;
+    
+    startGameDiamonds();
+
     onceDone.current = true;
   }, []);
 
@@ -45,21 +52,27 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
 
   useEffect(() => {
     socket.on("receiveStopwatchTime", (data) => {
-      setTime(data);
+      const newTime = data;
+      setTime(newTime);
     });
     socket.on("receiveDiamondsScore", (array) => {
-      setScore([array[0], array[1], array[2]]);
+      const newArray = [array[0], array[1], array[2]];
+      setScore(newArray);
     });
   }, [socket]);
 
   useEffect(() => {
     if(time == 0){
+
       if(users.length > 0){
         if(users[0].id == socket.id){
           socket.emit("endRoundDiamonds", roomCode);
         }
       }
       setEndRound(true);
+      setTimeout(() => {
+        startGameDiamonds();
+      }, 3000);
     }
   }, [time]);
 
@@ -69,7 +82,7 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
         <div className="tricky__stopwatch">
           <Stopwatch maxTime={5} timeLeft={time} size={50} />
         </div>
-        Tricky Diamonds
+        Round - {round}
       </div>
       <div className="tricky__cards">
         <TrickyCard

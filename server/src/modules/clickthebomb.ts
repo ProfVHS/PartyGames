@@ -17,7 +17,7 @@ module.exports = (
     updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => Promise<void>,
     changeRoomTurn: (roomCode: string, socket: Socket) => Promise<void>,
     updateUserScore: (id: string, score: number, socket: Socket) => void,
-    updateUserScoreMultiply: (id: string, score: number, socket: Socket) => void,
+    updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (roomCode: string, alive: boolean) => void,
     updateRoomInGame: (roomCode: string, in_game: boolean) => void,
@@ -117,7 +117,7 @@ module.exports = (
                         users_rows.forEach((user) => {
                             // -30% points to the user
                             if( user.id == socket.id ){
-                                updateUserScoreMultiply(user.id, 0.7, socket);
+                                updateUserScoreMultiply(roomCode, user.id, 0.7, socket);
                             } else {
                                 updateUserScore(user.id, 50, socket);
                             }
@@ -141,7 +141,7 @@ module.exports = (
                             await changeRoomTurn(roomCode, socket);
                         }).then(() => {
                             // -30% points to the user
-                            updateUserScoreMultiply(socket.id, 0.7, socket);
+                            updateUserScoreMultiply(roomCode, socket.id, 0.7, socket);
                         }).then(() => {
                             // send data to the client
                             usersData(roomCode, socket);

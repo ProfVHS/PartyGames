@@ -34,7 +34,11 @@ module.exports = (
                     case 3:
                         resolve([300,150,75]);
                     default:
-                        reject("Error: wrong round");
+                        // updateRoomInGame(roomCode, false);
+                        // updateRoomRound(roomCode, 0, socket);
+                        // console.log("endGameDiamonds");
+                        //reject("Error: wrong round");
+                        endGameDiamonds(roomCode);
                 };
             });
         });
@@ -71,18 +75,26 @@ module.exports = (
                 const isUnique = diamondArray.indexOf(min) === diamondArray.lastIndexOf(min);
                 const index = diamondArray.indexOf(min);
 
-                if(isUnique){
-                    scoreArrays(roomCode).then((array) => {
-                        rows.forEach((row) => {
-                            if(row.id_selected === diamondArray.indexOf(min)){
-                                updateUserScore(row.id, array[index], socket);
-                            }
+                if(nonZeroDiamondArray.length > 1){
+                    if(isUnique){
+                        scoreArrays(roomCode).then((array) => {
+                            rows.forEach((row) => {
+                                if(row.id_selected === diamondArray.indexOf(min)){
+                                    updateUserScore(row.id, array[index], socket);
+                                }
+                            });
                         });
-                    });
-                }   
+                    }   
+                }
                 
             });
         })
+    }
+
+    const endGameDiamonds = async (roomCode: string) => {
+        updateRoomInGame(roomCode, false);
+        updateRoomRound(roomCode, 0, socket);
+        console.log("endGameDiamonds");
     }
     //#endregion
 
@@ -105,9 +117,10 @@ module.exports = (
     });
 
     // end game tricky diamonds
-    socket.on("endGameDiamonds", async (roomCode: string) => {
-        updateRoomInGame(roomCode, false);
-        updateRoomRound(roomCode, 0, socket);
-    });
+    // socket.on("endGameDiamonds", async (roomCode: string) => {
+    //     updateRoomInGame(roomCode, false);
+    //     updateRoomRound(roomCode, 0, socket);
+    //     console.log("endGameDiamonds");
+    // });
     //#endregion
 };

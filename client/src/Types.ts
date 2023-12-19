@@ -19,7 +19,10 @@ export type Room = {
 };
 
 // Click the bomb
-
+export type CtbProps = {
+  roomCode: string;
+  users: User[];
+}
 
 // Cards
 
