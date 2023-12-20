@@ -52,6 +52,7 @@ const nouns = [
   "Guy",
   "Bread",
   "Ninja",
+  "Samurai",
   "Panda",
   "Potato",
   "Sigma",
@@ -87,9 +88,9 @@ export default function HomePage() {
     );
   };
 
-  const inputHandler = (room: string) => {
-    setRoomCode(room);
-    socket.emit("checkRoomExistence", room);
+  const inputHandler = (roomCode: string) => {
+    setRoomCode(roomCode);
+    socket.emit("checkRoomExistence", roomCode);
     socket.on("roomExistenceResponse", (exists) => {
       setRoomExistence(exists);
     });

@@ -1,44 +1,42 @@
 import { useState } from "react";
 import { BlueDiamond, PurpleDiamond, RedDiamond } from "./Diamonds";
 import { Shiny } from "./Shiny";
+import { TrickyCardColor } from "../../Types";
 
 interface TrickyCard {
+  id: number;
   points: number;
   color: TrickyCardColor;
-  selectedColor: TrickyCardColor | null;
-  handleClick: (color: TrickyCardColor) => void;
+  selectedColor: number | null;
+  handleClick: (color: number) => void;
+  turnEnded: boolean;
 }
 
 export const TrickyCard = ({
+  id,
   points,
   color,
   selectedColor,
   handleClick,
+  turnEnded,
 }: TrickyCard) => {
-  const [turnEnd, setTurnEnd] = useState<boolean>(false);
 
-  setTimeout(() => setTurnEnd(true), 2500);
+
   return (
     <div
       className={`tricky__cards__item ${
-        color === selectedColor ? "selected" : ""
+        id === selectedColor ? "selected" : ""
       }`}
-      onClick={() => handleClick(color)}
+      onClick={() => handleClick(id)}
     >
       <div className="tricky__cards__item__diamond">
-        {color === "BLUE" && <BlueDiamond isCracked={turnEnd} isFake={true} />}
-        {color === "PURPLE" && (
-          <PurpleDiamond isCracked={turnEnd} isFake={false} />
-        )}
-        {color === "RED" && <RedDiamond isCracked={turnEnd} isFake={true} />}
+        {color === "BLUE" && <BlueDiamond isCracked={turnEnded} isFake={false} />}
+        {color === "PURPLE" && <PurpleDiamond isCracked={turnEnded} isFake={false} />}
+        {color === "RED" && <RedDiamond isCracked={turnEnded} isFake={false} />}
       </div>
-      {color === selectedColor && !turnEnd && (
-        <Shiny className="tricky__cards__item__shiny" />
-      )}
+      {id === selectedColor && !turnEnded && (<Shiny className="tricky__cards__item__shiny" />)}
       <span className="tricky__cards__item__value">+{points} points</span>
-      {color === selectedColor && (
-        <span className="tricky__cards__selected">selected</span>
-      )}
+      {id === selectedColor && (<span className="tricky__cards__selected">selected</span>)}
     </div>
   );
 };

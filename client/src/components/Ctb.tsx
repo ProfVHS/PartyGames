@@ -4,15 +4,12 @@ import "../styles/Ctb.scss";
 import c4 from "../assets/svgs/C4.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
-import { Socket } from "socket.io-client";
+import { socket } from "../socket";
 import Explosion from "./Explosion";
 
-interface CtbProps {
-  socket: Socket;
-  roomCode: string;
-  users: { id: string; username: string; score: number; alive: boolean; id_room: string }[];
-}
-export default function Ctb({ socket, roomCode, users }: CtbProps) {
+import { CtbProps } from "../Types";
+
+export default function Ctb({ roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");

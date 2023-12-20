@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
+import { User } from "../Types";
 
 import MiniGames from "../components/MiniGames";
 import {socket} from "../socket";
@@ -16,9 +17,7 @@ import {socket} from "../socket";
 export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
-  const [users, setUsers] = useState<
-    { id: string; username: string; score: number; alive: boolean; id_room: string }[]
-  >([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [ready, setReady] = useState(false);
 
   const usersLength = useRef<number>(0);
@@ -51,7 +50,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     // check if all players are ready (must be at least 2 players)
-    if(readyLength.current == usersLength.current && readyLength.current > 1){
+    if(readyLength.current == usersLength.current && readyLength.current == 1){
       // change lobby to mini games
       setStartGame(true);
     }
@@ -108,9 +107,8 @@ export default function RoomPage() {
         <div className="roomContent">
           {startGame && 
             <MiniGames 
-              socket={socket} 
-              users={users} 
               roomCode={roomCode}
+              users={users} 
             />
           }
           {!startGame &&

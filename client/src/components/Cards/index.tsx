@@ -6,22 +6,21 @@ import { Stopwatch } from "../Stopwatch/Stopwatch";
 import { useEffect, useState, useRef } from "react";
 import { User } from "../../Types";
 
-import { Socket } from "socket.io-client";
+import { socket } from "../../socket";
 interface CardObject {
   isPositive: boolean;
   score: number;
 }
 
 interface CardsProps {
-  socket: Socket;
   roomCode: string;
   users: User[];
 }
 
-function Cards({ socket, roomCode, users }: CardsProps) {
+function Cards({ roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
-  const [time, setTime] = useState<number>(5);
-  const [turn, setTurn] = useState<number>(0);
+  const [time, setTime] = useState<number>(15);
+  const [round, setRound] = useState<number>(1);
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<boolean>(false);
   
@@ -30,13 +29,9 @@ function Cards({ socket, roomCode, users }: CardsProps) {
   const startGame = async () => {
     if(users.length > 0){
       if(users[0].id == socket.id){
-        const newTurn = turn + 1;
-        setTurn(newTurn);
-        console.log("start game", turn);
-        const bombs_value = turn + 3;
-        const cards_value = 6 - turn;
-        socket.emit("startGameCards", { roomCode, bombs_value, cards_value } );
-        socket.emit("timeCards", roomCode);
+        console.log("start game", round);
+        socket.emit("startGameCards", roomCode );
+        socket.emit("stopwatchTime", roomCode);
       }
     }
   };
@@ -54,12 +49,16 @@ function Cards({ socket, roomCode, users }: CardsProps) {
     onceDone.current = true;
   }, []);
 
+  // data from server (cards and time)
   useEffect(() => {
     socket.on("receiveCardsArray", (data) => {
       setCards(data);   
     });
-    socket.on("receiveTimeCards", (data) => {
+    socket.on("receiveStopwatchTime", (data) => {
       setTime(data);
+    });
+    socket.on("receiveRoomData", (data) => {
+      setRound(data.round);
     });
   }, [socket]);
 
@@ -71,34 +70,29 @@ function Cards({ socket, roomCode, users }: CardsProps) {
       setFlipped(true);
       // send the selected card to the server (receive points)
       if(cards !== undefined){
-        socket.emit("selectedCards", selectedCard);
+        socket.emit("selectedObject", selectedCard);
       }
 
       // flip the cards
       delay(4500).then(() => {
-        console.log("done");
-        console.log(turn);
         // all cards at the same time flip back (animation Rafał)
 
-         // the game ends after 3 turns
-        if(turn > 2){
-          // end the game
-          if(users.length > 0){
-            if(users[0].id === socket.id){
+        // the game ends after 3 turns
+        if(users.length > 0){
+          if(users[0].id === socket.id){
+            if(round >= 3){
+              // end the game
               socket.emit("endGameCards", roomCode); 
-              return;
+            } else {
+              // next round
+              socket.emit("endRoundCards", roomCode); 
+              startGame();
             }
           }
         }
-        if(users.length > 0){
-          if(users[0].id === socket.id){
-            socket.emit("endTurnCards", roomCode); 
-          }
-        }
-        startGame();
         // flip the cards and reset the time
         setFlipped(false);
-        setTime(5);
+        setTime(15);
       });
   };
 
@@ -115,7 +109,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
   return (
     <div className="cards">
       <span className="cards__title">Cards</span>
-      <span>Choose a card</span>
+      <span>Round: {round}</span>
       <div className="cards__stopwatch">
         <Stopwatch maxTime={15} timeLeft={time} size={75} />
       </div>
@@ -130,7 +124,7 @@ function Cards({ socket, roomCode, users }: CardsProps) {
             onSelect={handleCardSelect}
             selected={selectedCard === index}
             socket={socket}
-            room={roomCode}
+            roomCode={roomCode}
             user={users[0].id}
           />
         ))}
