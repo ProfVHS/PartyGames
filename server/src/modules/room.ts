@@ -1,7 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
-import { User } from "../index";
-import { Room } from "../index";
+import { User, Room } from "../index";
 
 interface Count {
   count: number

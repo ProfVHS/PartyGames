@@ -5,6 +5,7 @@ import Ctb from "./Ctb";
 import Cards from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
+import Battleships from "./Battleships/Battleships";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -18,7 +19,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(3);
+  const currentGame = useRef<number | undefined>(4);
 
   const onceDone = useRef<boolean>(false);
 
@@ -50,7 +51,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       case 3:
         return <TrickyDiamonds roomCode={roomCode} users={users} />;
       case 4:
-        return <div>Gra 4</div>;
+        return <Battleships />;
       case 5:
         return <div>Gra 5</div>;
       case 6:

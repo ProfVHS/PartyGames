@@ -50,7 +50,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     // check if all players are ready (must be at least 2 players)
-    if(readyLength.current == usersLength.current && readyLength.current > 1){
+    if(readyLength.current == usersLength.current && readyLength.current == 1){
       // change lobby to mini games
       setStartGame(true);
     }
