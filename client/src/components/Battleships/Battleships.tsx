@@ -1,10 +1,10 @@
 import "./style.scss";
-import Board from "./Board";
+import { Board } from "./Board";
 
-export default function Battleships() {
+export function Battleships() {
   return (
     <>
-        <Board />
+      <Board />
     </>
-  )
+  );
 }

@@ -5,7 +5,7 @@ import Ctb from "./Ctb";
 import Cards from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
-import Battleships from "./Battleships/Battleships";
+import { Battleships } from "./Battleships/Battleships";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -13,7 +13,6 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ users, roomCode }: MiniGamesProps) {
-
   // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
@@ -24,14 +23,14 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   const onceDone = useRef<boolean>(false);
 
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
+    if (users.length > 0) {
+      if (users[0].id === socket.id) {
         socket.emit("gamesArray", roomCode);
       }
     }
-    
+
     onceDone.current = true;
   }, []);
 
@@ -66,10 +65,5 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   };
 
   // server-side : socket.emit('end-game', roomCode )
-  return (
-    <>
-      {switchGame(currentGame.current)}
-    </>
-  );
-  }
-
+  return <>{switchGame(currentGame.current)}</>;
+}

@@ -1,9 +1,10 @@
-import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
+import { Battleships } from "../components/Battleships/Battleships";
+import { Board } from "../components/Battleships/Board";
 
 export default function TestPage() {
   return (
     <>
-      <TrickyDiamonds />
+      <Board />
     </>
   );
 }
