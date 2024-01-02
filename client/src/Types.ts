@@ -35,6 +35,8 @@ export type TrickyDiamondType = {
   isSelected: boolean;
 };
 
+/* Battleship */
+
 export type BattleShipsFieldSpeciality =
   | "NORMAL"
   | "POSITIVE"
@@ -47,4 +49,13 @@ export type BattleShipsField = {
   multiplier: number;
   column: string;
   row: number;
+  hasShip: boolean;
+};
+
+export type ShipType = {
+  startField: BattleShipsField;
+  shipLength: 1 | 2;
+  direction: "horizontal" | "vertical";
+  directionMultiplier: 1 | -1;
+  endField: BattleShipsField;
 };

@@ -27,6 +27,7 @@
   }
 
   &__field {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -58,6 +59,64 @@
       background-color: #ffcf53;
       font-size: 24px;
     }
+  }
+
+  &__ship {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+
+    background-color: #5caffb;
+
+    box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+  }
+  &__hologramGrid {
+    z-index: 10;
+    transform: translate(25%, 0%);
+    width: 200%;
+    height: 100%;
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+  &__hologram {
+    z-index: 10;
+    transform: translate(25%, 0%);
+    width: calc(200% + 5px);
+    height: 100%;
+    position: absolute;
+    pointer-events: none;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+
+    box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+    animation: hologram 0.5s ease infinite alternate;
+  }
+
+  @keyframes hologram {
+    0% {
+      background-color: rgba(92, 175, 251, 0.5);
+    }
+    100% {
+      background-color: rgba(92, 175, 251, 0.3);
+    }
+  }
+
+  &__field:hover &__hologram {
+    display: flex;
   }
 
   &__fields {
