@@ -1,0 +1,44 @@
+.colors__memory {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(3, auto);
+    
+}
+
+.memory__button {
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    &.red {
+        background-color: #ff0000;
+    }
+    &.green {
+        background-color: #00ff00;
+    }
+    &.blue {
+        background-color: #0000ff;
+    }
+    &.yellow {
+        background-color: #ffff00;
+    }
+    &.purple {
+        background-color: #ff00ff;
+    }
+    &.orange {
+        background-color: #ffa500;
+    }
+    &.brown {
+        background-color: #a52a2a;
+    }
+    &.pink {
+        background-color: #ffc0cb;
+    }
+    &.grey {
+        background-color: #808080;
+    }
+}

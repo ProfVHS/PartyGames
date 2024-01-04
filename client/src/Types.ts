@@ -35,3 +35,6 @@ export type TrickyDiamondType = {
   color: TrickyCardColor;
   isSelected: boolean;
 };
+
+// Colors Memory
+export type ColorsMemory = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'brown';
