@@ -7,6 +7,7 @@ module.exports = (
     io: Server, 
     socket: Socket, 
     db: Database, 
+    updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
     changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
 ) => {
     //#region colors memory functions
@@ -29,10 +30,8 @@ module.exports = (
         });
     });
 
-    socket.on("endRoundColorsMemory", async (roomCode: string) => {
-        await changeRoomRound(roomCode, socket).then(() => {
-            
-        });
+    socket.on("endGameColorsMemory", async (roomCode: string) => {
+        updateRoomRound(roomCode, 0, socket)
     });
     //#endregion
 };

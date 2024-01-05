@@ -337,7 +337,7 @@ server.listen(3000, async () => {
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
-    colorsMemoryModule(io, socket, db, changeRoomRound);
+    colorsMemoryModule(io, socket, db, updateRoomRound, changeRoomRound);
   };
 
   io.on("connection", handleModulesOnConnection);

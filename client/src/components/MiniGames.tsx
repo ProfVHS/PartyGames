@@ -5,7 +5,7 @@ import Ctb from "./Ctb";
 import Cards from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
-import ColorsMemory from "./ColorsMemory/ColorsMemory";
+import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 
 interface MiniGamesProps {
   roomCode: string;

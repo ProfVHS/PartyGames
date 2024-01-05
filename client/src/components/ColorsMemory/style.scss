@@ -2,7 +2,6 @@
     display: grid;
     grid-template-columns: repeat(3, auto);
     grid-template-rows: repeat(3, auto);
-    
 }
 
 .memory__button {
@@ -40,5 +39,8 @@
     }
     &.grey {
         background-color: #808080;
+    }
+    &.white {
+        background-color: #ffffff;
     }
 }

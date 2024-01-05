@@ -1,7 +1,7 @@
 import { Button } from './Button'
 import { User } from '../../Types'
 import './style.scss'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket';
 
 const ButtonsColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'grey'];
@@ -11,10 +11,33 @@ interface ColorsMemoryProps {
     users: User[];
 }
 
-export default function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
+export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     const round = useRef<number>(1);
 
     const onceDone = useRef<boolean>(false);
+
+    const [lightButton, setLightButton] = useState<number | null>(null);
+
+    const ButtonsSequentions = (array: number[]) => {
+        let x = 0;
+
+        const myInterval = setInterval(() => {
+            if (x < array.length) {
+                const newNumber: number = array[x];
+
+                setLightButton(newNumber);
+
+                x++;
+            } else {
+                setLightButton(null);
+                clearInterval(myInterval);
+            }
+        }, 1000);
+    };
+
+    useEffect(() => {
+        console.log(lightButton);
+    }, [lightButton]);
 
     useEffect(() => {
         if(onceDone.current) return;
@@ -30,33 +53,23 @@ export default function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         });
 
         socket.on("endRoundColorsMemory", (data: number[]) => {
-            console.log("endRoundColorsMemory");
-            var x = 0;
-
-            const myInterval = setInterval(() => {
-                if(x < data.length){
-                    console.log(data[x]);
-                    x++;
-                } else {
-                    clearInterval(myInterval);
-                }
-            }, 1000);
-
-            round.current++;
+            ButtonsSequentions(data);
         });
 
         socket.on("endGameColorsMemory", () => {
-            console.log("endGameColorsMemory");
+            console.log("endGmaeColors");
         });
-    }, [socket]);
-    return (
+    }, [socket]); 
+
+    return ( 
     <>
-        <div className='colors__memory'>
+        <div className='colors__memory'> 
             {ButtonsColors.map((color,index) => 
                 <Button 
-                key={index}
+                key={index} 
                 id={index} 
-                color={color} 
+                color={index == lightButton ? 'white' : color} 
+                isLight={false}
             />)}
         </div>
         <div>
