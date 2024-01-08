@@ -8,39 +8,62 @@
     width: 100px;
     height: 100px;
     margin: 10px;
-    border: 1px solid black;
+    border: none;
     border-radius: 10px;
-    background-color: #fff;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
     &.red {
-        background-color: #ff0000;
-    }
-    &.green {
-        background-color: #00ff00;
-    }
-    &.blue {
-        background-color: #0000ff;
-    }
-    &.yellow {
-        background-color: #ffff00;
-    }
-    &.purple {
-        background-color: #ff00ff;
+        background-color: #C81414;
+        &.light {
+            background-color: #FF4D4D;
+        }
     }
     &.orange {
-        background-color: #ffa500;
+        background-color: #FF9430;
+        &.light {
+            background-color: #FFB84D;
+        }
     }
-    &.brown {
-        background-color: #a52a2a;
+    &.yellow {
+        background-color: #FFCF53;
+        &.light {
+            background-color: #FFE680;
+        }
+    }
+    &.darkblue {
+        background-color: #1458B8;
+        &.light {
+            background-color: #4D8AFF;
+        }
+    }
+    &.blue {
+        background-color: #389DFA;
+        &.light {
+            background-color: #66B5FF;
+        }
+    }
+    &.green {
+        background-color: #33C153;
+        &.light {
+            background-color: #66FF80;
+        }
+    }
+    &.purple {
+        background-color: #AB55F0;
+        &.light {
+            background-color: #D580FF;
+        }
     }
     &.pink {
-        background-color: #ffc0cb;
+        background-color: #FC6AFF;
+        &.light {
+            background-color: #FF99FF;
+        }
     }
-    &.grey {
-        background-color: #808080;
-    }
-    &.white {
-        background-color: #ffffff;
+    &.darkgreen {
+        background-color: #1A7F30;
+        &.light {
+            background-color: #35aa50;
+        }
     }
 }

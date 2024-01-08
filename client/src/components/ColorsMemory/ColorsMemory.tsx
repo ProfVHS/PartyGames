@@ -4,7 +4,7 @@ import './style.scss'
 import { useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket';
 
-const ButtonsColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'grey'];
+const ButtonsColors = ['red', 'orange', 'yellow', 'darkblue', 'blue', 'green', 'purple', 'pink', 'darkgreen'];
 
 interface ColorsMemoryProps {
     roomCode: string;
@@ -18,7 +18,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
     const [lightButton, setLightButton] = useState<number | null>(null);
 
-    const ButtonsSequentions = (array: number[]) => {
+    const ButtonsSequence = (array: number[]) => {
         let x = 0;
 
         const myInterval = setInterval(() => {
@@ -27,12 +27,16 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
                 setLightButton(newNumber);
 
+                setTimeout(() => {
+                    setLightButton(null);
+                }, 1000);
+
                 x++;
             } else {
                 setLightButton(null);
                 clearInterval(myInterval);
             }
-        }, 1000);
+        }, 1500);
     };
 
     useEffect(() => {
@@ -53,7 +57,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         });
 
         socket.on("endRoundColorsMemory", (data: number[]) => {
-            ButtonsSequentions(data);
+            ButtonsSequence(data);
         });
 
         socket.on("endGameColorsMemory", () => {
@@ -68,8 +72,9 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
                 <Button 
                 key={index} 
                 id={index} 
-                color={index == lightButton ? 'white' : color} 
-                isLight={false}
+                color={color} 
+                isLight={index == lightButton ? true : false}
+                roomCode={roomCode}
             />)}
         </div>
         <div>

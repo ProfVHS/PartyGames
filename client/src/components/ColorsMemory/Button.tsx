@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import { socket } from "../../socket";
 
 interface ButtonProps {
     id: number;
     color: string;
     isLight: boolean;
+    roomCode: string;
 }
 
-export function Button({id, color, isLight } : ButtonProps) {
+export function Button({id, color, isLight, roomCode } : ButtonProps) {
 
     const [light, setLight] = useState<boolean>(isLight);
 
     const handleClick = () => {
         setLight(true);
+
+        socket.emit("buttonClickedColorsMemory", roomCode, id );
 
         setTimeout(() => {
             setLight(false);
@@ -20,7 +24,7 @@ export function Button({id, color, isLight } : ButtonProps) {
 
     return (
         <>
-            <button className={`memory__button ${light ? "white" : color}`} onClick={handleClick}>{id} - {color}</button>
+            <button className={`memory__button ${color} ${isLight || light ? "light" : "" }`} onClick={handleClick}></button>
         </>
     )
 }
