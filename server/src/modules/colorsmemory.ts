@@ -9,6 +9,8 @@ type Buttons = {
 
 const ButtonsArray: Buttons[] = [];
 
+// I use id_selected (db) as store the current lenght of buttons sequence to show 
+
 module.exports = (
     io: Server, 
     socket: Socket, 
@@ -47,7 +49,7 @@ module.exports = (
     const lightButton = async (roomCode: string) => {
         const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
         console.log(buttons);
-        socket.nsp.to(roomCode).emit("endRoundColorsMemory", buttons);
+        socket.nsp.to(roomCode).emit("sequenceColorsMemory", buttons);
     };
     //#endregion
     //#region colors memory sockets
@@ -61,6 +63,8 @@ module.exports = (
 
     socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number) => {
         const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
+        const reversedButtons = buttons?.reverse();
+        console.log("rever - ",reversedButtons);
         const user_row: User = await new Promise<User>((resolve, reject) => {
             db.get(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, row: User) => {
                 if (err) {
@@ -70,19 +74,24 @@ module.exports = (
                 }
             });
         });
-        if(user_row.id_selected < 0){
-            console.log("end round");
-            // end round
-            return;
-        }
-        if(buttons){
-            if(buttons[user_row.id_selected] !== id){
+        if(reversedButtons){
+            if(reversedButtons[user_row.id_selected] !== id){
                 console.log("incorrect");
                 // endgame
                 return;
+            } else {
+                console.log("correct");
+                // check next button
+                
             }
-            console.log("correct");
-            // check next button
+
+            // end round
+            if(user_row.id_selected == 0){
+                console.log("end round");
+                // end round
+                socket.nsp.to(roomCode).emit("endRoundColorsMemory", );
+                return;
+            }
 
             db.run(`UPDATE users SET id_selected = ${user_row.id_selected-1} WHERE id = "${socket.id}"`, [], (err: Error) => {
                 if (err) {

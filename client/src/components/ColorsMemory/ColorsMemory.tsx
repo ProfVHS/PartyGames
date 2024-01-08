@@ -18,6 +18,10 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
     const [lightButton, setLightButton] = useState<number | null>(null);
 
+    const startGamme = () => {
+        socket.emit("startGameColorsMemory", roomCode);
+    };
+
     const ButtonsSequence = (array: number[]) => {
         let x = 0;
 
@@ -46,7 +50,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     useEffect(() => {
         if(onceDone.current) return;
 
-        socket.emit("startGameColorsMemory", roomCode);
+        startGamme();
 
         onceDone.current = true;
     }, []);
@@ -56,8 +60,12 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
             console.log("startRoundColorsMemory");
         });
 
-        socket.on("endRoundColorsMemory", (data: number[]) => {
+        socket.on("sequenceColorsMemory", (data: number[]) => {
             ButtonsSequence(data);
+        });
+
+        socket.on("endRoundColorsMemory", () => {
+            startGamme();
         });
 
         socket.on("endGameColorsMemory", () => {
