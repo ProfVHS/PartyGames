@@ -17,17 +17,17 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     const onceDone = useRef<boolean>(false);
 
     const [lightButton, setLightButton] = useState<number | null>(null);
-    const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [isInGame, setIsInGame] = useState<boolean>(false);
     const [isDead, setIsDead] = useState<boolean>(false);
     const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
-    const [time, setTime] = useState<number>(3);
+    const [time, setTime] = useState<number>(3000);
 
     const startGamme = () => {
         socket.emit("startGameColorsMemory", roomCode);
     };
 
     const ButtonsSequence = async (array: number[]) => {
-        setIsDisabled(true);
+        setIsInGame(false);
         let x = 0;
 
         const sequenceInterval = setInterval(() => {
@@ -44,7 +44,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
             } else {
                 setLightButton(null);
                 setCurrentClickNumber(0);
-                setIsDisabled(false);
+                setIsInGame(true);
 
                 clearInterval(sequenceInterval);
             }
@@ -59,10 +59,23 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         onceDone.current = true;
     }, []);
 
+    useEffect(() => {
+        if(isInGame){
+            const timeInterval = setInterval(() => {
+                if(time > 0) {
+                    setTime(time - 10);
+                } else {
+                    setIsDead(true);
+                }
+            }, 10);
+        
+            return () => clearInterval(timeInterval);
+        }
+      }, [time, isInGame]);
+
 
     useEffect(() => {
         socket.on("startRoundColorsMemory", () => {
-            console.log("startRoundColorsMemory");
         });
 
         socket.on("sequenceColorsMemory", (data: number[]) => {
@@ -78,13 +91,14 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         });
 
         socket.on("endGameColorsMemory", () => {
-            console.log("endGmaeColors");
         });
     }, [socket]); 
 
     const handleClick = () => {
         const newClicked = currentClickNumber+1;
         setCurrentClickNumber(newClicked);
+
+        setTime(3000);
     }
 
     return ( 
@@ -103,7 +117,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
                             id={index}
                             color={color}
                             isLight={lightButton === index}
-                            isDisabled={isDisabled}
+                            isDisabled={!isInGame}
                             roomCode={roomCode}
                             onClick={handleClick}
                             currentClickNumber={currentClickNumber}
@@ -116,7 +130,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
             <p>Round: {round.current}</p>
             <p>Score: 1</p>
             <p>Current: {currentClickNumber}</p>
-            <p>Time - {time}</p>
+            <progress value={time} max="3000"></progress>
         </div>
     </>
   )
