@@ -9,34 +9,18 @@ type Buttons = {
 
 const ButtonsArray: Buttons[] = [];
 
-// I use id_selected (db) as store the current lenght of buttons sequence to show 
-
 module.exports = (
     io: Server, 
     socket: Socket, 
     db: Database, 
     updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
     changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
+    updateUserScore: (id: string, score: number, socket: Socket) => Promise<void>,
+    updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => Promise<void>,
+    updateUserAlive: (id: string ,alive: boolean) => Promise<void>,
+    updateUsersAlive: (roomCode: string, alive: boolean) => Promise<void>,
 ) => {
     //#region colors memory functions
-    const updateUserButtonsLenght = async (roomCode: string) => {
-        const room_row: Room = await new Promise<Room>((resolve, reject) => {
-            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
-            });
-        });
-        console.log(room_row.round);
-        db.run(`UPDATE users SET id_selected = ${room_row.round-1} WHERE id_room = "${roomCode}"`, [], (err: Error) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-    };
-
     const addButton = async (roomCode: string) => {
         const randomButton = Math.floor(Math.random() * 8);
         if (!ButtonsArray.find((room) => roomCode === room.room)) {
@@ -55,54 +39,42 @@ module.exports = (
     //#region colors memory sockets
     socket.on("startGameColorsMemory", async (roomCode: string) => {
         await changeRoomRound(roomCode, socket).then(() => {
-            updateUserButtonsLenght(roomCode);
             addButton(roomCode);
             lightButton(roomCode);
         });
     });
 
-    socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number) => {
+    socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number, currentClickNumber: number) => {
+        console.log("current - ", currentClickNumber);
         const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
-        const reversedButtons = buttons?.reverse();
-        console.log("rever - ",reversedButtons);
-        const user_row: User = await new Promise<User>((resolve, reject) => {
-            db.get(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, row: User) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
-            });
-        });
-        if(reversedButtons){
-            if(reversedButtons[user_row.id_selected] !== id){
+        console.log("buttons - ",buttons);
+
+        if(buttons){
+            if(buttons[currentClickNumber] !== id){
                 console.log("incorrect");
-                // endgame
+                updateUserAlive(socket.id, false);
+                // update Score to do
+                socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
                 return;
             } else {
                 console.log("correct");
-                // check next button
+                // update Score to do
                 
             }
 
             // end round
-            if(user_row.id_selected == 0){
+            if(currentClickNumber === buttons.length-1){
                 console.log("end round");
                 // end round
                 socket.nsp.to(roomCode).emit("endRoundColorsMemory", );
                 return;
             }
-
-            db.run(`UPDATE users SET id_selected = ${user_row.id_selected-1} WHERE id = "${socket.id}"`, [], (err: Error) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
         }
     });
 
     socket.on("endGameColorsMemory", async (roomCode: string) => {
         updateRoomRound(roomCode, 0, socket)
+        updateUsersAlive(roomCode, true);
     });
     //#endregion
 };

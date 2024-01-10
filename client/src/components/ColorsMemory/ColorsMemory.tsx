@@ -17,15 +17,20 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     const onceDone = useRef<boolean>(false);
 
     const [lightButton, setLightButton] = useState<number | null>(null);
+    const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [isDead, setIsDead] = useState<boolean>(false);
+    const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
+    const [time, setTime] = useState<number>(3);
 
     const startGamme = () => {
         socket.emit("startGameColorsMemory", roomCode);
     };
 
-    const ButtonsSequence = (array: number[]) => {
+    const ButtonsSequence = async (array: number[]) => {
+        setIsDisabled(true);
         let x = 0;
 
-        const myInterval = setInterval(() => {
+        const sequenceInterval = setInterval(() => {
             if (x < array.length) {
                 const newNumber: number = array[x];
 
@@ -33,19 +38,18 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
                 setTimeout(() => {
                     setLightButton(null);
-                }, 1000);
+                }, 500);
 
                 x++;
             } else {
                 setLightButton(null);
-                clearInterval(myInterval);
-            }
-        }, 1500);
-    };
+                setCurrentClickNumber(0);
+                setIsDisabled(false);
 
-    useEffect(() => {
-        console.log(lightButton);
-    }, [lightButton]);
+                clearInterval(sequenceInterval);
+            }
+        }, 1000);
+    };
 
     useEffect(() => {
         if(onceDone.current) return;
@@ -54,6 +58,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
         onceDone.current = true;
     }, []);
+
 
     useEffect(() => {
         socket.on("startRoundColorsMemory", () => {
@@ -68,27 +73,50 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
             startGamme();
         });
 
+        socket.on("endGameUserColorsMemory", () => {
+            setIsDead(true);
+        });
+
         socket.on("endGameColorsMemory", () => {
             console.log("endGmaeColors");
         });
     }, [socket]); 
 
+    const handleClick = () => {
+        const newClicked = currentClickNumber+1;
+        setCurrentClickNumber(newClicked);
+    }
+
     return ( 
     <>
-        <div className='colors__memory'> 
-            {ButtonsColors.map((color,index) => 
-                <Button 
-                key={index} 
-                id={index} 
-                color={color} 
-                isLight={index == lightButton ? true : false}
-                roomCode={roomCode}
-            />)}
-        </div>
+        {isDead ? (
+            <div>
+                <p>Game over</p>
+                <p>Score: 1</p>
+            </div>
+        ) : (
+            <>
+                <div className="memory__buttons">
+                    {ButtonsColors.map((color, index) => (
+                        <Button
+                            key={index}
+                            id={index}
+                            color={color}
+                            isLight={lightButton === index}
+                            isDisabled={isDisabled}
+                            roomCode={roomCode}
+                            onClick={handleClick}
+                            currentClickNumber={currentClickNumber}
+                        />
+                    ))}
+                </div>
+            </>
+        )}
         <div>
             <p>Round: {round.current}</p>
             <p>Score: 1</p>
-            <p>Alive: 1</p>
+            <p>Current: {currentClickNumber}</p>
+            <p>Time - {time}</p>
         </div>
     </>
   )

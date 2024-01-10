@@ -13,7 +13,7 @@ import TestPage from "./pages/TestPage.tsx";
 const socket = io("http://localhost:3000");
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -21,5 +21,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/exp/" element={<TestPage />} />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
 );
