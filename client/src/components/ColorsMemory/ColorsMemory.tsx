@@ -22,9 +22,6 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
     const [time, setTime] = useState<number>(3000);
 
-    const startGamme = () => {
-        socket.emit("startGameColorsMemory", roomCode);
-    };
 
     const ButtonsSequence = async (array: number[]) => {
         setIsInGame(false);
@@ -54,36 +51,37 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     useEffect(() => {
         if(onceDone.current) return;
 
-        startGamme();
+        if(socket.id == users[0].id){
+            socket.emit("startGameColorsMemory", roomCode);
+        }
 
         onceDone.current = true;
     }, []);
 
-    useEffect(() => {
-        if(isInGame){
-            const timeInterval = setInterval(() => {
-                if(time > 0) {
-                    setTime(time - 10);
-                } else {
-                    setIsDead(true);
-                }
-            }, 10);
-        
-            return () => clearInterval(timeInterval);
-        }
-      }, [time, isInGame]);
+    // useEffect(() => {
+    //     if(isInGame && !isDead){
+    //         const timeInterval = setInterval(() => {
+    //             if(time > 0) {
+    //                 setTime(time - 10);
+    //             } else {
+    //                 setIsDead(true);
+    //                 socket.emit("updateUserAlive", false);
+    //                 clearInterval(timeInterval);
+    //             }
+    //         }, 10);
+
+    //         return () => clearInterval(timeInterval);
+    //     }
+    //   }, [time, isInGame]);
 
 
     useEffect(() => {
-        socket.on("startRoundColorsMemory", () => {
-        });
-
         socket.on("sequenceColorsMemory", (data: number[]) => {
             ButtonsSequence(data);
         });
 
         socket.on("endRoundColorsMemory", () => {
-            startGamme();
+            socket.emit("startGameColorsMemory", roomCode);
         });
 
         socket.on("endGameUserColorsMemory", () => {
@@ -124,14 +122,14 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
                         />
                     ))}
                 </div>
+                <div>
+                    <p>Round: {round.current}</p>
+                    <p>Score: 1</p>
+                    <p>Current: {currentClickNumber}</p>
+                    <progress value={time} max="3000"></progress>
+                </div>
             </>
         )}
-        <div>
-            <p>Round: {round.current}</p>
-            <p>Score: 1</p>
-            <p>Current: {currentClickNumber}</p>
-            <progress value={time} max="3000"></progress>
-        </div>
     </>
   )
 }

@@ -26,12 +26,10 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   useEffect(() => {
     if(onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
-        socket.emit("gamesArray", roomCode);
-      }
+    if(users[0].id === socket.id){
+      socket.emit("gamesArray", roomCode);
     }
-    
+        
     onceDone.current = true;
   }, []);
 

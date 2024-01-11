@@ -14,8 +14,9 @@ module.exports = (
   usersData: (roomCode: string, socket: Socket) => void, 
   roomData: (roomCode: string, socket: Socket) => void,
   updateUserSelected: (id: string, selected: number) => void,
+  updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   ) => {
-  //#region home functions (homepage, lobby, etc) needed at the beginning of the game
+  //#region home events (homepage, lobby, etc) needed at the beginning of the game
   // create room
   socket.on("createRoom", async (data : { randomRoomCode: string, name : string }) => {
     socket.join(data.randomRoomCode);
@@ -114,7 +115,7 @@ module.exports = (
   });
   //#endregion
 
-  //#region room functions (data, time, etc) needed during the game
+  //#region room events (data, time, etc) needed during the game
   // users data
   socket.on("usersData", async ( roomCode: string ) => {
     usersData(roomCode, socket);
@@ -122,10 +123,6 @@ module.exports = (
   // room data
   socket.on("roomData", async ( roomCode: string ) => {
     roomData(roomCode, socket);
-  });
-  // update selected object
-  socket.on("selectedObject", async ( selected: number ) => {
-    updateUserSelected(socket.id, selected);
   });
   // stopwatch time
   socket.on("stopwatchTime", async (roomCode: string) => {
@@ -145,6 +142,17 @@ module.exports = (
             row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
         });
     }, 1000);
+  });
+  //#endregion
+
+  //#region user events (selected object, alive, etc)
+  // update selected object
+  socket.on("selectedObject", async ( selected: number ) => {
+    updateUserSelected(socket.id, selected);
+  });
+  // update user alive
+  socket.on("updateUserAlive", async ( alive: boolean ) => {
+    updateUserAlive(socket.id, alive);
   });
   //#endregion
 };

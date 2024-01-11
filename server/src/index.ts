@@ -256,6 +256,7 @@ server.listen(3000, async () => {
         if(err){
           reject(err);
         } else {
+          console.log("Update Alive - ",id, alive);
           resolve();
         }
       });
@@ -333,7 +334,7 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);

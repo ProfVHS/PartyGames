@@ -32,8 +32,12 @@ module.exports = (
 
     const lightButton = async (roomCode: string) => {
         const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
-        console.log(buttons);
-        socket.nsp.to(roomCode).emit("sequenceColorsMemory", buttons);
+
+        if (buttons?.length === 1) {
+            socket.nsp.to(roomCode).emit("sequenceColorsMemory", buttons);
+        } else {
+            socket.nsp.to(socket.id).emit("sequenceColorsMemory", buttons);
+        }
     };
     //#endregion
     //#region colors memory sockets
@@ -45,29 +49,67 @@ module.exports = (
     });
 
     socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number, currentClickNumber: number) => {
-        console.log("current - ", currentClickNumber);
         const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
-        console.log("buttons - ",buttons);
+
+        console.log("CurrentClickNumber - ",currentClickNumber);
 
         if(buttons){
             if(buttons[currentClickNumber] !== id){
-                console.log("incorrect");
                 updateUserAlive(socket.id, false);
                 // update Score to do
                 socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
                 return;
             } else {
-                console.log("correct");
                 // update Score to do
                 
             }
 
-            // end round
-            if(currentClickNumber === buttons.length-1){
-                console.log("end round");
-                // end round
-                socket.nsp.to(roomCode).emit("endRoundColorsMemory", );
-                return;
+            // jezlie 2 gracz zacznie koljena rundę to tablica będzie miała 2 elemnty czyli lenght = 2, 
+            // mimo ze 1 gracz musi kliknąc 1 przycisk
+            // wiec trzeba chyba wrócic do mojej metody :)
+            if(currentClickNumber == buttons.length-1){
+                console.log("dsafsdnjgfdhsfgbdhfdbfhd");
+                // update selected id
+                new Promise<[Room, User]>((resolve, reject) => {
+                    db.run(`UPDATE users SET id_selected = id_selected + 1 WHERE id = "${socket.id}"`);
+                    Promise.all([
+                        new Promise<Room>((resolve, reject) => {
+                            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+                                if(err){
+                                    reject(err);
+                                } else {
+                                    resolve(room_row);
+                                }
+                            });
+                        }),
+                        new Promise<User>((resolve, reject) => {
+                            db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, user_row: User) => {
+                                if(err){
+                                    reject(err);
+                                } else {
+                                    resolve(user_row);
+                                }
+                            });
+                        })
+                    ]).then(([room_row, user_row]) => {
+                        resolve([room_row, user_row]);
+                      }).catch((error) => {
+                        reject(error);
+                      });
+                }).then(async ([room_row, user_row]) => {
+                    // if you are the first who end round, update game else only get info
+                    console.log("Round - ",room_row.round);
+                    console.log("id_selected - ",user_row.id_selected);
+                    if(room_row.round == user_row.id_selected){
+                        console.log("end round");
+                        socket.nsp.to(socket.id).emit("endRoundColorsMemory", );
+                    } else {
+                        console.log("get info");
+                        await lightButton(roomCode);
+                    }
+                    
+                });
+
             }
         }
     });
