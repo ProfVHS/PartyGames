@@ -56,19 +56,23 @@ module.exports = (
         if(buttons){
             if(buttons[currentClickNumber] !== id){
                 updateUserAlive(socket.id, false);
-                // update Score to do
                 socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
                 return;
             } else {
-                // update Score to do
                 
             }
 
-            // jezlie 2 gracz zacznie koljena rundę to tablica będzie miała 2 elemnty czyli lenght = 2, 
-            // mimo ze 1 gracz musi kliknąc 1 przycisk
-            // wiec trzeba chyba wrócic do mojej metody :)
-            if(currentClickNumber == buttons.length-1){
-                console.log("dsafsdnjgfdhsfgbdhfdbfhd");
+            const btnsLength = await new Promise<number>((resolve, reject) => {
+                db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+                    if(err){
+                        reject(err);
+                    } else {
+                        resolve(row.id_selected);
+                    }
+                });
+            });
+
+            if(currentClickNumber == btnsLength){
                 // update selected id
                 new Promise<[Room, User]>((resolve, reject) => {
                     db.run(`UPDATE users SET id_selected = id_selected + 1 WHERE id = "${socket.id}"`);
@@ -107,7 +111,6 @@ module.exports = (
                         console.log("get info");
                         await lightButton(roomCode);
                     }
-                    
                 });
 
             }
