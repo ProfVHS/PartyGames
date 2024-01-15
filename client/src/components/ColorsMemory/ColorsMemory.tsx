@@ -89,6 +89,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         });
 
         socket.on("endGameColorsMemory", () => {
+            console.log("end game");
         });
     }, [socket]); 
 

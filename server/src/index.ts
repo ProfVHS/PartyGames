@@ -98,6 +98,34 @@ server.listen(3000, async () => {
       socket.nsp.to(roomCode).emit("receiveRoomData", row);
     });
   };
+  // reset data about users
+  const usersResetData = async (roomCode: string, socket: Socket) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE users SET score = 0, alive = true, id_selected = 0 WHERE id_room = "${roomCode}"`, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }).then(() => {
+      usersData(roomCode, socket);
+    });
+  };
+  // reset data about room
+  const roomResetData = async (roomCode: string, socket: Socket) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET turn = 0, ready = 0, time_left = 0, time_max = 0, in_game = false, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }).then(() => {
+      roomData(roomCode, socket);
+    });
+  };
   //#endregion
 
   //#region Update data about rooms (turn, in_game, time, round)
@@ -262,6 +290,7 @@ server.listen(3000, async () => {
       });
     });
   };
+
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
     return new Promise<void>((resolve, reject) => {
@@ -329,6 +358,7 @@ server.listen(3000, async () => {
     await usersData(roomCode, socket);
   
   };
+
   //#endregion
   
 

@@ -57,6 +57,18 @@ module.exports = (
             if(buttons[currentClickNumber] !== id){
                 updateUserAlive(socket.id, false);
                 socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
+                const usersAlive = await new Promise<number>((resolve, reject) => {
+                    db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = 1`, [], (err: Error, rows: User[]) => {  
+                        if(err){
+                            reject(err);
+                        } else {
+                            resolve(rows.length);
+                        }
+                    });
+                });
+                if(usersAlive == 1){
+                    socket.nsp.to(roomCode).emit("endGameColorsMemory", );
+                } 
                 return;
             } else {
                 
