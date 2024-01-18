@@ -12,6 +12,7 @@ export interface User {
   alive: boolean, 
   id_room: string,
   id_selected: number,
+  position: number,
 };
 
 export interface Room {
@@ -49,7 +50,7 @@ server.listen(3000, async () => {
       'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -101,7 +102,7 @@ server.listen(3000, async () => {
   // reset data about users
   const usersResetData = async (roomCode: string, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE users SET score = 0, alive = true, id_selected = 0 WHERE id_room = "${roomCode}"`, [], (err) => {
+      db.run(`UPDATE users SET alive = true, id_selected = 0 WHERE id_room = "${roomCode}"`, [], (err) => {
         if (err) {
           reject(err);
         } else {

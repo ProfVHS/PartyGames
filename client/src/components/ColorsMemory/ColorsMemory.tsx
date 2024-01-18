@@ -25,6 +25,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
     const ButtonsSequence = async (array: number[]) => {
         setIsInGame(false);
+        round.current++;
         let x = 0;
 
         const sequenceInterval = setInterval(() => {
@@ -76,21 +77,35 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
 
 
     useEffect(() => {
-        socket.on("sequenceColorsMemory", (data: number[]) => {
-            ButtonsSequence(data);
-        });
-
-        socket.on("endRoundColorsMemory", () => {
+        const startGame = () => {
             socket.emit("startGameColorsMemory", roomCode);
-        });
 
-        socket.on("endGameUserColorsMemory", () => {
+            round.current++;
+        };
+
+        const endGameUser = () => {
             setIsDead(true);
-        });
+        };
 
-        socket.on("endGameColorsMemory", () => {
+        const endGame = () => {
             console.log("end game");
-        });
+        };
+
+        socket.on("sequenceColorsMemory", ButtonsSequence);
+
+        socket.on("endRoundColorsMemory", startGame);
+
+        socket.on("endGameUserColorsMemory", endGameUser);
+
+        socket.on("endGameColorsMemory", endGame);
+
+        return () => {
+            socket.off("sequenceColorsMemory", ButtonsSequence);
+            socket.off("endRoundColorsMemory", startGame);
+            socket.off("endGameUserColorsMemory", endGameUser);
+            socket.off("endGameColorsMemory", endGame);
+        }
+
     }, [socket]); 
 
     const handleClick = () => {

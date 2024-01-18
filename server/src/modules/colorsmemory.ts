@@ -57,8 +57,9 @@ module.exports = (
             if(buttons[currentClickNumber] !== id){
                 updateUserAlive(socket.id, false);
                 socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
+
                 const usersAlive = await new Promise<number>((resolve, reject) => {
-                    db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = 1`, [], (err: Error, rows: User[]) => {  
+                    db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = 0`, [], (err: Error, rows: User[]) => {  
                         if(err){
                             reject(err);
                         } else {
@@ -66,15 +67,19 @@ module.exports = (
                         }
                     });
                 });
+
+                db.run(`UPDATE users SET position = ${usersAlive+1} WHERE id = "${socket.id}"`);
+                
+                console.log("usersAlive - ",usersAlive);
+
                 if(usersAlive == 1){
-                    socket.nsp.to(roomCode).emit("endGameColorsMemory", );
+                    db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND position = 1`);
+                    socket.nsp.to(roomCode).emit("endGameColorsMemory");
                 } 
                 return;
-            } else {
-                
             }
 
-            const btnsLength = await new Promise<number>((resolve, reject) => {
+            const buttons_array_length = await new Promise<number>((resolve, reject) => {
                 db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
                     if(err){
                         reject(err);
@@ -84,47 +89,42 @@ module.exports = (
                 });
             });
 
-            if(currentClickNumber == btnsLength){
-                // update selected id
-                new Promise<[Room, User]>((resolve, reject) => {
-                    db.run(`UPDATE users SET id_selected = id_selected + 1 WHERE id = "${socket.id}"`);
-                    Promise.all([
-                        new Promise<Room>((resolve, reject) => {
-                            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
-                                if(err){
-                                    reject(err);
-                                } else {
-                                    resolve(room_row);
-                                }
-                            });
-                        }),
-                        new Promise<User>((resolve, reject) => {
-                            db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, user_row: User) => {
-                                if(err){
-                                    reject(err);
-                                } else {
-                                    resolve(user_row);
-                                }
-                            });
-                        })
-                    ]).then(([room_row, user_row]) => {
-                        resolve([room_row, user_row]);
-                      }).catch((error) => {
-                        reject(error);
-                      });
-                }).then(async ([room_row, user_row]) => {
-                    // if you are the first who end round, update game else only get info
-                    console.log("Round - ",room_row.round);
-                    console.log("id_selected - ",user_row.id_selected);
-                    if(room_row.round == user_row.id_selected){
-                        console.log("end round");
-                        socket.nsp.to(socket.id).emit("endRoundColorsMemory", );
-                    } else {
-                        console.log("get info");
-                        await lightButton(roomCode);
-                    }
+            console.log("btnsLength - ",buttons_array_length);
+
+            if(currentClickNumber == buttons_array_length){
+                db.run(`UPDATE users SET id_selected = id_selected + 1 WHERE id = "${socket.id}"`);
+
+                const room_round = await new Promise<number>((resolve, reject) => {
+                    db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+                        if(err){
+                            reject(err);
+                        } else {
+                            resolve(row.round);
+                        }
+                    });
                 });
 
+                console.log("room_round - ",room_round);
+                
+                const user_round = await new Promise<number>((resolve, reject) => {
+                    db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+                        if(err){
+                            reject(err);
+                        } else {
+                            resolve(row.id_selected);
+                        }
+                    });
+                });
+
+                console.log("user_round - ",user_round);
+
+                if(room_round == user_round){
+                    console.log("end round");
+                    socket.nsp.to(socket.id).emit("endRoundColorsMemory", );
+                } else {
+                    console.log("get info");
+                    await lightButton(roomCode);
+                }
             }
         }
     });

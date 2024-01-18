@@ -6,6 +6,7 @@ export type User = {
     alive: boolean,
     id_room: string,
     id_selected: number,
+    position: number,
 };
 
 export type Room = {
