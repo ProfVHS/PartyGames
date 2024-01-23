@@ -1,6 +1,5 @@
-import React from "react";
+import { useState } from "react";
 import { BattleShipsFieldSpeciality } from "../../Types";
-import { ShipHologram } from "./ShipHologram";
 
 interface FieldProps {
   column: string;
@@ -8,14 +7,30 @@ interface FieldProps {
   special: BattleShipsFieldSpeciality;
   multiplier?: number;
   onClick?: () => void;
+  onHover?: () => void;
 }
-export const Field = ({ special, multiplier, onClick }: FieldProps) => {
+export const Field = ({
+  special,
+  multiplier,
+  onClick,
+  onHover,
+}: FieldProps) => {
+  const [isHover, setIsHover] = useState(false);
+  const handleHover = () => {
+    const newHover = !isHover;
+    setIsHover(newHover);
+  };
+
   return (
-    <div className={`battleships__field ${special}`} onClick={onClick}>
+    <div
+      className={`battleships__field ${special}`}
+      onClick={onClick}
+      onMouseOver={onHover}
+      onMouseOut={handleHover}
+    >
       {special === "POSITIVE" ||
         (special === "NEGATIVE" && multiplier && multiplier + "x")}
       {special === "LUCKYBLOCK" && "?"}
-      <ShipHologram />
     </div>
   );
 };

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { BattleShipsField, ShipType } from "../../Types";
+import { BattleShipsField, ShipType, shipDirectionType } from "../../Types";
 import { Field } from "./Field";
 import { Ship } from "./Ship";
+import { ShipHologram } from "./ShipHologram";
 
 export function Board() {
   const Rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -12,12 +13,25 @@ export function Board() {
   const [ships, setShips] = useState<ShipType[]>([]);
   const [playerShipLenght, setPlayerShipLenght] = useState<1 | 2>(2);
 
+  const [shipDirection, setShipDirection] = useState<shipDirectionType>({
+    direction: "vertical",
+    directionMultiplier: 1,
+  });
+
+  const [isFieldHover, setIsFieldHover] = useState(false);
+  type HologramPositionType = {
+    start: BattleShipsField;
+    end: BattleShipsField;
+  };
+  const [hologramPosition, setHologramPosition] =
+    useState<HologramPositionType>();
+
   const placeShip = (field: BattleShipsField) => {
     const newShip: ShipType = {
       startField: field,
       shipLength: playerShipLenght,
-      direction: "vertical",
-      directionMultiplier: 1,
+      direction: shipDirection.direction,
+      directionMultiplier: shipDirection.directionMultiplier,
       endField: field,
     };
     newShip.endField = endFieldCalculator(newShip);
@@ -33,19 +47,32 @@ export function Board() {
       return field;
     });
 
-    console.log(newFields);
-
     setShips([...ships, newShip]);
     setFields(newFields);
 
-    console.log(newShip);
+    //setPlayerShipLenght(1);
+  };
 
-    setPlayerShipLenght(1);
+  const hoverHandler = (field: BattleShipsField) => {
+    const newShipHologram: ShipType = {
+      startField: field,
+      shipLength: playerShipLenght,
+      direction: shipDirection.direction,
+      directionMultiplier: shipDirection.directionMultiplier,
+      endField: field,
+    };
+
+    newShipHologram.endField = endFieldCalculator(newShipHologram);
+
+    setHologramPosition({
+      start: newShipHologram.startField,
+      end: newShipHologram.endField,
+    });
   };
 
   const endFieldCalculator = (ship: ShipType) => {
     const endField: BattleShipsField | undefined = fields.find((field) => {
-      if (ship.direction === "horizontal") {
+      if (ship.direction === "vertical") {
         return (
           field.column === ship.startField.column &&
           field.row ===
@@ -88,6 +115,76 @@ export function Board() {
   useEffect(() => {
     fieldsRandomizer();
   }, []);
+
+  // Custom hook for keyboard events
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyboardClick);
+    return () => window.removeEventListener("keydown", handleKeyboardClick);
+  });
+
+  const handleKeyboardClick = (keyClicked: React.KeyboardEvent) => {
+    const { key, repeat } = keyClicked;
+    if (repeat === true) return;
+    if (key !== "r") return;
+    console.log(keyClicked);
+    handleRotate();
+  };
+
+  useEffect(() => {
+    if (hologramPosition) {
+      const newShipHologram: ShipType = {
+        startField: hologramPosition.start,
+        shipLength: playerShipLenght,
+        direction: shipDirection.direction,
+        directionMultiplier: shipDirection.directionMultiplier,
+        endField: hologramPosition.end,
+      };
+      newShipHologram.endField = endFieldCalculator(newShipHologram);
+    }
+  }, [shipDirection]);
+
+  const handleRotate = () => {
+    if (shipDirection.direction === "vertical") {
+      if (shipDirection.directionMultiplier === 1) {
+        const newShipDirection: shipDirectionType = {
+          direction: "horizontal",
+          directionMultiplier: 1,
+        };
+        setShipDirection(newShipDirection);
+        if (hologramPosition) hoverHandler(hologramPosition.start);
+        return;
+      } else {
+        const newShipDirection: shipDirectionType = {
+          direction: "horizontal",
+          directionMultiplier: -1,
+        };
+        setShipDirection(newShipDirection);
+        if (hologramPosition) hoverHandler(hologramPosition.start);
+        return;
+      }
+    }
+
+    if (shipDirection.direction === "horizontal") {
+      if (shipDirection.directionMultiplier === 1) {
+        const newShipDirection: shipDirectionType = {
+          direction: "vertical",
+          directionMultiplier: -1,
+        };
+        setShipDirection(newShipDirection);
+        if (hologramPosition) hoverHandler(hologramPosition.start);
+        return;
+      } else {
+        const newShipDirection: shipDirectionType = {
+          direction: "vertical",
+          directionMultiplier: 1,
+        };
+        setShipDirection(newShipDirection);
+        if (hologramPosition) hoverHandler(hologramPosition.start);
+        return;
+      }
+    }
+  };
+
   return (
     <>
       <div className="battleships__board">
@@ -120,12 +217,22 @@ export function Board() {
                   special={field.speciality}
                   multiplier={field.multiplier}
                   onClick={() => placeShip(field)}
+                  onHover={() => hoverHandler(field)}
                 />
               );
           })}
           {ships.map((ship) => (
             <Ship key={ship.startField.id} ship={ship} />
           ))}
+          {hologramPosition != undefined && (
+            <div className="battleships__hologrid">
+              <ShipHologram
+                startField={hologramPosition.start}
+                shipLength={playerShipLenght}
+                shipDirection={shipDirection}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

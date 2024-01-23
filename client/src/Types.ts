@@ -59,3 +59,8 @@ export type ShipType = {
   directionMultiplier: 1 | -1;
   endField: BattleShipsField;
 };
+
+export type shipDirectionType = {
+  direction: "vertical" | "horizontal";
+  directionMultiplier: 1 | -1;
+};
