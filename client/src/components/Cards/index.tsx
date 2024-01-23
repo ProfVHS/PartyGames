@@ -4,7 +4,7 @@ import Card from "./Card";
 import { Stopwatch } from "../Stopwatch/Stopwatch";
 
 import { useEffect, useState, useRef } from "react";
-import { User } from "../../Types";
+import { User, Room } from "../../Types";
 
 import { socket } from "../../socket";
 interface CardObject {
@@ -17,7 +17,7 @@ interface CardsProps {
   users: User[];
 }
 
-function Cards({ roomCode, users }: CardsProps) {
+export function Cards({ roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(15);
   const [round, setRound] = useState<number>(1);
@@ -29,7 +29,6 @@ function Cards({ roomCode, users }: CardsProps) {
   const startGame = async () => {
     if(users.length > 0){
       if(users[0].id == socket.id){
-        console.log("start game", round);
         socket.emit("startGameCards", roomCode );
         socket.emit("stopwatchTime", roomCode);
       }
@@ -51,15 +50,30 @@ function Cards({ roomCode, users }: CardsProps) {
 
   // data from server (cards and time)
   useEffect(() => {
-    socket.on("receiveCardsArray", (data) => {
-      setCards(data);   
-    });
-    socket.on("receiveStopwatchTime", (data) => {
+    const cardsArray = (data: CardObject[]) => {
+      setCards(data);
+    };
+
+    const stopwatchTime = (data: number) => {
       setTime(data);
-    });
-    socket.on("receiveRoomData", (data) => {
+    };
+
+    const roomData = (data: Room) => {
       setRound(data.round);
-    });
+    };
+
+    socket.on("receiveCardsArray", cardsArray);
+
+    socket.on("receiveStopwatchTime", stopwatchTime);
+
+    socket.on("receiveRoomData", roomData);
+
+    return () => {
+      socket.off("receiveCardsArray", cardsArray);
+      socket.off("receiveStopwatchTime", stopwatchTime);
+      socket.off("receiveRoomData", roomData);
+    };
+
   }, [socket]);
 
   const delay = (ms: number): Promise<void> => {
@@ -132,5 +146,3 @@ function Cards({ roomCode, users }: CardsProps) {
     </div>
   );
 }
-
-export default Cards;
