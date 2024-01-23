@@ -53,7 +53,7 @@ export const ShipHologram = ({
       setColumnDiff(newColumnDiff);
       setRowDiff(newRowDiff);
     }
-  }, [shipDirection, startField]);
+  }, [shipDirection]);
   return (
     <div
       className={`battleships__hologram`}

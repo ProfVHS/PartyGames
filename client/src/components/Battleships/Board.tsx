@@ -124,7 +124,7 @@ export function Board() {
     return () => window.removeEventListener("keydown", handleKeyboardClick);
   });
 
-  const handleKeyboardClick = (keyClicked: React.KeyboardEvent) => {
+  const handleKeyboardClick = (keyClicked: KeyboardEvent) => {
     const { key, repeat } = keyClicked;
     if (repeat === true) return;
     if (key !== "r") return;
