@@ -9,7 +9,7 @@ import Explosion from "./Explosion";
 
 import { CtbProps } from "../Types";
 
-export default function Ctb({ roomCode, users }: CtbProps) {
+export function Ctb({ roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
@@ -33,32 +33,48 @@ export default function Ctb({ roomCode, users }: CtbProps) {
   };
 
   useEffect(() => {
-    socket.on("receiveTurnCtb", (data) => {
+    const turnCtb = (data: {username: string, id: string}) => {
       setTurn(data.username);
       if (data.id == socket.id) {
         setYourTurn(true);
-      } 
-      console.log(data);
-    });
-    socket.on("receiveCounterCtb", (data) => {
+      }
+    };
+
+    const counterCtb = (data: number) => {
       setCounter(data);
-    });
-    socket.on("receiveExplosionCtb", (data) => {
-      console.log(data);
+    };
+
+    const explosionCtb = (data: string) => {
       if (data == socket.id) {
         setIsDead(true);
       }
       setIsExploded(true);
 
       setTimeout(() => setIsExploded(false), 1250);
-    });
-    socket.on("receiveEndCtb", () => {
+    };
+
+    const endCtb = () => {
       setClicked(false);
       setYourTurn(false);
       setIsExploded(true);
 
       setTimeout(() => setIsExploded(false), 1250);
-    });
+    };
+
+    socket.on("receiveTurnCtb", turnCtb);
+
+    socket.on("receiveCounterCtb", counterCtb);
+
+    socket.on("receiveExplosionCtb", explosionCtb);
+
+    socket.on("receiveEndCtb", endCtb);
+
+    return () => {
+      socket.off("receiveTurnCtb", turnCtb);
+      socket.off("receiveCounterCtb", counterCtb);
+      socket.off("receiveExplosionCtb", explosionCtb);
+      socket.off("receiveEndCtb", endCtb);
+    }
   }, [socket]);
 
   // make sure that the game starts only once by host

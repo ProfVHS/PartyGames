@@ -12,6 +12,7 @@ export interface User {
   alive: boolean, 
   id_room: string,
   id_selected: number,
+  position: number,
 };
 
 export interface Room {
@@ -28,6 +29,7 @@ const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
 const cardsModule = require("./modules/cards");
 const diamondModule = require("./modules/diamonds");
+const colorsMemoryModule = require("./modules/colorsmemory");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -48,7 +50,7 @@ server.listen(3000, async () => {
       'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -95,6 +97,34 @@ server.listen(3000, async () => {
       });
     }).then((row) => {
       socket.nsp.to(roomCode).emit("receiveRoomData", row);
+    });
+  };
+  // reset data about users
+  const usersResetData = async (roomCode: string, socket: Socket) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE users SET alive = true, id_selected = 0 WHERE id_room = "${roomCode}"`, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }).then(() => {
+      usersData(roomCode, socket);
+    });
+  };
+  // reset data about room
+  const roomResetData = async (roomCode: string, socket: Socket) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET turn = 0, ready = 0, time_left = 0, time_max = 0, in_game = false, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }).then(() => {
+      roomData(roomCode, socket);
     });
   };
   //#endregion
@@ -255,11 +285,13 @@ server.listen(3000, async () => {
         if(err){
           reject(err);
         } else {
+          console.log("Update Alive - ",id, alive);
           resolve();
         }
       });
     });
   };
+
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
     return new Promise<void>((resolve, reject) => {
@@ -327,15 +359,17 @@ server.listen(3000, async () => {
     await usersData(roomCode, socket);
   
   };
+
   //#endregion
   
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
+    colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
   };
 
   io.on("connection", handleModulesOnConnection);

@@ -1,10 +1,11 @@
 import { socket } from "../socket";
 //import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
-import Ctb from "./Ctb";
-import Cards from "./Cards";
+import { Ctb } from "./Ctb";
+import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
+import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -18,19 +19,17 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(3);
+  const currentGame = useRef<number | undefined>(4);
 
   const onceDone = useRef<boolean>(false);
 
   useEffect(() => {
     if(onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
-        socket.emit("gamesArray", roomCode);
-      }
+    if(users[0].id === socket.id){
+      socket.emit("gamesArray", roomCode);
     }
-    
+        
     onceDone.current = true;
   }, []);
 
@@ -50,7 +49,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       case 3:
         return <TrickyDiamonds roomCode={roomCode} users={users} />;
       case 4:
-        return <div>Gra 4</div>;
+        return <ColorsMemory roomCode={roomCode} users={users} />;
       case 5:
         return <div>Gra 5</div>;
       case 6:
