@@ -22,7 +22,7 @@ module.exports = (
     socket.join(data.randomRoomCode);
 
     db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${data.randomRoomCode}", 0, 0, 0, 0, false,0)`);
-    db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, "${data.randomRoomCode}",0,0)`);
+    db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, "${data.randomRoomCode}",0,1)`);
     
   });
   // join room
@@ -74,9 +74,9 @@ module.exports = (
           // else let user join
           socket.emit("roomNotFull");
           if(count_row[0].count == 0){
-            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.roomCode},0,0)`);
+            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.roomCode},0,1)`);
           } else {
-            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count_row[0].count})", 100, true, ${data.roomCode},0,0)`);
+            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count_row[0].count})", 100, true, ${data.roomCode},0,1)`);
           }  
         }   
       } else {

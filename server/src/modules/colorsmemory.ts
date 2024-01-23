@@ -13,10 +13,9 @@ module.exports = (
     io: Server, 
     socket: Socket, 
     db: Database, 
+    usersData: (roomCode: string, socket: Socket) => Promise<void>,
     updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
     changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
-    updateUserScore: (id: string, score: number, socket: Socket) => Promise<void>,
-    updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => Promise<void>,
     updateUserAlive: (id: string ,alive: boolean) => Promise<void>,
     updateUsersAlive: (roomCode: string, alive: boolean) => Promise<void>,
 ) => {
@@ -74,6 +73,7 @@ module.exports = (
 
                 if(usersAlive == 1){
                     db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND position = 1`);
+                    usersData(roomCode, socket);
                     socket.nsp.to(roomCode).emit("endGameColorsMemory");
                 } 
                 return;
