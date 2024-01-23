@@ -12,13 +12,13 @@ export function Board() {
 
   const [ships, setShips] = useState<ShipType[]>([]);
   const [playerShipLenght, setPlayerShipLenght] = useState<1 | 2>(2);
+  const [canPlaceShip, setCanPlaceShip] = useState(true);
 
   const [shipDirection, setShipDirection] = useState<shipDirectionType>({
     direction: "vertical",
     directionMultiplier: 1,
   });
 
-  const [isFieldHover, setIsFieldHover] = useState(false);
   type HologramPositionType = {
     start: BattleShipsField;
     end: BattleShipsField;
@@ -27,6 +27,7 @@ export function Board() {
     useState<HologramPositionType>();
 
   const placeShip = (field: BattleShipsField) => {
+    if (!canPlaceShip) return;
     const newShip: ShipType = {
       startField: field,
       shipLength: playerShipLenght,
@@ -49,6 +50,7 @@ export function Board() {
 
     setShips([...ships, newShip]);
     setFields(newFields);
+    setCanPlaceShip(false);
 
     //setPlayerShipLenght(1);
   };
@@ -126,7 +128,6 @@ export function Board() {
     const { key, repeat } = keyClicked;
     if (repeat === true) return;
     if (key !== "r") return;
-    console.log(keyClicked);
     handleRotate();
   };
 
@@ -224,7 +225,7 @@ export function Board() {
           {ships.map((ship) => (
             <Ship key={ship.startField.id} ship={ship} />
           ))}
-          {hologramPosition != undefined && (
+          {hologramPosition != undefined && canPlaceShip && (
             <div className="battleships__hologrid">
               <ShipHologram
                 startField={hologramPosition.start}

@@ -28,10 +28,6 @@ export const ShipHologram = ({
     end: 0,
   });
   useEffect(() => {
-    console.log(startField);
-    console.log(shipDirection);
-    console.log(shipLength);
-
     if (shipDirection.direction === "vertical") {
       const newRowDiff = {
         start: shipDirection.directionMultiplier === 1 ? 0 : -1,
