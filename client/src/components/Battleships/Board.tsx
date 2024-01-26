@@ -143,10 +143,6 @@ export function Board() {
     });
   };
 
-  const setHasShipForFieldsAroundShip = (ship: ShipType) => {
-    console.log(fields);
-  };
-
   const endFieldCalculator = (ship: ShipType) => {
     const endField: BattleShipsField | undefined = fields.find((field) => {
       if (ship.direction === "vertical") {
@@ -248,19 +244,21 @@ export function Board() {
           directionMultiplier: -1,
         };
         setShipDirection(newShipDirection);
-        if (hologramPosition) hoverHandler(hologramPosition.start);
-        return;
       } else {
         const newShipDirection: shipDirectionType = {
           direction: "vertical",
           directionMultiplier: 1,
         };
         setShipDirection(newShipDirection);
-        if (hologramPosition) hoverHandler(hologramPosition.start);
-        return;
       }
     }
   };
+
+  useEffect(() => {
+    if (hologramPosition) {
+      hoverHandler(hologramPosition.start);
+    }
+  }, [shipDirection]);
 
   return (
     <>
