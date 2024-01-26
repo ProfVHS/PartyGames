@@ -12,6 +12,7 @@ export function Board() {
 
   const [ships, setShips] = useState<ShipType[]>([]);
   const [playerShipLenght, setPlayerShipLenght] = useState<1 | 2>(2);
+  const [haveShipToPlace, setHaveShipToPlace] = useState(true);
   const [canPlaceShip, setCanPlaceShip] = useState(true);
 
   const [shipDirection, setShipDirection] = useState<shipDirectionType>({
@@ -27,6 +28,8 @@ export function Board() {
     useState<HologramPositionType>();
 
   const placeShip = (field: BattleShipsField) => {
+    if (!haveShipToPlace) return;
+    if (field.hasShip) return;
     if (!canPlaceShip) return;
     const newShip: ShipType = {
       startField: field,
@@ -50,9 +53,71 @@ export function Board() {
 
     setShips([...ships, newShip]);
     setFields(newFields);
-    setCanPlaceShip(false);
+    setHaveShipToPlace(true);
+    setHasShipForFieldsAroundShip(newShip);
+    blockFieldsAroundShip(field, newShip.endField);
 
     //setPlayerShipLenght(1);
+  };
+
+  const blockFieldsAroundBlock = (
+    coreField: BattleShipsField,
+    fieldsArray: BattleShipsField[]
+  ) => {
+    const newFields = fieldsArray.map((field) => {
+      const CurrentColumnIndex = Columns.findIndex(
+        (column) => column === coreField.column
+      );
+
+      const middle =
+        field.row === coreField.row && field.column === coreField.column;
+      const topAndBottom =
+        field.column === coreField.column &&
+        (field.row === coreField.row + 1 || field.row === coreField.row - 1);
+      const middleLeftRight =
+        field.row === coreField.row &&
+        (field.column === Columns[CurrentColumnIndex + 1] ||
+          field.column === Columns[CurrentColumnIndex - 1]);
+      const leftTopCorner =
+        field.row === coreField.row - 1 &&
+        field.column === Columns[CurrentColumnIndex - 1];
+      const rightTopCorner =
+        field.row === coreField.row - 1 &&
+        field.column === Columns[CurrentColumnIndex + 1];
+      const rightBottomCorner =
+        field.row === coreField.row + 1 &&
+        field.column === Columns[CurrentColumnIndex + 1];
+      const leftBottomCorner =
+        field.row === coreField.row + 1 &&
+        field.column === Columns[CurrentColumnIndex - 1];
+
+      if (
+        leftTopCorner ||
+        rightTopCorner ||
+        rightBottomCorner ||
+        leftBottomCorner ||
+        middleLeftRight ||
+        topAndBottom ||
+        middle
+      ) {
+        field.isBlocked = true;
+        return field;
+      }
+
+      return field;
+    });
+
+    return newFields;
+  };
+
+  const blockFieldsAroundShip = (
+    startField: BattleShipsField,
+    endField: BattleShipsField
+  ) => {
+    let newFields = blockFieldsAroundBlock(startField, fields);
+    newFields = blockFieldsAroundBlock(endField, newFields);
+
+    setFields(newFields);
   };
 
   const hoverHandler = (field: BattleShipsField) => {
@@ -66,10 +131,20 @@ export function Board() {
 
     newShipHologram.endField = endFieldCalculator(newShipHologram);
 
+    if (field.isBlocked || newShipHologram.endField.isBlocked) {
+      setCanPlaceShip(false);
+    } else if (canPlaceShip === false) {
+      setCanPlaceShip(true);
+    }
+
     setHologramPosition({
       start: newShipHologram.startField,
       end: newShipHologram.endField,
     });
+  };
+
+  const setHasShipForFieldsAroundShip = (ship: ShipType) => {
+    console.log(fields);
   };
 
   const endFieldCalculator = (ship: ShipType) => {
@@ -108,6 +183,7 @@ export function Board() {
           speciality: "NORMAL",
           multiplier: 1,
           hasShip: false,
+          isBlocked: false,
         });
       });
     });
@@ -225,12 +301,13 @@ export function Board() {
           {ships.map((ship) => (
             <Ship key={ship.startField.id} ship={ship} />
           ))}
-          {hologramPosition != undefined && canPlaceShip && (
+          {hologramPosition != undefined && haveShipToPlace && (
             <div className="battleships__hologrid">
               <ShipHologram
                 startField={hologramPosition.start}
                 shipLength={playerShipLenght}
                 shipDirection={shipDirection}
+                canPlace={canPlaceShip}
               />
             </div>
           )}

@@ -50,6 +50,7 @@ export type BattleShipsField = {
   column: string;
   row: number;
   hasShip: boolean;
+  isBlocked: boolean;
 };
 
 export type ShipType = {

@@ -111,6 +111,12 @@
     box-sizing: border-box;
 
     animation: hologram 0.5s ease infinite alternate;
+    transition: 0.2s ease;
+
+    &.cantPlace {
+      background-color: rgb(200, 20, 20);
+      animation: cantPlaceHologram 0.5s ease infinite alternate;
+    }
   }
 
   @keyframes hologram {
@@ -119,6 +125,15 @@
     }
     100% {
       background-color: rgba(92, 175, 251, 0.3);
+    }
+  }
+
+  @keyframes cantPlaceHologram {
+    0% {
+      background-color: rgba(200, 20, 20, 0.5);
+    }
+    100% {
+      background-color: rgba(200, 20, 20, 0.3);
     }
   }
 
