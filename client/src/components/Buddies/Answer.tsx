@@ -17,8 +17,6 @@ export function Answer({roomCode, users, onClick}: AnswerProps) {
     socket.emit("sendAnswerBuddies", roomCode, answer);
   };
 
-  
-
   return (
     <>
         <h1>Answer</h1>

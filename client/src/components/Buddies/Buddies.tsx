@@ -32,12 +32,14 @@ export function Buddies({roomCode, users}: BuddiesProps) {
         };
 
         const isEveryUserHasAnswer = (data: number) => {
+            console.log(data);
             setAllUsersWrittenAnswer(data);
         };
 
         socket.on("allQuestionsBuddies", isEveryUserHasQuestion);
 
         socket.on("allAnswersBuddies", isEveryUserHasAnswer);        
+
 
         return () => {
             socket.off("allQuestionsBuddies", isEveryUserHasQuestion);
@@ -52,7 +54,12 @@ export function Buddies({roomCode, users}: BuddiesProps) {
                 socket.emit("getQuestionsBuddies", roomCode);
             }
         }
-    }, [allUsersWrittenQuestion]);
+        if(allUsersWrittenAnswer === users.length){
+            if(socket.id === users[0].id){
+                socket.emit("getAnswersBuddies", roomCode);
+            }
+        }
+    }, [allUsersWrittenQuestion, allUsersWrittenAnswer]);
 
     return (
         <>
@@ -63,7 +70,7 @@ export function Buddies({roomCode, users}: BuddiesProps) {
                 : writtenAnswer
                 ? allUsersWrittenAnswer !== users.length
                     ? <h3>Waiting for all players to answer</h3>
-                    : <AnswersSelect />
+                    : <AnswersSelect roomCode={roomCode} users={users} />
                 : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} /> }
         </>
     )

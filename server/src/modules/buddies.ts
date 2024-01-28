@@ -48,7 +48,7 @@ module.exports = (
         socket.nsp.to(roomCode).emit("allQuestionsBuddies", questions_length);
     });
 
-    socket.on("sendAnswerBuddies", async (roomCode, answer: string) => {
+    socket.on("sendAnswerBuddies", async (roomCode: string, answer: string) => {
         if(!answersArray.find((r) => r.room === roomCode)){
             answersArray.push({room: roomCode, answers: [{user: socket.id, answer: answer}]});
         }
@@ -57,15 +57,25 @@ module.exports = (
         }
 
         const answers_length = answersArray.find((r) => r.room === roomCode)?.answers.length;
-
-        console.log(answersArray.find((r) => r.room === roomCode)?.answers);
+        console.log(answers_length);
         socket.nsp.to(roomCode).emit("allAnswersBuddies", answers_length);
     });
 
     socket.on("getQuestionsBuddies", async (roomCode: string) => {
         const questions = questionsArray.find((r) => r.room === roomCode)?.questions;
-        console.log(questions);
+
         socket.nsp.to(roomCode).emit("receiveQuestionsBuddies", questions);
+    });
+
+    socket.on("getAnswersBuddies", async (roomCode: string) => {
+        const answers = answersArray.find((r) => r.room === roomCode)?.answers;
+        console.log("get Answers");
+        socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
+    });
+
+    socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
+        console.log("send best answer");
+        console.log(answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
     });
     //#endregion
 };
