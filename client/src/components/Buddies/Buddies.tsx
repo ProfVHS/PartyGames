@@ -18,6 +18,9 @@ export function Buddies({roomCode, users}: BuddiesProps) {
     const [writtenQuestion, setWrittenQuestion] = useState<boolean>(false);
     const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
 
+    const [endGame, setEndGame] = useState<boolean>(false);
+    const [question, setQuestion] = useState<string>("");
+
     const isQuestionWritten = () => {
         setWrittenQuestion(true);
     };
@@ -32,19 +35,38 @@ export function Buddies({roomCode, users}: BuddiesProps) {
         };
 
         const isEveryUserHasAnswer = (data: number) => {
-            console.log(data);
             setAllUsersWrittenAnswer(data);
+        };
+
+        const receiveQuestion = (data: string) => {
+            setQuestion(data);
+          };
+
+        const newRound = () => {
+            setAllUsersWrittenAnswer(0);
+            setWrittenAnswer(false);
+        };
+
+        const endGameFunction = () => {
+            setEndGame(true);
         };
 
         socket.on("allQuestionsBuddies", isEveryUserHasQuestion);
 
         socket.on("allAnswersBuddies", isEveryUserHasAnswer);        
 
+        socket.on("receiveQuestionBuddies", receiveQuestion);
+
+        socket.on("newRoundBuddies", newRound);
+
+        socket.on("endGameBuddies", endGameFunction)
 
         return () => {
             socket.off("allQuestionsBuddies", isEveryUserHasQuestion);
             socket.off("allAnswersBuddies", isEveryUserHasAnswer);
-            
+            socket.off("receiveQuestionBuddies", receiveQuestion);
+            socket.off("newRoundBuddies", newRound);
+            socket.off("endGameBuddies", endGameFunction);
         };
     }, [socket]);
 
@@ -63,15 +85,17 @@ export function Buddies({roomCode, users}: BuddiesProps) {
 
     return (
         <>
-            {!writtenQuestion 
-            ? <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
-            : allUsersWrittenQuestion !== users.length 
-                ? <h3>Waiting for all players to ask questions</h3>
-                : writtenAnswer
-                ? allUsersWrittenAnswer !== users.length
-                    ? <h3>Waiting for all players to answer</h3>
-                    : <AnswersSelect roomCode={roomCode} users={users} />
-                : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} /> }
+            {endGame
+            ? <h1>End Game</h1> 
+            : !writtenQuestion 
+                ? <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
+                : allUsersWrittenQuestion !== users.length 
+                    ? <h3>Waiting for all players to ask questions</h3>
+                    : writtenAnswer
+                    ? allUsersWrittenAnswer !== users.length
+                        ? <h3>Waiting for all players to answer</h3>
+                        : <AnswersSelect roomCode={roomCode} users={users} />
+                    : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} /> }
         </>
     )
 }

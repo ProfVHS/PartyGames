@@ -1,5 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
+import { Room, User } from "../index";
 
 type Question = {
     user: string;
@@ -29,9 +30,27 @@ module.exports = (
     io: Server,
     socket: Socket,
     db: Database,
+    changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
 ) => {
     //#region buddies functions
+    const startNewRound = async (roomCode: string) => {
+        await changeRoomRound(roomCode, socket);
 
+        const questionIndex = Math.floor(Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length!-1));
+        
+        const question = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].question;
+        socket.nsp.to(roomCode).emit("receiveQuestionBuddies", question);
+        
+        questionsArray.find((r) => r.room === roomCode)?.questions.splice(questionIndex, 1);
+        
+        answersArray.find((r) => r.room === roomCode)?.answers.splice(0, answersArray.find((r) => r.room === roomCode)?.answers.length!);
+
+        socket.nsp.to(roomCode).emit("newRoundBuddies");
+    };
+
+    const endGame = async (roomCode: string) => {
+        socket.nsp.to(roomCode).emit("endGameBuddies");
+    };
     //#endregion
 
     //#region buddies sockets
@@ -57,25 +76,29 @@ module.exports = (
         }
 
         const answers_length = answersArray.find((r) => r.room === roomCode)?.answers.length;
-        console.log(answers_length);
         socket.nsp.to(roomCode).emit("allAnswersBuddies", answers_length);
     });
 
-    socket.on("getQuestionsBuddies", async (roomCode: string) => {
+    socket.once("getQuestionsBuddies", async (roomCode: string) => {
         const questions = questionsArray.find((r) => r.room === roomCode)?.questions;
+
+        startNewRound(roomCode);
 
         socket.nsp.to(roomCode).emit("receiveQuestionsBuddies", questions);
     });
 
     socket.on("getAnswersBuddies", async (roomCode: string) => {
         const answers = answersArray.find((r) => r.room === roomCode)?.answers;
-        console.log("get Answers");
         socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
     });
 
     socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
-        console.log("send best answer");
-        console.log(answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
+        if(questionsArray.find((r) => r.room === roomCode)?.questions.length === 0){
+            endGame(roomCode);
+            socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
+            return;
+        }
+        startNewRound(roomCode);
     });
     //#endregion
 };
