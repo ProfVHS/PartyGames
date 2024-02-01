@@ -17,10 +17,6 @@ export const ShipHologram = ({
   shipLength,
   canPlace,
 }: ShipHologramProps) => {
-  // const startColumnDiff = shipDirection.directionMultiplier === 1 ? 1 : 2;
-  // // const endColumnDiff = shipDirection.directionMultiplier === 1 ? 2 : 1;
-  // const startRowDiff = shipDirection.directionMultiplier === 1 ? 0 : 1;
-  // const endRowDiff = shipDirection.directionMultiplier === 1 ? 1 : 0;
   const [ColumnDiff, setColumnDiff] = useState<{
     start: number;
     end: number;
@@ -29,33 +25,68 @@ export const ShipHologram = ({
     start: 0,
     end: 0,
   });
+
+  const leftOrUp = -1;
+  const rightOrDown = 1;
+  const hologramDirection = shipDirection.directionMultiplier;
+
   useEffect(() => {
     if (shipDirection.direction === "vertical") {
       const newRowDiff = {
-        start: shipDirection.directionMultiplier === 1 ? 0 : -1,
-        end: shipDirection.directionMultiplier === 1 ? 2 : 1,
+        start: hologramDirection === 1 ? 0 : -1,
+        end: hologramDirection === 1 ? 2 : 1,
       };
       const newColumnDiff = {
         start: 1,
         end: 1,
       };
+
+      if (hologramDirection === leftOrUp) {
+        if (startField.row === 1) {
+          newRowDiff.start = 0;
+          newRowDiff.end = 1;
+        }
+      } else if (hologramDirection === rightOrDown) {
+        if (startField.row === 10) {
+          newRowDiff.start = 0;
+          newRowDiff.end = 1;
+        }
+      }
+
       setRowDiff(newRowDiff);
       setColumnDiff(newColumnDiff);
+      return;
     }
 
     if (shipDirection.direction === "horizontal") {
       const newColumnDiff = {
-        start: shipDirection.directionMultiplier === 1 ? 1 : 0,
-        end: shipDirection.directionMultiplier === 1 ? 3 : 2,
+        start: hologramDirection === 1 ? 1 : 0,
+        end: hologramDirection === 1 ? 3 : 2,
       };
+
       const newRowDiff = {
         start: 0,
-        end: 1,
+        end: 0,
       };
+
+      if (hologramDirection === leftOrUp) {
+        if (Columns.indexOf(startField.column) + newColumnDiff.start === 0) {
+          newColumnDiff.start = 1;
+          newColumnDiff.end = 1;
+        }
+      } else if (hologramDirection === rightOrDown) {
+        if (Columns.indexOf(startField.column) + 1 === Columns.length) {
+          newColumnDiff.start = 1;
+          newColumnDiff.end = 1;
+        }
+      }
+
       setColumnDiff(newColumnDiff);
       setRowDiff(newRowDiff);
+      return;
     }
-  }, [shipDirection]);
+  }, [startField, shipDirection, shipLength]);
+
   return (
     <div
       className={`battleships__hologram ${canPlace ? "" : "cantPlace"}`}
@@ -65,9 +96,9 @@ export const ShipHologram = ({
           startField.row + RowDiff.start + "/" + (startField.row + RowDiff.end),
         gridColumn:
           Columns.indexOf(startField.column) +
-          ColumnDiff?.start +
+          ColumnDiff.start +
           "/" +
-          (Columns.indexOf(startField.column) + ColumnDiff?.end),
+          (Columns.indexOf(startField.column) + ColumnDiff.end),
       }}
     />
   );

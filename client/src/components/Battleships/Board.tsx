@@ -7,11 +7,11 @@ import { ShipHologram } from "./ShipHologram";
 export function Board() {
   const Rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const Columns = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+  const playerShipLenght = 2;
 
   const [fields, setFields] = useState<BattleShipsField[]>([]);
 
   const [ships, setShips] = useState<ShipType[]>([]);
-  const [playerShipLenght, setPlayerShipLenght] = useState<1 | 2>(2);
   const [haveShipToPlace, setHaveShipToPlace] = useState(true);
   const [canPlaceShip, setCanPlaceShip] = useState(true);
 
@@ -54,9 +54,8 @@ export function Board() {
     setShips([...ships, newShip]);
     setFields(newFields);
     setHaveShipToPlace(true);
-    setHasShipForFieldsAroundShip(newShip);
+    //setHasShipForFieldsAroundShip(newShip);
     blockFieldsAroundShip(field, newShip.endField);
-
     //setPlayerShipLenght(1);
   };
 
@@ -135,6 +134,10 @@ export function Board() {
       setCanPlaceShip(false);
     } else if (canPlaceShip === false) {
       setCanPlaceShip(true);
+    }
+
+    if (newShipHologram.startField === newShipHologram.endField) {
+      setCanPlaceShip(false);
     }
 
     setHologramPosition({
