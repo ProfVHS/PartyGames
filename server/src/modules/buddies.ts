@@ -37,9 +37,10 @@ module.exports = (
         await changeRoomRound(roomCode, socket);
 
         const questionIndex = Math.floor(Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length!-1));
-        
         const question = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].question;
-        socket.nsp.to(roomCode).emit("receiveQuestionBuddies", question);
+        const user = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].user;
+
+        socket.nsp.to(roomCode).emit("receiveQuestionBuddies", question, user);
         
         questionsArray.find((r) => r.room === roomCode)?.questions.splice(questionIndex, 1);
         

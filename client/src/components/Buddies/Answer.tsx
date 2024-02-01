@@ -7,9 +7,10 @@ interface AnswerProps {
   users: User[];
   onClick: () => void;
   question: string;
+  user: string;
 }
 
-export function Answer({roomCode, users, onClick, question}: AnswerProps) {
+export function Answer({roomCode, users, onClick, question, user}: AnswerProps) {
   const [answer, setAnswer] = useState<string>("");
   
   const sendAnswer = () => {
@@ -24,10 +25,14 @@ export function Answer({roomCode, users, onClick, question}: AnswerProps) {
 
   return (
     <>
-        <h1>Answer</h1>
-        <h2>{question}?</h2>
-        <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)}/>
-        <button onClick={sendAnswer}>Answer</button>
+      {socket.id === user 
+      ? <div>U wrote the question</div>
+      : <>
+          <h1>Answer</h1>
+          <h2>{question}?</h2>
+          <input type="text" value={answer} onChange={(e) => setAnswer(e.target.value)}/>
+          <button onClick={sendAnswer}>Answer</button>
+        </>}
     </>
   )
 }

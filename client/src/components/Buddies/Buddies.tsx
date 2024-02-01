@@ -18,8 +18,10 @@ export function Buddies({roomCode, users}: BuddiesProps) {
     const [writtenQuestion, setWrittenQuestion] = useState<boolean>(false);
     const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
 
-    const [endGame, setEndGame] = useState<boolean>(false);
     const [question, setQuestion] = useState<string>("");
+    const [whowroteQuestion, setWhowroteQuestion] = useState<string>("");
+
+    const [endGame, setEndGame] = useState<boolean>(false);
 
     const isQuestionWritten = () => {
         setWrittenQuestion(true);
@@ -35,11 +37,15 @@ export function Buddies({roomCode, users}: BuddiesProps) {
         };
 
         const isEveryUserHasAnswer = (data: number) => {
-            setAllUsersWrittenAnswer(data);
+            const temp = data;
+            setAllUsersWrittenAnswer(temp);
+            console.log("data - ",data);
+            console.log("every - ", allUsersWrittenAnswer);
         };
 
-        const receiveQuestion = (data: string) => {
-            setQuestion(data);
+        const receiveQuestion = (question: string, user: string) => {
+            setQuestion(question);
+            setWhowroteQuestion(user);
           };
 
         const newRound = () => {
@@ -76,7 +82,7 @@ export function Buddies({roomCode, users}: BuddiesProps) {
                 socket.emit("getQuestionsBuddies", roomCode);
             }
         }
-        if(allUsersWrittenAnswer === users.length){
+        if(allUsersWrittenAnswer === users.length-1){
             if(socket.id === users[0].id){
                 socket.emit("getAnswersBuddies", roomCode);
             }
@@ -91,11 +97,11 @@ export function Buddies({roomCode, users}: BuddiesProps) {
                 ? <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
                 : allUsersWrittenQuestion !== users.length 
                     ? <h3>Waiting for all players to ask questions</h3>
-                    : writtenAnswer
-                    ? allUsersWrittenAnswer !== users.length
+                    : writtenAnswer || socket.id === whowroteQuestion
+                    ? allUsersWrittenAnswer !== users.length-1
                         ? <h3>Waiting for all players to answer</h3>
-                        : <AnswersSelect roomCode={roomCode} users={users} />
-                    : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} /> }
+                        : <AnswersSelect roomCode={roomCode} users={users} user={whowroteQuestion} />
+                    : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} user={whowroteQuestion} /> }
         </>
     )
 }
