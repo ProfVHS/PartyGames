@@ -6,6 +6,7 @@ import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
+import { Buddies } from "./Buddies/Buddies";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -19,7 +20,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(4);
+  const currentGame = useRef<number | undefined>(5);
 
   const onceDone = useRef<boolean>(false);
 
@@ -51,7 +52,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       case 4:
         return <ColorsMemory roomCode={roomCode} users={users} />;
       case 5:
-        return <div>Gra 5</div>;
+        return <Buddies roomCode={roomCode} users={users} />;
       case 6:
         return <div>Gra 6</div>;
       case 7:

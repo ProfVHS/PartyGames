@@ -30,6 +30,7 @@ const bombModule = require("./modules/clickthebomb");
 const cardsModule = require("./modules/cards");
 const diamondModule = require("./modules/diamonds");
 const colorsMemoryModule = require("./modules/colorsmemory");
+const buddiesModule = require("./modules/buddies");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -370,6 +371,7 @@ server.listen(3000, async () => {
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
+    buddiesModule(io, socket, db, changeRoomRound);
   };
 
   io.on("connection", handleModulesOnConnection);
