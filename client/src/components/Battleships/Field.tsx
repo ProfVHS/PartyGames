@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BattleShipsFieldSpeciality } from "../../Types";
+import { BattleShipsFieldSpeciality } from "./Types";
 
 interface FieldProps {
   column: string;
@@ -8,12 +8,14 @@ interface FieldProps {
   multiplier?: number;
   onClick?: () => void;
   onHover?: () => void;
+  status?: "PREDICTION" | "HIT" | "MISS" | "EMPTY";
 }
 export const Field = ({
   special,
   multiplier,
   onClick,
   onHover,
+  status,
 }: FieldProps) => {
   const [isHover, setIsHover] = useState(false);
   const handleHover = () => {
@@ -23,14 +25,23 @@ export const Field = ({
 
   return (
     <div
-      className={`battleships__field ${special}`}
+      className={`battleships__field ${special} ${status}`}
       onClick={onClick}
       onMouseOver={onHover}
       onMouseOut={handleHover}
     >
-      {special === "POSITIVE" ||
-        (special === "NEGATIVE" && multiplier && multiplier + "x")}
-      {special === "LUCKYBLOCK" && "?"}
+      <span className="battleships__field__content">
+        {special === "POSITIVE" ||
+          (special === "NEGATIVE" && multiplier && multiplier + "x")}
+        {special === "LUCKYBLOCK" && "?"}
+        {status === "EMPTY" || status === undefined
+          ? ""
+          : status == "HIT"
+          ? "X"
+          : status == "MISS"
+          ? "o"
+          : "?"}
+      </span>
     </div>
   );
 };

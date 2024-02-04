@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { BattleShipsField, shipDirectionType } from "../../Types";
+import { FieldType, shipDirectionType } from "./Types";
 
 const Columns = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
 interface ShipHologramProps {
   //holoRotate: "0deg" | "90deg" | "180deg" | "270deg";
-  startField: BattleShipsField;
+  startField: FieldType;
   shipDirection: shipDirectionType;
   shipLength: number;
   canPlace: boolean;

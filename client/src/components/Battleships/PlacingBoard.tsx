@@ -1,17 +1,30 @@
 import { useEffect, useState } from "react";
-import { BattleShipsField, ShipType, shipDirectionType } from "../../Types";
+import {
+  FieldType,
+  HologramPositionType,
+  ShipType,
+  shipDirectionType,
+} from "./Types";
 import { Field } from "./Field";
 import { Ship } from "./Ship";
 import { ShipHologram } from "./ShipHologram";
 
-export function Board() {
-  const Rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+interface PlacingBoardProps {
+  fields: FieldType[];
+  setFields: (fields: FieldType[]) => void;
+  ships: ShipType[];
+  setShips: (ships: ShipType[]) => void;
+}
+
+export const PlacingBoard = ({
+  fields,
+  setFields,
+  ships,
+  setShips,
+}: PlacingBoardProps) => {
   const Columns = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
   const playerShipLenght = 2;
 
-  const [fields, setFields] = useState<BattleShipsField[]>([]);
-
-  const [ships, setShips] = useState<ShipType[]>([]);
   const [haveShipToPlace, setHaveShipToPlace] = useState(true);
   const [canPlaceShip, setCanPlaceShip] = useState(true);
 
@@ -20,17 +33,14 @@ export function Board() {
     directionMultiplier: 1,
   });
 
-  type HologramPositionType = {
-    start: BattleShipsField;
-    end: BattleShipsField;
-  };
   const [hologramPosition, setHologramPosition] =
     useState<HologramPositionType>();
 
-  const placeShip = (field: BattleShipsField) => {
+  const placeShip = (field: FieldType) => {
     if (!haveShipToPlace) return;
     if (field.hasShip) return;
     if (!canPlaceShip) return;
+
     const newShip: ShipType = {
       startField: field,
       shipLength: playerShipLenght,
@@ -47,21 +57,19 @@ export function Board() {
       ) {
         field.hasShip = true;
       }
-
       return field;
     });
 
     setShips([...ships, newShip]);
     setFields(newFields);
     setHaveShipToPlace(true);
-    //setHasShipForFieldsAroundShip(newShip);
     blockFieldsAroundShip(field, newShip.endField);
-    //setPlayerShipLenght(1);
+    setHaveShipToPlace(false);
   };
 
   const blockFieldsAroundBlock = (
-    coreField: BattleShipsField,
-    fieldsArray: BattleShipsField[]
+    coreField: FieldType,
+    fieldsArray: FieldType[]
   ) => {
     const newFields = fieldsArray.map((field) => {
       const CurrentColumnIndex = Columns.findIndex(
@@ -110,8 +118,8 @@ export function Board() {
   };
 
   const blockFieldsAroundShip = (
-    startField: BattleShipsField,
-    endField: BattleShipsField
+    startField: FieldType,
+    endField: FieldType
   ) => {
     let newFields = blockFieldsAroundBlock(startField, fields);
     newFields = blockFieldsAroundBlock(endField, newFields);
@@ -119,7 +127,7 @@ export function Board() {
     setFields(newFields);
   };
 
-  const hoverHandler = (field: BattleShipsField) => {
+  const hoverHandler = (field: FieldType) => {
     const newShipHologram: ShipType = {
       startField: field,
       shipLength: playerShipLenght,
@@ -147,7 +155,7 @@ export function Board() {
   };
 
   const endFieldCalculator = (ship: ShipType) => {
-    const endField: BattleShipsField | undefined = fields.find((field) => {
+    const endField: FieldType | undefined = fields.find((field) => {
       if (ship.direction === "vertical") {
         return (
           field.column === ship.startField.column &&
@@ -169,29 +177,6 @@ export function Board() {
 
     return endField ? endField : ship.startField;
   };
-
-  const fieldsRandomizer = () => {
-    const newFields: BattleShipsField[] = [];
-
-    Rows.map((row) => {
-      Columns.map((column) => {
-        newFields.push({
-          id: `${column}${row}`,
-          column: column,
-          row: row,
-          speciality: "NORMAL",
-          multiplier: 1,
-          hasShip: false,
-          isBlocked: false,
-        });
-      });
-    });
-
-    setFields(newFields);
-  };
-  useEffect(() => {
-    fieldsRandomizer();
-  }, []);
 
   // Custom hook for keyboard events
   useEffect(() => {
@@ -265,55 +250,35 @@ export function Board() {
 
   return (
     <>
-      <div className="battleships__board">
-        <div className="battleships__columns">
-          {Columns.map((column) => {
+      <div className="battleships__fields">
+        {fields.map((field) => {
+          if (!field.hasShip)
             return (
-              <div key={column} className="battleships__column">
-                {column}
-              </div>
-            );
-          })}
-        </div>
-        <div className="battleships__rows">
-          {Rows.map((rows) => {
-            return (
-              <div key={rows} className="battleships__row">
-                {rows}
-              </div>
-            );
-          })}
-        </div>
-        <div className="battleships__fields">
-          {fields.map((field) => {
-            if (!field.hasShip)
-              return (
-                <Field
-                  key={field.id}
-                  column={field.column}
-                  row={field.row}
-                  special={field.speciality}
-                  multiplier={field.multiplier}
-                  onClick={() => placeShip(field)}
-                  onHover={() => hoverHandler(field)}
-                />
-              );
-          })}
-          {ships.map((ship) => (
-            <Ship key={ship.startField.id} ship={ship} />
-          ))}
-          {hologramPosition != undefined && haveShipToPlace && (
-            <div className="battleships__hologrid">
-              <ShipHologram
-                startField={hologramPosition.start}
-                shipLength={playerShipLenght}
-                shipDirection={shipDirection}
-                canPlace={canPlaceShip}
+              <Field
+                key={field.id}
+                column={field.column}
+                row={field.row}
+                special={field.speciality}
+                multiplier={field.multiplier}
+                onClick={() => placeShip(field)}
+                onHover={() => hoverHandler(field)}
               />
-            </div>
-          )}
-        </div>
+            );
+        })}
+        {ships.map((ship) => (
+          <Ship key={ship.startField.id} ship={ship} />
+        ))}
+        {hologramPosition != undefined && haveShipToPlace && (
+          <div className="battleships__hologrid">
+            <ShipHologram
+              startField={hologramPosition.start}
+              shipLength={playerShipLenght}
+              shipDirection={shipDirection}
+              canPlace={canPlaceShip}
+            />
+          </div>
+        )}
       </div>
     </>
   );
-}
+};

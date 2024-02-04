@@ -34,34 +34,3 @@ export type TrickyDiamondType = {
   color: TrickyCardColor;
   isSelected: boolean;
 };
-
-/* Battleship */
-
-export type BattleShipsFieldSpeciality =
-  | "NORMAL"
-  | "POSITIVE"
-  | "NEGATIVE"
-  | "LUCKYBLOCK";
-
-export type BattleShipsField = {
-  id: string;
-  speciality: BattleShipsFieldSpeciality;
-  multiplier: number;
-  column: string;
-  row: number;
-  hasShip: boolean;
-  isBlocked: boolean;
-};
-
-export type ShipType = {
-  startField: BattleShipsField;
-  shipLength: 1 | 2;
-  direction: "horizontal" | "vertical";
-  directionMultiplier: 1 | -1;
-  endField: BattleShipsField;
-};
-
-export type shipDirectionType = {
-  direction: "vertical" | "horizontal";
-  directionMultiplier: 1 | -1;
-};
