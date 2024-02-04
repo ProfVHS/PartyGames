@@ -8,7 +8,7 @@ interface ShipHologramProps {
   startField: FieldType;
   shipDirection: shipDirectionType;
   shipLength: number;
-  canPlace: boolean;
+  canPlace?: boolean;
 }
 
 export const ShipHologram = ({
@@ -89,7 +89,9 @@ export const ShipHologram = ({
 
   return (
     <div
-      className={`battleships__hologram ${canPlace ? "" : "cantPlace"}`}
+      className={`battleships__hologram ${
+        canPlace ? "" : canPlace === undefined ? "" : "cantPlace"
+      }`}
       style={{
         rotate: "0deg",
         gridRow:

@@ -74,6 +74,8 @@ export function Battleships() {
   }, []);
 
   // Change enemyTeamPrediction and enemyTeamShoots values to be correct.
+  // WARNING: Get only predictions and shoots from enemy team, not ships locations
+
   return (
     <div className="battleships">
       <span className="battleships__title">Battleships</span>

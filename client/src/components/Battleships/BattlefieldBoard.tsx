@@ -34,7 +34,6 @@ export function BattlefieldBoard({
     }
     setYourTeamPrediction([...yourTeamPrediction, field]);
   };
-  console.log(yourTeamPrediction);
   return (
     <>
       <div className="battleships__fields">

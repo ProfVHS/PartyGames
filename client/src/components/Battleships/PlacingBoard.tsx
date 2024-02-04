@@ -64,7 +64,6 @@ export const PlacingBoard = ({
     setFields(newFields);
     setHaveShipToPlace(true);
     blockFieldsAroundShip(field, newShip.endField);
-    setHaveShipToPlace(false);
   };
 
   const blockFieldsAroundBlock = (
