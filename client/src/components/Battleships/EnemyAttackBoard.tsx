@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FieldType, ShipType, ShootsType } from "./Types";
+import { FieldType, PredictionType, ShipType, ShootsType } from "./Types";
 import { Field } from "./Field";
 import { Ship } from "./Ship";
 import { ShipHologram } from "./ShipHologram";
@@ -9,16 +9,11 @@ interface PlacingBoardProps {
   ships: ShipType[];
   enemyTeamShoots: ShootsType[];
   setEnemyTeamShoots: (shoots: ShootsType[]) => void;
-  enemyTeamPrediction: FieldType[];
-  setEnemyTeamPrediction: (field: FieldType[]) => void;
+  enemyTeamPrediction: PredictionType[];
+  setEnemyTeamPrediction: (field: PredictionType[]) => void;
 }
 
-export const EnemyAttackBoard = ({
-  fields,
-  ships,
-  enemyTeamPrediction,
-  enemyTeamShoots,
-}: PlacingBoardProps) => {
+export const EnemyAttackBoard = ({ fields, ships, enemyTeamPrediction, enemyTeamShoots }: PlacingBoardProps) => {
   return (
     <>
       <div className="battleships__fields">
@@ -31,13 +26,12 @@ export const EnemyAttackBoard = ({
               special={field.speciality}
               multiplier={field.multiplier}
               status={
-                enemyTeamPrediction.some(
-                  (prediction) => prediction.id === field.id
-                )
-                  ? "PREDICTION"
+                enemyTeamPrediction.some((prediction) => prediction.field.id === field.id)
+                  ? enemyTeamPrediction.find((prediction) => prediction.field.id === field.id)?.type === "PERMANENT"
+                    ? "BLANK"
+                    : "PREDICTION"
                   : enemyTeamShoots.some((shoot) => shoot.field.id === field.id)
-                  ? enemyTeamShoots.find((shoot) => shoot.field.id === field.id)
-                      ?.hit === true
+                  ? enemyTeamShoots.find((shoot) => shoot.field.id === field.id)?.hit === true
                     ? "HIT"
                     : "MISS"
                   : "EMPTY"
@@ -55,6 +49,7 @@ export const EnemyAttackBoard = ({
                 direction: ship.direction,
                 directionMultiplier: ship.directionMultiplier,
               }}
+              hittedShipFields={ship.hittedShipFields}
             />
           ))}
         </div>

@@ -47,6 +47,7 @@ export const PlacingBoard = ({
       direction: shipDirection.direction,
       directionMultiplier: shipDirection.directionMultiplier,
       endField: field,
+      hittedShipFields: 0,
     };
     newShip.endField = endFieldCalculator(newShip);
 
@@ -133,6 +134,7 @@ export const PlacingBoard = ({
       direction: shipDirection.direction,
       directionMultiplier: shipDirection.directionMultiplier,
       endField: field,
+      hittedShipFields: 0,
     };
 
     newShipHologram.endField = endFieldCalculator(newShipHologram);
@@ -198,6 +200,7 @@ export const PlacingBoard = ({
         direction: shipDirection.direction,
         directionMultiplier: shipDirection.directionMultiplier,
         endField: hologramPosition.end,
+        hittedShipFields: 0,
       };
       newShipHologram.endField = endFieldCalculator(newShipHologram);
     }

@@ -8,19 +8,19 @@ interface FieldProps {
   multiplier?: number;
   onClick?: () => void;
   onHover?: () => void;
-  status?: "PREDICTION" | "HIT" | "MISS" | "EMPTY";
+  status?: "PREDICTION" | "HIT" | "MISS" | "EMPTY" | "BLANK";
+  onRightClick?: () => void;
 }
-export const Field = ({
-  special,
-  multiplier,
-  onClick,
-  onHover,
-  status,
-}: FieldProps) => {
+export const Field = ({ special, multiplier, onClick, onHover, status, onRightClick }: FieldProps) => {
   const [isHover, setIsHover] = useState(false);
   const handleHover = () => {
     const newHover = !isHover;
     setIsHover(newHover);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault();
+    if (onRightClick) onRightClick();
   };
 
   return (
@@ -29,10 +29,9 @@ export const Field = ({
       onClick={onClick}
       onMouseOver={onHover}
       onMouseOut={handleHover}
-    >
+      onContextMenu={handleContextMenu}>
       <span className="battleships__field__content">
-        {special === "POSITIVE" ||
-          (special === "NEGATIVE" && multiplier && multiplier + "x")}
+        {special === "POSITIVE" || (special === "NEGATIVE" && multiplier && multiplier + "x")}
         {special === "LUCKYBLOCK" && "?"}
         {status === "EMPTY" || status === undefined
           ? ""
@@ -40,6 +39,8 @@ export const Field = ({
           ? "X"
           : status == "MISS"
           ? "o"
+          : status == "BLANK"
+          ? ""
           : "?"}
       </span>
     </div>

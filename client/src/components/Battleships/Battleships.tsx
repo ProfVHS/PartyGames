@@ -1,6 +1,12 @@
 import "./style.scss";
 import { useEffect, useState } from "react";
-import { FieldType, ShootsType, ShipType, turnType } from "./Types";
+import {
+  FieldType,
+  ShootsType,
+  ShipType,
+  turnType,
+  PredictionType,
+} from "./Types";
 
 import { BattlefieldBoard } from "./BattlefieldBoard";
 import { Marks } from "./Marks";
@@ -16,9 +22,9 @@ export function Battleships() {
   const [ships, setShips] = useState<ShipType[]>([]);
   const [yourShoots, setYourShoots] = useState<ShootsType[]>([]);
 
-  const [yourTeamPredictions, setYourTeamPredictions] = useState<FieldType[]>(
-    []
-  );
+  const [yourTeamPredictions, setYourTeamPredictions] = useState<
+    PredictionType[]
+  >([]);
 
   const [enemyTeamPrediction, setEnemyTeamPrediction] = useState<FieldType[]>(
     []
@@ -76,6 +82,9 @@ export function Battleships() {
   // Change enemyTeamPrediction and enemyTeamShoots values to be correct.
   // WARNING: Get only predictions and shoots from enemy team, not ships locations
 
+  // EnemyShips and setShips are temporary, idk if u need them. If not, delete them
+  // Its for changing for enemy ship how many fields are hit. If all fields are hit, then ship is sunk
+
   return (
     <div className="battleships">
       <span className="battleships__title">Battleships</span>
@@ -89,6 +98,8 @@ export function Battleships() {
             setYourTeamShoots={setYourShoots}
             yourTeamPrediction={yourTeamPredictions}
             setYourTeamPrediction={setYourTeamPredictions}
+            enemyShips={ships}
+            setEnemyShips={setShips}
           />
         )}
         {turn === "ENEMY" && (

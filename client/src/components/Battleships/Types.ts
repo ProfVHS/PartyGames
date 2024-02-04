@@ -18,10 +18,11 @@ export type FieldType = {
 
 export type ShipType = {
   startField: FieldType;
+  endField: FieldType;
   shipLength: 1 | 2;
   direction: "horizontal" | "vertical";
   directionMultiplier: 1 | -1;
-  endField: FieldType;
+  hittedShipFields: number;
 };
 
 export type shipDirectionType = {
@@ -39,4 +40,9 @@ export type turnType = "YOUR" | "ENEMY" | "PLACING";
 export type ShootsType = {
   field: FieldType;
   hit: boolean;
+};
+
+export type PredictionType = {
+  field: FieldType;
+  type: "TEMPORARY" | "PERMANENT";
 };

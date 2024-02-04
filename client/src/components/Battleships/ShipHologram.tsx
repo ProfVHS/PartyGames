@@ -9,6 +9,7 @@ interface ShipHologramProps {
   shipDirection: shipDirectionType;
   shipLength: number;
   canPlace?: boolean;
+  hittedShipFields?: number;
 }
 
 export const ShipHologram = ({
@@ -16,6 +17,7 @@ export const ShipHologram = ({
   shipDirection,
   shipLength,
   canPlace,
+  hittedShipFields,
 }: ShipHologramProps) => {
   const [ColumnDiff, setColumnDiff] = useState<{
     start: number;
@@ -91,6 +93,14 @@ export const ShipHologram = ({
     <div
       className={`battleships__hologram ${
         canPlace ? "" : canPlace === undefined ? "" : "cantPlace"
+      } ${
+        hittedShipFields !== undefined
+          ? hittedShipFields > 0 && hittedShipFields < shipLength
+            ? "HITTED"
+            : hittedShipFields === shipLength
+            ? "SUNK"
+            : ""
+          : ""
       }`}
       style={{
         rotate: "0deg",
