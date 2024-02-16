@@ -46,8 +46,13 @@ export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps)
 
   return (
     <>
-      <h1 className="buddies__header">Select the best answer</h1>
-      <h3 className="buddies__question">{question.question}</h3>
+      <h1 className="buddies__header">
+        {socket.id === question.author ? "Select the best answer" : "Author is choosing the best answer"}
+      </h1>
+      <h4 className="buddies__question">
+        {question.question}
+        {question.question.at(question.question.length - 1) !== "?" && "?"}
+      </h4>
       <div className="buddies__answers">
         {answers.map((answer, index) => (
           <button

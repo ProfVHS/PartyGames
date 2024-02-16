@@ -22,14 +22,14 @@
   }
 
   &__header {
-    height: 40px;
     margin: 0;
 
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 600;
-
     font-family: "Spicy Rice";
+
     color: #5a189a;
+    text-align: center;
   }
 
   &__question {
@@ -76,7 +76,6 @@
     flex-wrap: wrap;
     width: 80%;
     gap: 10px;
-    margin-bottom: 25px;
     &__item {
       display: flex;
       justify-content: center;

@@ -101,7 +101,7 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
         allUsersWrittenAnswer !== users.length - 1 ? (
           <h3 className="buddies__waiting">Waiting for all players to answer</h3>
         ) : (
-          <AnswersSelect roomCode={roomCode} users={users} user={question.author} />
+          <AnswersSelect roomCode={roomCode} users={users} question={question} />
         )
       ) : (
         <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
