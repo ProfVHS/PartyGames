@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { socket } from "../../socket";
 import { User } from "../../Types";
+import { QuestionType } from "./Types";
 
 type AnswersArray = {
   user: string;
@@ -10,10 +11,10 @@ type AnswersArray = {
 interface AnswersSelectProps {
   roomCode: string;
   users: User[];
-  user: string;
+  question: QuestionType;
 }
 
-export function AnswersSelect({ roomCode, users, user }: AnswersSelectProps) {
+export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps) {
   const [answers, setAnswers] = useState<AnswersArray[]>([]);
   const [bestAnswer, setBestAnswer] = useState<number>(0);
   const [canChooseAnswer, setCanChooseAnswer] = useState<boolean>(false);
@@ -40,16 +41,17 @@ export function AnswersSelect({ roomCode, users, user }: AnswersSelectProps) {
   }, [socket]);
 
   useEffect(() => {
-    if (user === socket.id) setCanChooseAnswer(true);
+    if (question.author === socket.id) setCanChooseAnswer(true);
   }, []);
 
   return (
     <>
       <h1 className="buddies__header">Select the best answer</h1>
+      <h3 className="buddies__question">{question.question}</h3>
       <div className="buddies__answers">
         {answers.map((answer, index) => (
           <button
-            className="buddies__answers__item"
+            className={`buddies__answers__item ${index === bestAnswer ? "selected" : ""}`}
             key={index}
             onClick={() => selectTheBestAnswer(index)}
             disabled={!canChooseAnswer}>
@@ -58,7 +60,7 @@ export function AnswersSelect({ roomCode, users, user }: AnswersSelectProps) {
         ))}
       </div>
       {canChooseAnswer && (
-        <button className="buddies_button" onClick={sendTheBestAnswer}>
+        <button className="buddies__button" onClick={sendTheBestAnswer}>
           Select
         </button>
       )}

@@ -6,6 +6,7 @@ import { socket } from "../../socket";
 import { AnswersSelect } from "./AnswersSelect";
 
 import "./style.scss";
+import { QuestionType } from "./Types";
 
 interface BuddiesProps {
   roomCode: string;
@@ -19,8 +20,7 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
   const [writtenQuestion, setWrittenQuestion] = useState<boolean>(false);
   const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
 
-  const [question, setQuestion] = useState<string>("");
-  const [whowroteQuestion, setWhowroteQuestion] = useState<string>("");
+  const [question, setQuestion] = useState<QuestionType>({ author: "", question: "" });
 
   const [endGame, setEndGame] = useState<boolean>(false);
 
@@ -45,8 +45,7 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
     };
 
     const receiveQuestion = (question: string, user: string) => {
-      setQuestion(question);
-      setWhowroteQuestion(user);
+      setQuestion({ author: user, question: question });
     };
 
     const newRound = () => {
@@ -98,20 +97,14 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
         <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
       ) : allUsersWrittenQuestion !== users.length ? (
         <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
-      ) : writtenAnswer || socket.id === whowroteQuestion ? (
+      ) : writtenAnswer || socket.id === question.author ? (
         allUsersWrittenAnswer !== users.length - 1 ? (
           <h3 className="buddies__waiting">Waiting for all players to answer</h3>
         ) : (
-          <AnswersSelect roomCode={roomCode} users={users} user={whowroteQuestion} />
+          <AnswersSelect roomCode={roomCode} users={users} user={question.author} />
         )
       ) : (
-        <Answer
-          roomCode={roomCode}
-          users={users}
-          onClick={isAnswerWritten}
-          question={question}
-          user={whowroteQuestion}
-        />
+        <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
       )}
     </div>
   );

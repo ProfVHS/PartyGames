@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { socket } from "../../socket";
 import { User } from "../../Types";
+import { QuestionType } from "./Types";
 
 interface AnswerProps {
   roomCode: string;
   users: User[];
   onClick: () => void;
-  question: string;
-  user: string;
+  question: QuestionType;
 }
 
-export function Answer({ roomCode, users, onClick, question, user }: AnswerProps) {
+export function Answer({ roomCode, users, onClick, question }: AnswerProps) {
   const [answer, setAnswer] = useState<string>("");
 
   const sendAnswer = () => {
@@ -23,14 +23,14 @@ export function Answer({ roomCode, users, onClick, question, user }: AnswerProps
 
   return (
     <>
-      {socket.id === user ? (
+      {socket.id === question.author ? (
         <h3 className="buddies__waiting">Waiting for players to answer to your question</h3>
       ) : (
         <>
           <h1 className="buddies__header">Answer</h1>
           <h2 className="buddies__question">
-            {question}
-            {question.charAt(question.length - 1) === "?" ? "" : "?"}
+            {question.question}
+            {question.question.charAt(question.question.length - 1) === "?" ? "" : "?"}
           </h2>
           <input
             className="buddies__input"
