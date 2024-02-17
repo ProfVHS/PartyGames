@@ -7,6 +7,7 @@ import { AnswersSelect } from "./AnswersSelect";
 
 import "./style.scss";
 import { QuestionType } from "./Types";
+import { Hourglass } from "./Hourglass";
 
 interface BuddiesProps {
   roomCode: string;
@@ -96,10 +97,16 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
       ) : !writtenQuestion ? (
         <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
       ) : allUsersWrittenQuestion !== users.length ? (
-        <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
+        <>
+          <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
+          <Hourglass />
+        </>
       ) : writtenAnswer || socket.id === question.author ? (
         allUsersWrittenAnswer !== users.length - 1 ? (
-          <h3 className="buddies__waiting">Waiting for all players to answer</h3>
+          <>
+            <h3 className="buddies__waiting">Waiting for all players to answer</h3>
+            <Hourglass />
+          </>
         ) : (
           <AnswersSelect roomCode={roomCode} users={users} question={question} />
         )
