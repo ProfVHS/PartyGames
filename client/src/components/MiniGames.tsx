@@ -14,23 +14,22 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ users, roomCode }: MiniGamesProps) {
-
   // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(5);
+  const currentGame = useRef<number | undefined>(4);
 
   const onceDone = useRef<boolean>(false);
 
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users[0].id === socket.id){
+    if (users[0].id === socket.id) {
       socket.emit("gamesArray", roomCode);
     }
-        
+
     onceDone.current = true;
   }, []);
 
@@ -65,10 +64,5 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   };
 
   // server-side : socket.emit('end-game', roomCode )
-  return (
-    <>
-      {switchGame(currentGame.current)}
-    </>
-  );
-  }
-
+  return <>{switchGame(currentGame.current)}</>;
+}
