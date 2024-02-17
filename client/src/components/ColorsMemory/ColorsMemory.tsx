@@ -13,6 +13,7 @@ import greenButtonSound from "../../assets/audio/colormemory/button6.flac";
 import purpleButtonSound from "../../assets/audio/colormemory/button7.flac";
 import pinkButtonSound from "../../assets/audio/colormemory/button8.flac";
 import darkgreenButtonSound from "../../assets/audio/colormemory/button9.flac";
+import { ProgressBar } from "../ProgressBar";
 
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
@@ -81,21 +82,21 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     onceDone.current = true;
   }, []);
 
-  // useEffect(() => {
-  //     if(isInGame && !isDead){
-  //         const timeInterval = setInterval(() => {
-  //             if(time > 0) {
-  //                 setTime(time - 10);
-  //             } else {
-  //                 setIsDead(true);
-  //                 socket.emit("updateUserAlive", false);
-  //                 clearInterval(timeInterval);
-  //             }
-  //         }, 10);
+  useEffect(() => {
+    if (isInGame && !isDead) {
+      const timeInterval = setInterval(() => {
+        if (time > 0) {
+          setTime(time - 10);
+        } else {
+          setIsDead(true);
+          socket.emit("updateUserAlive", false);
+          clearInterval(timeInterval);
+        }
+      }, 10);
 
-  //         return () => clearInterval(timeInterval);
-  //     }
-  //   }, [time, isInGame]);
+      return () => clearInterval(timeInterval);
+    }
+  }, [time, isInGame]);
 
   useEffect(() => {
     const startGame = () => {
@@ -163,7 +164,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
             <span>Round: {round.current}</span>
             <span>Score: 1</span>
             <span>Current: {currentClickNumber}</span>
-            <progress value={time} max="3000"></progress>
+            <ProgressBar max={3000} progress={time} width={"150px"} />
           </div>
         </>
       )}

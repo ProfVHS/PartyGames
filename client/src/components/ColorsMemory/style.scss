@@ -88,6 +88,10 @@
     background-color: #ffffff;
     border-radius: 5px;
     @include cartoon-shadow();
+
+    &__progressbar[value] {
+      --color: #ab55f0;
+    }
   }
 
   &__gameover {
