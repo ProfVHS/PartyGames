@@ -14,6 +14,7 @@ import purpleButtonSound from "../../assets/audio/colormemory/button7.flac";
 import pinkButtonSound from "../../assets/audio/colormemory/button8.flac";
 import darkgreenButtonSound from "../../assets/audio/colormemory/button9.flac";
 import { ProgressBar } from "../ProgressBar";
+import { Hourglass } from "../Hourglass";
 
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
@@ -35,7 +36,7 @@ interface ColorsMemoryProps {
 }
 
 export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
-  const round = useRef<number>(1);
+  const round = useRef<number>(0);
 
   const onceDone = useRef<boolean>(false);
 
@@ -101,8 +102,6 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
   useEffect(() => {
     const startGame = () => {
       socket.emit("startGameColorsMemory", roomCode);
-
-      round.current++;
     };
 
     const endGameUser = () => {
@@ -141,7 +140,14 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
       {isDead ? (
         <div className="colormemory__gameover">
           <span className="colormemory__gameover__header">Game over</span>
-          <span className="colormemory__gameover__score">Score: 1</span>
+          <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
+          <span className="colormemory__gameover__waiting">
+            Waiting for other players
+            <div className="colormemory__gameover__waiting__dot">.</div>
+            <div className="colormemory__gameover__waiting__dot">.</div>
+            <div className="colormemory__gameover__waiting__dot">.</div>
+          </span>
+          <Hourglass />
         </div>
       ) : (
         <>

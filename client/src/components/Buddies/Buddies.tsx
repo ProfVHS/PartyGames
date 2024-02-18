@@ -7,7 +7,7 @@ import { AnswersSelect } from "./AnswersSelect";
 
 import "./style.scss";
 import { QuestionType } from "./Types";
-import { Hourglass } from "./Hourglass";
+import { Hourglass } from "../Hourglass";
 
 interface BuddiesProps {
   roomCode: string;

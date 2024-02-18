@@ -116,5 +116,38 @@
     &__score {
       font-size: 18px;
     }
+
+    &__waiting {
+      display: flex;
+      font-size: 14px;
+      margin-top: 10px;
+      color: rgba(0, 0, 0, 0.2);
+
+      &__dot {
+        animation: dotAnimation 1s infinite alternate;
+
+        &:nth-child(2) {
+          animation-delay: 0.1s;
+        }
+        &:nth-child(3) {
+          animation-delay: 0.2s;
+        }
+      }
+    }
+  }
+}
+
+@keyframes dotAnimation {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
