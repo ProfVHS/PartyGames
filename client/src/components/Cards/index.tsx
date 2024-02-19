@@ -107,6 +107,9 @@ export function Cards({ roomCode, users }: CardsProps) {
       }
       // flip the cards and reset the time
       setFlipped("ALL");
+      setTimeout(() => {
+        setFlipped("NONE");
+      }, 100);
       setTime(15);
     });
   };
