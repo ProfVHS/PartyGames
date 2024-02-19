@@ -9,6 +9,7 @@ export default function Leaderboard({ oldUsers, newUsers }: LeaderboardProps) {
   // sort users by score
   const sortedOldUsers = oldUsers.sort((a, b) => b.score - a.score);
   const sortedNewUsers = newUsers.sort((a, b) => b.score - a.score);
+
   return (
     <div className="leaderboard">
       <span className="leaderboard__title">Leaderboard</span>
