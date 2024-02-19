@@ -1,8 +1,8 @@
 .cards {
   position: relative;
   background-color: #fff;
-  width: 400px;
-  height: 300px;
+  width: 575px;
+  height: 100%;
   border-radius: 5px;
   font-family: "Poppins";
 
@@ -11,7 +11,7 @@
   align-items: center;
 
   box-shadow: 0px 4px 0px 0px rgba($color: #000000, $alpha: 0.25);
-  padding: 25px;
+  padding: 15px;
   box-sizing: border-box;
 
   &__title {
@@ -44,8 +44,8 @@
 .card {
   position: relative;
 
-  height: 150px;
-  width: 100px;
+  height: 140px;
+  width: 95px;
 
   box-sizing: border-box;
   border-radius: 5px;
@@ -62,6 +62,10 @@
 
     background-color: #f1eaf7;
     border: 4px #9d4edd solid;
+
+    & img {
+      width: 75px;
+    }
   }
 
   &__front {
@@ -103,14 +107,142 @@
   width: 100px;
   transform: rotateY(0deg);
   transition: 0.3s ease;
+  cursor: pointer;
 
   &.flip {
     transform: rotateY(90deg);
   }
 
+  &:hover {
+    scale: 1.05;
+  }
+
   &.selected {
-    border: #000000 5px solid;
+    scale: 1.1;
   }
 }
 
+@media only screen and (max-width: 1055px), (min-height: 1000px) {
+  .cards {
+    height: 500px;
+    width: 500px;
+  }
+  .card {
+    height: 110px;
+    width: 80px;
 
+    &__back {
+      & img {
+        width: 55px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 110px;
+    width: 80px;
+  }
+}
+
+@media only screen and (max-width: 800px), (min-height: 1000px) {
+  .cards {
+    height: 450px;
+  }
+}
+
+@media only screen and (max-width: 900px), (min-height: 1000px) {
+  .cards {
+    height: 375px;
+    width: 500px;
+  }
+
+  .card {
+    height: 110px;
+    width: 80px;
+
+    &__back {
+      & img {
+        width: 55px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 110px;
+    width: 80px;
+  }
+}
+
+@media only screen and (max-height: 900px) {
+  .cards {
+    height: 375px;
+  }
+
+  .card {
+    height: 120px;
+    width: 90px;
+
+    &__back {
+      & img {
+        width: 65px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 120px;
+    width: 90px;
+  }
+}
+
+@media only screen and (max-height: 700px) {
+  .cards {
+    height: 250px;
+  }
+
+  .card {
+    height: 75px;
+    width: 50px;
+
+    &__back {
+      & img {
+        width: 25px;
+      }
+    }
+  }
+
+  .cardsWrapper {
+    gap: 5px;
+  }
+
+  .cardBox {
+    height: 75px;
+    width: 50px;
+  }
+}
+
+@media only screen and (max-height: 600px) {
+  .cards {
+    height: 450px;
+  }
+
+  .card {
+    height: 140px;
+    width: 95px;
+
+    &__back {
+      & img {
+        width: 75px;
+      }
+    }
+  }
+
+  .cardsWrapper {
+    gap: 10px;
+  }
+
+  .cardBox {
+    height: 140px;
+    width: 95px;
+  }
+}

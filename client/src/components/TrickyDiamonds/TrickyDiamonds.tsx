@@ -51,14 +51,24 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
   }, [selectedDiamond]);
 
   useEffect(() => {
-    socket.on("receiveStopwatchTime", (data) => {
-      const newTime = data;
-      setTime(newTime);
-    });
-    socket.on("receiveDiamondsScore", (array) => {
+    const stopwatchTime = (data: number) => {
+      setTime(data);
+    };
+
+    const diamondScore = (array: number[]) => {
       const newArray = [array[0], array[1], array[2]];
       setScore(newArray);
-    });
+    };
+
+    socket.on("receiveStopwatchTime", stopwatchTime);
+
+    socket.on("receiveDiamondsScore", diamondScore);
+
+    return () => {
+      socket.off("receiveStopwatchTime", stopwatchTime);
+      socket.off("receiveDiamondsScore", diamondScore);
+    };
+
   }, [socket]);
 
   useEffect(() => {

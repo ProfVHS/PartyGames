@@ -67,6 +67,8 @@ const nouns = [
   "Chicken",
   "Turtle",
   "Penguin",
+  "Marcelo",
+  "Fernando Melo",
 ];
 
 export default function HomePage() {

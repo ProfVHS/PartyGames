@@ -4,7 +4,7 @@ import Card from "./Card";
 import { Stopwatch } from "../Stopwatch/Stopwatch";
 
 import { useEffect, useState, useRef } from "react";
-import { User } from "../../Types";
+import { User, Room } from "../../Types";
 
 import { socket } from "../../socket";
 interface CardObject {
@@ -17,20 +17,19 @@ interface CardsProps {
   users: User[];
 }
 
-function Cards({ roomCode, users }: CardsProps) {
+export function Cards({ roomCode, users }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
   const [time, setTime] = useState<number>(15);
   const [round, setRound] = useState<number>(1);
   const [selectedCard, setSelectedCard] = useState<number>(0);
-  const [flipped, setFlipped] = useState<boolean>(false);
-  
+  const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
+
   const onceDone = useRef<boolean>(false);
 
   const startGame = async () => {
-    if(users.length > 0){
-      if(users[0].id == socket.id){
-        console.log("start game", round);
-        socket.emit("startGameCards", roomCode );
+    if (users.length > 0) {
+      if (users[0].id == socket.id) {
+        socket.emit("startGameCards", roomCode);
         socket.emit("stopwatchTime", roomCode);
       }
     }
@@ -38,10 +37,10 @@ function Cards({ roomCode, users }: CardsProps) {
 
   // make sure that the game starts only once by host
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
+    if (users.length > 0) {
+      if (users[0].id === socket.id) {
         startGame();
       }
     }
@@ -51,15 +50,31 @@ function Cards({ roomCode, users }: CardsProps) {
 
   // data from server (cards and time)
   useEffect(() => {
-    socket.on("receiveCardsArray", (data) => {
-      setCards(data);   
-    });
-    socket.on("receiveStopwatchTime", (data) => {
+    const cardsArray = (data: CardObject[]) => {
+      setTimeout(() => {
+        setCards(data);
+      }, 400);
+    };
+
+    const stopwatchTime = (data: number) => {
       setTime(data);
-    });
-    socket.on("receiveRoomData", (data) => {
+    };
+
+    const roomData = (data: Room) => {
       setRound(data.round);
-    });
+    };
+
+    socket.on("receiveCardsArray", cardsArray);
+
+    socket.on("receiveStopwatchTime", stopwatchTime);
+
+    socket.on("receiveRoomData", roomData);
+
+    return () => {
+      socket.off("receiveCardsArray", cardsArray);
+      socket.off("receiveStopwatchTime", stopwatchTime);
+      socket.off("receiveRoomData", roomData);
+    };
   }, [socket]);
 
   const delay = (ms: number): Promise<void> => {
@@ -67,39 +82,42 @@ function Cards({ roomCode, users }: CardsProps) {
   };
 
   const handleGame = () => {
-      setFlipped(true);
-      // send the selected card to the server (receive points)
-      if(cards !== undefined){
-        socket.emit("selectedObject", selectedCard);
-      }
+    setFlipped("FLIP");
+    // send the selected card to the server (receive points)
+    if (cards !== undefined) {
+      socket.emit("selectedObject", selectedCard);
+    }
 
-      // flip the cards
-      delay(4500).then(() => {
-        // all cards at the same time flip back (animation Rafał)
+    // flip the cards
+    delay(4500).then(() => {
+      // all cards at the same time flip back (animation Rafał)
 
-        // the game ends after 3 turns
-        if(users.length > 0){
-          if(users[0].id === socket.id){
-            if(round >= 3){
-              // end the game
-              socket.emit("endGameCards", roomCode); 
-            } else {
-              // next round
-              socket.emit("endRoundCards", roomCode); 
-              startGame();
-            }
+      // the game ends after 3 turns
+      if (users.length > 0) {
+        if (users[0].id === socket.id) {
+          if (round >= 3) {
+            // end the game
+            socket.emit("endGameCards", roomCode);
+          } else {
+            // next round
+            socket.emit("endRoundCards", roomCode);
+            startGame();
           }
         }
-        // flip the cards and reset the time
-        setFlipped(false);
-        setTime(15);
-      });
+      }
+      // flip the cards and reset the time
+      setFlipped("ALL");
+      setTimeout(() => {
+        setFlipped("NONE");
+      }, 100);
+      setTime(15);
+    });
   };
 
   useEffect(() => {
-    if(time === 0) {
+    if (time === 0) {
       handleGame();
-    };
+    }
   }, [time]);
 
   const handleCardSelect = (id: number) => {
@@ -132,5 +150,3 @@ function Cards({ roomCode, users }: CardsProps) {
     </div>
   );
 }
-
-export default Cards;

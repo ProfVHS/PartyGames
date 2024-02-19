@@ -1,0 +1,153 @@
+@import "../../styles/global-styles.scss";
+.colormemory {
+  position: relative;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: start;
+  gap: 5px;
+
+  &__buttons {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(3, auto);
+
+    background-color: #ffffff;
+    padding: 15px;
+
+    border-radius: 5px;
+    @include cartoon-shadow();
+
+    @mixin colorMemoryItem($color) {
+      background: $color;
+      @include color-shadow($color);
+      &.light {
+        background: lighten($color, 25%);
+      }
+    }
+
+    &__item {
+      width: 100px;
+      height: 100px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      &.red {
+        @include colorMemoryItem(#c81414);
+      }
+      &.orange {
+        @include colorMemoryItem(#ff9430);
+      }
+      &.yellow {
+        @include colorMemoryItem(#ffcf53);
+      }
+      &.darkblue {
+        @include colorMemoryItem(#1458b8);
+      }
+      &.blue {
+        @include colorMemoryItem(#389dfa);
+      }
+      &.green {
+        @include colorMemoryItem(#33c153);
+      }
+      &.purple {
+        @include colorMemoryItem(#ab55f0);
+      }
+      &.pink {
+        @include colorMemoryItem(#e334e6);
+      }
+      &.darkgreen {
+        @include colorMemoryItem(#1a7f30);
+      }
+    }
+  }
+
+  &__gamestatus {
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    transform: translate(105%, 0);
+    user-select: none;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    gap: 10px;
+    padding: 15px 5px 5px 5px;
+
+    font-size: 18px;
+    font-family: "Poppins";
+    font-weight: 600;
+
+    background-color: #ffffff;
+    border-radius: 5px;
+    @include cartoon-shadow();
+
+    &__progressbar[value] {
+      --color: #ab55f0;
+    }
+  }
+
+  &__gameover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #ffffff;
+    border-radius: 5px;
+    padding: 15px 35px;
+
+    font-family: "Poppins";
+
+    @include cartoon-shadow();
+
+    &__header {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    &__score {
+      font-size: 18px;
+    }
+
+    &__waiting {
+      display: flex;
+      font-size: 14px;
+      margin-top: 10px;
+      color: rgba(0, 0, 0, 0.2);
+
+      &__dot {
+        animation: dotAnimation 1s infinite alternate;
+
+        &:nth-child(2) {
+          animation-delay: 0.1s;
+        }
+        &:nth-child(3) {
+          animation-delay: 0.2s;
+        }
+      }
+    }
+  }
+}
+
+@keyframes dotAnimation {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

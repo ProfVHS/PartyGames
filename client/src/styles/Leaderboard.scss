@@ -1,38 +1,81 @@
-.leaderboard{
-    background-color: #fff;
-    box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
+.leaderboard {
+  background-color: #fff;
+  box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
 
-    width: 300px;
-    height: 320px;
-    gap: 5px;
+  width: 300px;
+  min-height: 320px;
+  gap: 5px;
+  border-radius: 5px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  transition: 0.3s ease-in-out;
+
+  padding: 15px 5px;
+
+  &__title {
+    font-family: "Poppins";
+    font-size: 32px;
+    font-weight: bold;
+    color: #9d4edd;
+  }
+
+  &__grid {
+    width: 100%;
+    display: grid;
+    grid-template-rows: repeat(8, auto);
+    grid-template-columns: 100%;
+    gap: 8px;
+    justify-items: center;
+  }
+
+  &__item {
+    width: 94%;
+    height: 30px;
+    padding: 0 10px;
+
     border-radius: 5px;
 
+    box-sizing: border-box;
+    box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.25);
+    background-color: #f1eaf7;
+
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
 
-    &__title{
-        font-family: "Poppins";
-        font-size: 32px;
-        font-weight: bold;
-        color: #9D4EDD;
+    font-family: "Poppins";
+
+    user-select: none;
+
+    transform: rotateX(0deg);
+    transition: 0.28s ease;
+    &.flipped {
+      transform: rotateX(90deg);
     }
 
-    &__item{
-        width: 95%;
-        height: 30px;
-        padding: 0 10px;
-        
-        border-radius: 5px;
-        
-        box-sizing: border-box;
-        box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.25);
-        background-color: #F1EAF7;
-
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        font-family: "Poppins";
+    &:nth-child(1) {
+      background-color: #ffd000;
+      color: rgba($color: #000000, $alpha: 0.4);
+      width: 98%;
+      height: 35px;
+      font-weight: 700;
     }
+    &:nth-child(2) {
+      background-color: #d9d5dd;
+      color: rgba($color: #000000, $alpha: 0.4);
+      width: 96%;
+      height: 35px;
+      font-weight: 700;
+    }
+    &:nth-child(3) {
+      background: #dd9444;
+      color: rgba($color: #000000, $alpha: 0.4);
+      width: 95%;
+      height: 30px;
+      font-weight: 700;
+    }
+  }
 }

@@ -1,11 +1,12 @@
 // Users and Rooms
 export type User = {
-  id: string;
-  username: string;
-  score: number;
-  alive: boolean;
-  id_room: string;
-  id_selected: number;
+    id: string,
+    username: string,
+    score: number,
+    alive: boolean,
+    id_room: string,
+    id_selected: number,
+    position: number,
 };
 
 export type Room = {
@@ -34,3 +35,6 @@ export type TrickyDiamondType = {
   color: TrickyCardColor;
   isSelected: boolean;
 };
+
+// Colors Memory
+export type ColorsMemory = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'brown';
