@@ -1,0 +1,274 @@
+@mixin battleshipsChars {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: "Poppins";
+  font-weight: 700;
+  font-size: 24px;
+  user-select: none;
+}
+
+.battleships {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  background-color: #fff;
+
+  border-radius: 5px;
+  padding: 15px 50px;
+
+  box-shadow: 0px 4px 0px 0px rgba($color: #000000, $alpha: 0.25);
+
+  &__title {
+    font-size: 2rem;
+    font-weight: 700;
+
+    font-family: "Spicy Rice";
+    color: #5a189a;
+  }
+
+  &__turn {
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: "Poppins";
+    color: #000;
+    margin-bottom: 25px;
+  }
+
+  &__board {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+    width: 500px;
+    height: 500px;
+    padding: 50px 25px 25px 50px;
+
+    box-sizing: border-box;
+    border-radius: 10px;
+
+    background-color: #1f1f1f;
+  }
+
+  &__field {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+
+    box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.3);
+
+    box-sizing: border-box;
+
+    font-size: 12px;
+    font-family: "Poppins";
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: 0.3s ease;
+
+    &__content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      user-select: none;
+    }
+
+    &.NORMAL {
+      background-color: #505050;
+    }
+    &.POSITIVE {
+      background-color: #209f3c;
+    }
+    &.NEGATIVE {
+      background-color: #c81414;
+    }
+    &.LUCKYBLOCK {
+      background-color: #ffcf53;
+      font-size: 24px;
+    }
+
+    &.HIT {
+      background-color: #5a189a;
+    }
+    &.MISS {
+      background-color: #7a7a7a;
+    }
+    &.PREDICTION {
+      background-color: #b87de8;
+    }
+    &.BLANK {
+      background-color: #dbdbdb;
+    }
+  }
+
+  &__ship {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+
+    background-color: #5caffb;
+
+    box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+  }
+  &__hologrid {
+    pointer-events: none;
+    z-index: 10;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    grid-row-gap: 5px;
+    grid-column-gap: 5px;
+  }
+  &__hologram {
+    z-index: 10;
+    //transform: translate(25%, 0%);
+    //width: calc(200% + 5px);
+    //height: 100%;
+
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+
+    box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+    animation: hologram 0.5s ease infinite alternate;
+    transition: 0.2s ease;
+
+    &.cantPlace {
+      background-color: rgb(200, 20, 20);
+      animation: cantPlaceHologram 0.5s ease infinite alternate;
+    }
+
+    &.HITTED {
+      background-color: rgba(255, 207, 83, 0.5);
+      animation: hittedHologram 0.5s ease infinite alternate;
+    }
+
+    &.SUNK {
+      background-color: rgba(200, 20, 20, 0.5);
+      animation: sunkHologram 0.5s ease infinite alternate;
+    }
+  }
+
+  @keyframes hologram {
+    0% {
+      background-color: rgba(92, 175, 251, 0.5);
+    }
+    100% {
+      background-color: rgba(92, 175, 251, 0.3);
+    }
+  }
+
+  @keyframes cantPlaceHologram {
+    0% {
+      background-color: rgba(200, 20, 20, 0.5);
+    }
+    100% {
+      background-color: rgba(200, 20, 20, 0.3);
+    }
+  }
+
+  @keyframes sunkHologram {
+    0% {
+      background-color: rgba(200, 20, 20, 0.5);
+    }
+    100% {
+      background-color: rgba(200, 20, 20, 0.3);
+    }
+  }
+
+  @keyframes hittedHologram {
+    0% {
+      background-color: rgba(255, 207, 83, 0.5);
+    }
+    100% {
+      background-color: rgba(255, 207, 83, 0.3);
+    }
+  }
+
+  &__field:hover &__hologram {
+    display: flex;
+  }
+
+  &__fields {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: auto;
+    grid-row-gap: 5px;
+    grid-column-gap: 5px;
+  }
+
+  &__columns {
+    width: 425px;
+    position: absolute;
+    top: 0;
+
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+
+    grid-row-gap: 5px;
+    grid-column-gap: 5px;
+
+    height: 50px;
+
+    font-size: 1.5rem;
+    color: #fff;
+  }
+
+  &__rows {
+    height: 425px;
+    position: absolute;
+    left: 15px;
+    top: 10%;
+
+    display: grid;
+    grid-template-rows: repeat(10, 1fr);
+
+    grid-row-gap: 5px;
+    grid-column-gap: 5px;
+
+    font-size: 1.5rem;
+    color: #fff;
+  }
+
+  &__row {
+    @include battleshipsChars;
+  }
+  &__column {
+    @include battleshipsChars;
+  }
+}

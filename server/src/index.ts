@@ -29,6 +29,7 @@ const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
 const cardsModule = require("./modules/cards");
 const diamondModule = require("./modules/diamonds");
+const battleshipsModule = require("./modules/battleships");
 const colorsMemoryModule = require("./modules/colorsmemory");
 const buddiesModule = require("./modules/buddies");
 
@@ -370,6 +371,7 @@ server.listen(3000, async () => {
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
+    battleshipsModule(io, socket, db);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
     buddiesModule(io, socket, db, changeRoomRound);
   };

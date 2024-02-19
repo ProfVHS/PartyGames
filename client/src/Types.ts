@@ -10,23 +10,22 @@ export type User = {
 };
 
 export type Room = {
-    id: string,
-    turn: number,
-    ready: number,
-    time_left: number,
-    time_max: number,
-    in_game: boolean,
-    round: number,
+  id: string;
+  turn: number;
+  ready: number;
+  time_left: number;
+  time_max: number;
+  in_game: boolean;
+  round: number;
 };
 
 // Click the bomb
 export type CtbProps = {
   roomCode: string;
   users: User[];
-}
+};
 
 // Cards
-
 
 // Tricky Diamonds
 export type TrickyCardColor = "BLUE" | "PURPLE" | "RED";

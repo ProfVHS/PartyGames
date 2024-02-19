@@ -5,6 +5,7 @@ import { Ctb } from "./Ctb";
 import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
+import { Battleships } from "./Battleships/Battleships";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 
@@ -53,7 +54,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       case 5:
         return <Buddies roomCode={roomCode} users={users} />;
       case 6:
-        return <div>Gra 6</div>;
+        return <Battleships />;
       case 7:
         return <div>Gra 7</div>;
       case 8:
