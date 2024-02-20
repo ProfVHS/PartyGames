@@ -1,8 +1,8 @@
 import { User } from "../Types";
-import { Cards } from "../components/Cards";
-import { Ctb } from "../components/ClickTheBomb/Ctb";
-import { TrickyCard } from "../components/TrickyDiamonds/TrickyCard";
-import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
+import { Buddies } from "../components/Buddies/Buddies";
+// import { Cards } from "../components/Cards";
+// import { Ctb } from "../components/ClickTheBomb/Ctb";
+// import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
 
 const users: User[] = [
   {
@@ -46,7 +46,7 @@ const users: User[] = [
 export default function TestPage() {
   return (
     <>
-      <Cards roomCode="test" users={users} />
+      <Buddies roomCode="test" users={users} />
     </>
   );
 }
