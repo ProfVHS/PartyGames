@@ -1,5 +1,7 @@
 import { User } from "../Types";
 import { Ctb } from "../components/ClickTheBomb/Ctb";
+import { TrickyCard } from "../components/TrickyDiamonds/TrickyCard";
+import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
 
 const users: User[] = [
   {
@@ -43,7 +45,7 @@ const users: User[] = [
 export default function TestPage() {
   return (
     <>
-      <Ctb roomCode="test" users={users} />
+      <TrickyDiamonds roomCode="test" users={users} />
     </>
   );
 }

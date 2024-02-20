@@ -12,7 +12,7 @@ interface TrickyDiamondsProps {
 
 //type DiamondsState = 0 | 1 | 2;
 
-export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
+export function TrickyDiamonds({ roomCode, users }: TrickyDiamondsProps) {
   const [selectedDiamond, setSelectedDiamond] = useState<number>(0);
   const [round, setRound] = useState<number>(1);
   const [score, setScore] = useState<number[]>([0, 0, 0]);
@@ -28,8 +28,8 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
   };
 
   const startGameDiamonds = () => {
-    if(users.length > 0){
-      if(users[0].id == socket.id){
+    if (users.length > 0) {
+      if (users[0].id == socket.id) {
         socket.emit("startGameDiamonds", roomCode);
         socket.emit("stopwatchTime", roomCode);
         console.log("startGameDiamonds");
@@ -39,8 +39,8 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
   };
 
   useEffect(() => {
-    if(onceDone.current) return;
-    
+    if (onceDone.current) return;
+
     startGameDiamonds();
 
     onceDone.current = true;
@@ -68,14 +68,12 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
       socket.off("receiveStopwatchTime", stopwatchTime);
       socket.off("receiveDiamondsScore", diamondScore);
     };
-
   }, [socket]);
 
   useEffect(() => {
-    if(time == 0){
-
-      if(users.length > 0){
-        if(users[0].id == socket.id){
+    if (time == 0) {
+      if (users.length > 0) {
+        if (users[0].id == socket.id) {
           socket.emit("endRoundDiamonds", roomCode);
         }
       }
@@ -92,7 +90,7 @@ export function TrickyDiamonds({roomCode, users} : TrickyDiamondsProps) {
         <div className="tricky__stopwatch">
           <Stopwatch maxTime={5} timeLeft={time} size={50} />
         </div>
-        Round - {round}
+        <span className="tricky__header__text">Round - {round}</span>
       </div>
       <div className="tricky__cards">
         <TrickyCard
