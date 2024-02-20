@@ -1,34 +1,49 @@
-import { useState } from "react";
-import Leaderboard from "../components/Leaderboard";
+import { User } from "../Types";
+import { Ctb } from "../components/ClickTheBomb/Ctb";
 
-const oldUsersLeaderBoard: { username: string; score: number }[] = [
-  { username: "user1", score: 100 },
-  { username: "user2", score: 200 },
-  { username: "user3", score: 300 },
-  { username: "user4", score: 400 },
-  { username: "user5", score: 500 },
-  { username: "user6", score: 600 },
-  { username: "user7", score: 700 },
-  { username: "user8", score: 800 },
-];
-
-const newUsersLeaderBoard: { username: string; score: number }[] = [
-  { username: "user1", score: 1000 },
-  { username: "user2", score: 200 },
-  { username: "user3", score: 300 },
-  { username: "user4", score: 400 },
-  { username: "user5", score: 500 },
-  { username: "user6", score: 600 },
-  { username: "user7", score: 700 },
-  { username: "user8", score: 800 },
+const users: User[] = [
+  {
+    id: "1",
+    username: "User1",
+    score: 0,
+    id_room: "test",
+    id_selected: 0,
+    alive: true,
+    position: 0,
+  },
+  {
+    id: "2",
+    username: "User2",
+    score: 0,
+    id_room: "test",
+    id_selected: 0,
+    alive: true,
+    position: 0,
+  },
+  {
+    id: "3",
+    username: "User3",
+    score: 0,
+    id_room: "test",
+    id_selected: 0,
+    alive: true,
+    position: 0,
+  },
+  {
+    id: "4",
+    username: "User4",
+    score: 0,
+    id_room: "test",
+    id_selected: 0,
+    alive: true,
+    position: 0,
+  },
 ];
 
 export default function TestPage() {
-  const [test, setTest] = useState(true);
   return (
     <>
-      {test && <Leaderboard oldUsers={oldUsersLeaderBoard} newUsers={newUsersLeaderBoard} />}
-      <button onClick={() => setTest(!test)}>Test</button>
+      <Ctb roomCode="test" users={users} />
     </>
   );
 }
