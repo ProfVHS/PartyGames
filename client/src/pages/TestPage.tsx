@@ -1,4 +1,5 @@
 import { User } from "../Types";
+import { Cards } from "../components/Cards";
 import { Ctb } from "../components/ClickTheBomb/Ctb";
 import { TrickyCard } from "../components/TrickyDiamonds/TrickyCard";
 import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
@@ -45,7 +46,7 @@ const users: User[] = [
 export default function TestPage() {
   return (
     <>
-      <TrickyDiamonds roomCode="test" users={users} />
+      <Cards roomCode="test" users={users} />
     </>
   );
 }

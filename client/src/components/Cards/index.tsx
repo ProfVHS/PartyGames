@@ -127,7 +127,7 @@ export function Cards({ roomCode, users }: CardsProps) {
   return (
     <div className="cards">
       <span className="cards__title">Cards</span>
-      <span>Round: {round}</span>
+      <span className="cards__round">Round: {round}</span>
       <div className="cards__stopwatch">
         <Stopwatch maxTime={15} timeLeft={time} size={75} />
       </div>
