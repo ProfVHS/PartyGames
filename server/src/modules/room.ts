@@ -18,12 +18,12 @@ module.exports = (
   ) => {
   //#region home events (homepage, lobby, etc) needed at the beginning of the game
   // create room
-  socket.on("createRoom", async (data : { randomRoomCode: string, name : string }) => {
-    socket.join(data.randomRoomCode);
-
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${data.randomRoomCode}", 0, 0, 0, 0, false,0)`);
-    db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, "${data.randomRoomCode}",0,1)`);
+  socket.on("createRoom", async (name : string, randomRoomCode: string) => {
+    socket.join(randomRoomCode);
     
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, 'false',0)`);
+    db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, "${randomRoomCode}",0,1)`);
+
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string, name: string }) => {
@@ -69,6 +69,7 @@ module.exports = (
       if(users_rows.length < 8){
         // check if room is in game (if it is, don't let user join)
         if(room_row.in_game){
+          console.log(room_row.in_game);
           socket.emit("roomInGame");
         } else {
           // else let user join
@@ -103,6 +104,8 @@ module.exports = (
   });
   // generate random games array
   socket.on("gamesArray", async ( roomCode: string ) => {
+    db.run(`UPDATE rooms SET in_game = "true" WHERE id = "${roomCode}"`);
+
     const gamesArray: Set<number> = new Set();
 
     while (gamesArray.size < 5 ){
@@ -153,6 +156,78 @@ module.exports = (
   // update user alive
   socket.on("updateUserAlive", async ( alive: boolean ) => {
     updateUserAlive(socket.id, alive);
+  });
+
+  socket.on("disconnect", async () => {
+    
+    // if room is empty, delete room
+    // const arr = Array.from(io.sockets.adapter.rooms);
+    // const filtered = arr.filter(room => !room[1].has(room[0]));
+    // const res = filtered.map(i => i[0]);
+    // if(res.includes(socket.id)){
+    //   db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, row) => {
+    //     if(!err){
+    //       if(row){
+    //         db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
+    //       }
+    //     }
+    //   });
+    // }
+
+    const roomCode = await new Promise<string>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+        if(!err){
+          if(row){
+            resolve(row.id_room);
+          }
+        }
+      });
+    });
+
+    const isRoomInGame = await new Promise<boolean>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+        if(!err){
+          resolve(row.in_game);
+        }
+      });
+    });
+
+    const usersLength = await new Promise<number>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+        if(!err){
+          resolve(users_rows.length);
+        }
+      });
+    })
+
+
+    if(usersLength == 1){
+      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+    } else if(!isRoomInGame){
+      console.log("Rafał");
+      db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
+    }
+
+    console.log("usersLength", usersLength);
+    console.log("roomCode", roomCode);
+    console.log("isRoomInGame", isRoomInGame);
+
+    // gdy wyjdzie cos zapisac(ip) 
+    // to zrobic update alive na false, zeby nie brał udzialu w grze
+    
+    // Sytuacja gdy gra sie zaczela i ktos wyjdzie:
+
+    // a gdyby zpisywac id w cookie albo jakis client token
+    // wtedy cookie przypisuje wartos socket.id dopiero kiedy wejdzie do pokoju
+    // i sprawdzac czy jest w bazie, jesli tak to moze wejsc do pokju, inaczej nie moze wejsc
+
+    // przy refreshu lub cofnieciu sie (ta strzałka do tyłu) wychodzisz z pokoju
+    // jestes na głównej ale mozez znowu sie polaczyc
+
+
+
+
   });
   //#endregion
 };

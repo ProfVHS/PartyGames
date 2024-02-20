@@ -10,6 +10,7 @@ export interface User {
   username: string, 
   score: number, 
   alive: boolean, 
+  isDisconnect: boolean,
   id_room: string,
   id_selected: number,
   position: number,
@@ -130,7 +131,7 @@ server.listen(3000, async () => {
   };
   //#endregion
 
-  //#region Update data about rooms (turn, in_game, time, round)
+  //#region Update data about rooms (turn, time, round)
   // update turn
   const updateRoomTurn = async (roomCode: string, turn: number, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
@@ -212,19 +213,6 @@ server.listen(3000, async () => {
       } else {
         updateRoomTurn(roomCode, room_row.turn + 1, socket);
       }
-    });
-  };
-  // set is room in game
-  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${roomCode}`, (err) => {
-        if(err){
-          console.log("Room ingame error");
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
     });
   };
   // set time in room
@@ -367,9 +355,9 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive);
-    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
-    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
-    diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
+    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
+    diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
     buddiesModule(io, socket, db, changeRoomRound);
   };

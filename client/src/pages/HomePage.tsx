@@ -43,7 +43,6 @@ const adjective = [
   "Queen",
   "Lord",
   "Sir",
-
 ];
 const nouns = [
   "Mango",
@@ -67,8 +66,9 @@ const nouns = [
   "Chicken",
   "Turtle",
   "Penguin",
-  "Marcelo",
+  "Marcello",
   "Fernando Melo",
+  "Amigo",
 ];
 
 export default function HomePage() {
@@ -86,7 +86,7 @@ export default function HomePage() {
 
   const handleRandomRoomCode = () => {
     setRandomRoomCode(
-      Math.round(Math.random() * 90000).toString()
+      (Math.random() + 1).toString(36).substring(7).toUpperCase()
     );
   };
 
@@ -141,7 +141,7 @@ export default function HomePage() {
         const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
-        socket.emit("createRoom", { name, randomRoomCode });
+        socket.emit("createRoom", name, randomRoomCode );
         startLoadingAnimation(randomRoomCode);
       }
     });

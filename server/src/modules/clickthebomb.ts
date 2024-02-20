@@ -20,7 +20,6 @@ module.exports = (
     updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (roomCode: string, alive: boolean) => void,
-    updateRoomInGame: (roomCode: string, in_game: boolean) => void,
 ) => {
     //#region ctb functions
     // set data bomb
@@ -70,7 +69,6 @@ module.exports = (
         const turn = Math.round(Math.random() * ((data.usersLength * 1) - 1));
         updateRoomTurn(data.roomCode,turn,socket);
         setDataBomb(max,0,data.roomCode);
-        updateRoomInGame(data.roomCode,true);
     });
 
     // send turn to the next player
@@ -122,8 +120,6 @@ module.exports = (
                                 updateUserScore(user.id, 50, socket);
                             }
                         });
-                        // update in game to false 
-                        updateRoomInGame(roomCode, false);
                         // update alive users to true
                         updateUsersAlive(roomCode, true);
                         // send data to the client

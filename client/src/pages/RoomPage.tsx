@@ -79,9 +79,9 @@ export default function RoomPage() {
       readyLength.current = data.ready;
     });
     // User disconnected
-    // socket.on("user_disconnected", (data) => {
-    //   alert(data[0].username + " has left the room");
-    // });
+    socket.on("user_disconnected", (data) => {
+      alert(data + " has left the room");
+    });
     
   }, [socket]);
 

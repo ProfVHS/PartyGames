@@ -15,7 +15,6 @@ module.exports = (
     db: Database, 
     updateUserScore: (id: string, score: number, socket: Socket) => void,
     roomData: (roomCode: string, socket: Socket) => Promise<Room>,
-    updateRoomInGame: (roomCode: string, in_game: boolean) => Promise<void>,
     updateRoomTime: (roomCode: string, time_left: number, time_max: number) => Promise<void>,
     updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
     changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
@@ -103,7 +102,6 @@ module.exports = (
             });
 
             updateRoomTime(roomCode, 15, 15);
-            updateRoomInGame(roomCode, true);
         });
     });
     // give or take points, depends on card type and number of users who selected this card
@@ -156,7 +154,6 @@ module.exports = (
         // delete cards from cards table
         db.run(`DELETE FROM cards WHERE id_room = ${roomCode}`);
         // update in_game to false, round to 1
-        updateRoomInGame(roomCode, false);
         updateRoomRound(roomCode, 0, socket);
         console.log("end game cards");
     });
