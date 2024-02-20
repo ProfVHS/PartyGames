@@ -17,6 +17,9 @@
     padding: 15px;
 
     border-radius: 5px;
+
+    animation: toRightColorMemory 0.5s ease-in-out;
+
     @include cartoon-shadow();
 
     @mixin colorMemoryItem($color) {
@@ -35,32 +38,42 @@
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.3s ease-in-out;
+
       &.red {
         @include colorMemoryItem(#c81414);
+        animation: showUpElements 0.75s ease-in-out;
       }
       &.orange {
         @include colorMemoryItem(#ff9430);
+        animation: showUpElements 0.8s ease-in-out;
       }
       &.yellow {
         @include colorMemoryItem(#ffcf53);
+        animation: showUpElements 0.85s ease-in-out;
       }
       &.darkblue {
         @include colorMemoryItem(#1458b8);
+        animation: showUpElements 0.9s ease-in-out;
       }
       &.blue {
         @include colorMemoryItem(#389dfa);
+        animation: showUpElements 0.95s ease-in-out;
       }
       &.green {
         @include colorMemoryItem(#33c153);
+        animation: showUpElements 1s ease-in-out;
       }
       &.purple {
         @include colorMemoryItem(#ab55f0);
+        animation: showUpElements 1.05s ease-in-out;
       }
       &.pink {
         @include colorMemoryItem(#e334e6);
+        animation: showUpElements 1.1s ease-in-out;
       }
       &.darkgreen {
         @include colorMemoryItem(#1a7f30);
+        animation: showUpElements 1.15s ease-in-out;
       }
     }
   }
@@ -87,6 +100,9 @@
 
     background-color: #ffffff;
     border-radius: 5px;
+
+    animation: colorMemoryStatsShowUp 0.75s ease-in-out;
+
     @include cartoon-shadow();
 
     &__progressbar[value] {
@@ -149,5 +165,38 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes toRightColorMemory {
+  0% {
+    height: 5px;
+  }
+  100% {
+    height: 350px;
+  }
+}
+
+@keyframes colorMemoryStatsShowUp {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes showUpElements {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

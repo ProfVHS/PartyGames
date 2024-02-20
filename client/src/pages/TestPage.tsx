@@ -1,8 +1,5 @@
 import { User } from "../Types";
-import { Buddies } from "../components/Buddies/Buddies";
-// import { Cards } from "../components/Cards";
-// import { Ctb } from "../components/ClickTheBomb/Ctb";
-// import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
+import { ColorsMemory } from "../components/ColorsMemory/ColorsMemory";
 
 const users: User[] = [
   {
@@ -46,7 +43,7 @@ const users: User[] = [
 export default function TestPage() {
   return (
     <>
-      <Buddies roomCode="test" users={users} />
+      <ColorsMemory roomCode="test" users={users} />
     </>
   );
 }
