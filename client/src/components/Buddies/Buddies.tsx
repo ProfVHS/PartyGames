@@ -41,8 +41,6 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
     const isEveryUserHasAnswer = (data: number) => {
       const temp = data;
       setAllUsersWrittenAnswer(temp);
-      console.log("data - ", data);
-      console.log("every - ", allUsersWrittenAnswer);
     };
 
     const receiveQuestion = (question: string, user: string) => {

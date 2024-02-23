@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from "react";
-import "../styles/Ctb.scss";
+import "./style.scss";
 
-import c4 from "../assets/svgs/C4.svg";
+import c4 from "../../assets/svgs/C4.svg";
 
-import ClickSound from "../assets/audio/click.mp3";
-import { socket } from "../socket";
-import Explosion from "./Explosion";
+import ClickSound from "../../assets/audio/click.mp3";
+import { socket } from "../../socket";
+import Explosion from "../Explosion";
 
-import { CtbProps } from "../Types";
+import { CtbProps } from "../../Types";
 
 export function Ctb({ roomCode, users }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
@@ -33,7 +33,7 @@ export function Ctb({ roomCode, users }: CtbProps) {
   };
 
   useEffect(() => {
-    const turnCtb = (data: {username: string, id: string}) => {
+    const turnCtb = (data: { username: string; id: string }) => {
       setTurn(data.username);
       if (data.id == socket.id) {
         setYourTurn(true);
@@ -74,17 +74,17 @@ export function Ctb({ roomCode, users }: CtbProps) {
       socket.off("receiveCounterCtb", counterCtb);
       socket.off("receiveExplosionCtb", explosionCtb);
       socket.off("receiveEndCtb", endCtb);
-    }
+    };
   }, [socket]);
 
   // make sure that the game starts only once by host
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
+    if (users.length > 0) {
+      if (users[0].id === socket.id) {
         const usersLength = users.length;
-        socket.emit("startGameCtb", { roomCode, usersLength } );
+        socket.emit("startGameCtb", { roomCode, usersLength });
       }
     }
 
@@ -99,24 +99,14 @@ export function Ctb({ roomCode, users }: CtbProps) {
       <span className="ctb__turn">{turn}'s turn</span>
       <div className="ctb__c4">
         <img src={c4} />
-        <span className="ctb__c4__counter">
-          {counter < 10 ? "0" + counter : counter}
-        </span>
+        <span className="ctb__c4__counter">{counter < 10 ? "0" + counter : counter}</span>
       </div>
       {!isDead && (
         <div className="ctb__buttonbox">
-          <button
-            className="ctb__button click"
-            onClick={handleClickButton}
-            disabled={!yourTurn}
-          >
+          <button className="ctb__button click" onClick={handleClickButton} disabled={!yourTurn}>
             Click
           </button>
-          <button
-            className="ctb__button skip"
-            onClick={handleSkipButton}
-            disabled={!clicked}
-          >
+          <button className="ctb__button skip" onClick={handleSkipButton} disabled={!clicked}>
             {">"}
           </button>
         </div>

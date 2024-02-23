@@ -1,7 +1,7 @@
 import { socket } from "../socket";
 //import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
-import { Ctb } from "./Ctb";
+import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
