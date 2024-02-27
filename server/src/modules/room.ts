@@ -176,6 +176,17 @@ module.exports = (
     updateUserAlive(socket.id, alive);
   });
 
+  socket.on("checkIfUserIsInRoom", async (roomCode: string) => {
+    const userInRoom = await new Promise<boolean>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}" AND id_room = "${roomCode}"`, [], (err: Error, row: User) => {
+        if(!err){
+          resolve(row ? true : false);
+        }
+      });
+    });
+    socket.nsp.to(socket.id).emit("receiveUserIsInRoom", userInRoom);
+  });
+
   socket.on("disconnect", async () => {
 
     const roomCode = await new Promise<string>((resolve, reject) => {

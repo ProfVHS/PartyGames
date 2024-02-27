@@ -149,16 +149,16 @@ export default function HomePage() {
     });
   };
 
-  // useEffect(() => {
-  //   window.addEventListener("beforeunload", alertUser);
-  //   return () => {
-  //     window.removeEventListener("beforeunload", alertUser);
-  //   }
-  // }, []);
-  // const alertUser = (e: any) => {
-  //   e.preventDefault();
-  //   e.returnValue = "";
-  // }
+  useEffect(() => {
+    window.addEventListener("beforeunload", alertUser);
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
+    }
+  }, []);
+  const alertUser = (e: any) => {
+    e.preventDefault();
+    e.returnValue = "";
+  }
 
   return (
     <div className="home">
