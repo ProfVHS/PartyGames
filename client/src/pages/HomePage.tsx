@@ -4,7 +4,7 @@ import Logo from "../assets/svgs/logo.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import {socket} from "../socket";
@@ -72,6 +72,7 @@ const nouns = [
 ];
 
 export default function HomePage() {
+  const location = useLocation();
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
@@ -116,8 +117,9 @@ export default function HomePage() {
         nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
-      socket.emit("joinRoom", { roomCode, name });
-      socket.on("roomNotFull", () => {
+      const cookie_id = document.cookie;
+      socket.emit("joinRoom", { roomCode, name, cookie_id });
+      socket.on("joiningRoom", () => {
         startLoadingAnimation(roomCode);
       });
       socket.on("roomFull", () => {
@@ -146,6 +148,17 @@ export default function HomePage() {
       }
     });
   };
+
+  // useEffect(() => {
+  //   window.addEventListener("beforeunload", alertUser);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", alertUser);
+  //   }
+  // }, []);
+  // const alertUser = (e: any) => {
+  //   e.preventDefault();
+  //   e.returnValue = "";
+  // }
 
   return (
     <div className="home">

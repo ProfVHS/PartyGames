@@ -2,6 +2,8 @@ import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
 import { User } from "../index";
 import { Room } from "../index";
+import { resolve } from "path";
+import { rejects } from "assert";
 
 interface Count {
   count: number
@@ -20,71 +22,87 @@ module.exports = (
   // create room
   socket.on("createRoom", async (name : string, randomRoomCode: string) => {
     socket.join(randomRoomCode);
-    
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, 'false',0)`);
-    db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, "${randomRoomCode}",0,1)`);
+
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
+    db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
 
   });
   // join room
-  socket.on("joinRoom", async (data: { roomCode: string, name: string }) => {
+  socket.on("joinRoom", async (data: { roomCode: string, name: string, cookie_id: string }) => {
     socket.join(data.roomCode);
     
-    return new Promise<[User[], Count[], Room]>((resolve, reject) => {
-      Promise.all([
-        new Promise<User[]>((resolveUsers, rejectUsers) => {
-          db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
-            if (err) {
-              rejectUsers(err);
-            } else {
-              resolveUsers(users_rows);
-            }
-          });
-        }),
-        new Promise<Count[]>((resolveCount, rejectCount) => {
-          db.all(`SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`, [], (err: Error, count_row: Count[]) => {
-            if (err) {
-              rejectCount(err);
-            } else {
-              resolveCount(count_row);
-            }
-          });
-        }),
-        new Promise<Room>((resolveRoom, rejectRoom) => {
-          db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
-            if (err) {
-              rejectRoom(err);
-            } else {
-              resolveRoom(room_row);
-            }
-          });
-        })
-      ]).then(([users_rows, count_row, room_row]) => {
-        resolve([users_rows, count_row, room_row]);
-      })
-      .catch((error) => {
-        reject(error);
+    console.log("Cookies id - ",data.cookie_id);
+
+    const ifUserExist = await new Promise<Count>((resolve, reject) => {
+      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}"`, [], (err: Error, exist: Count) => {
+        if (!err){
+          resolve(exist)
+        }
       });
-    }).then(([users_rows, count_row, room_row]) => {
-      // check if room is full (max 8 users)
-      if(users_rows.length < 8){
-        // check if room is in game (if it is, don't let user join)
-        if(room_row.in_game){
-          console.log(room_row.in_game);
-          socket.emit("roomInGame");
-        } else {
-          // else let user join
-          socket.emit("roomNotFull");
-          if(count_row[0].count == 0){
-            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, ${data.roomCode},0,1)`);
+    })
+
+    console.log("Exist - ", ifUserExist.count);
+
+    if(ifUserExist.count == 1){
+      socket.nsp.to(socket.id).emit("joiningRoom");;
+    } else {
+      return new Promise<[User[], Count[], Room]>((resolve, reject) => {
+        Promise.all([
+          new Promise<User[]>((resolveUsers, rejectUsers) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
+              if (err) {
+                rejectUsers(err);
+              } else {
+                resolveUsers(users_rows);
+              }
+            });
+          }),
+          new Promise<Count[]>((resolveCount, rejectCount) => {
+            db.all(`SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`, [], (err: Error, count_row: Count[]) => {
+              if (err) {
+                rejectCount(err);
+              } else {
+                resolveCount(count_row);
+              }
+            });
+          }),
+          new Promise<Room>((resolveRoom, rejectRoom) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
+              if (err) {
+                rejectRoom(err);
+              } else {
+                resolveRoom(room_row);
+              }
+            });
+          })
+        ]).then(([users_rows, count_row, room_row]) => {
+          resolve([users_rows, count_row, room_row]);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+      }).then(([users_rows, count_row, room_row]) => {
+        // check if room is full (max 8 users)
+        if(users_rows.length < 8){
+          // check if room is in game (if it is, don't let user join)
+          if(room_row.in_game){
+            console.log(room_row.in_game);
+            socket.nsp.to(socket.id).emit("roomInGame");
           } else {
-            db.run(`INSERT INTO users (id,username,score,alive,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count_row[0].count})", 100, true, ${data.roomCode},0,1)`);
-          }  
-        }   
-      } else {
-        socket.emit("roomFull");
-      }
-    });
-    
+            // else let user join
+            socket.nsp.to(socket.id).emit("joiningRoom");
+            if(count_row[0].count == 0){
+              db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}",0,1)`);
+            } else {
+              db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count_row[0].count})", 100, true, false, "${data.roomCode}", 0, 1)`);
+            }  
+          }   
+        } else {
+          socket.nsp.to(socket.id).emit("roomFull");
+        }
+      });
+    }
+  
   });
   // check room existence
   socket.on("checkRoomExistence", async ( roomCode: string ) => {
@@ -98,7 +116,7 @@ module.exports = (
   socket.on("usersReady", async (data: { roomCode: string, ready: boolean}) => {
     const ready = data.ready ? -1 : 1;
 
-    db.run(`UPDATE rooms SET ready = ready + ${ready} WHERE id = ${data.roomCode}`);
+    db.run(`UPDATE rooms SET ready = ready + ${ready} WHERE id = "${data.roomCode}"`);
 
     roomData(data.roomCode, socket);
   });
@@ -159,20 +177,6 @@ module.exports = (
   });
 
   socket.on("disconnect", async () => {
-    
-    // if room is empty, delete room
-    // const arr = Array.from(io.sockets.adapter.rooms);
-    // const filtered = arr.filter(room => !room[1].has(room[0]));
-    // const res = filtered.map(i => i[0]);
-    // if(res.includes(socket.id)){
-    //   db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err, row) => {
-    //     if(!err){
-    //       if(row){
-    //         db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-    //       }
-    //     }
-    //   });
-    // }
 
     const roomCode = await new Promise<string>((resolve, reject) => {
       db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
@@ -204,29 +208,19 @@ module.exports = (
     if(usersLength == 1){
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-    } else if(!isRoomInGame){
+    }
+    if(!isRoomInGame){
       console.log("Rafał");
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
+    } else {
+      db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
     }
 
     console.log("usersLength", usersLength);
     console.log("roomCode", roomCode);
     console.log("isRoomInGame", isRoomInGame);
 
-    // gdy wyjdzie cos zapisac(ip) 
-    // to zrobic update alive na false, zeby nie brał udzialu w grze
-    
-    // Sytuacja gdy gra sie zaczela i ktos wyjdzie:
-
-    // a gdyby zpisywac id w cookie albo jakis client token
-    // wtedy cookie przypisuje wartos socket.id dopiero kiedy wejdzie do pokoju
-    // i sprawdzac czy jest w bazie, jesli tak to moze wejsc do pokju, inaczej nie moze wejsc
-
-    // przy refreshu lub cofnieciu sie (ta strzałka do tyłu) wychodzisz z pokoju
-    // jestes na głównej ale mozez znowu sie polaczyc
-
-
-
+    usersData(roomCode, socket);
 
   });
   //#endregion
