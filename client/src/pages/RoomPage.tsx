@@ -83,15 +83,6 @@ export default function RoomPage() {
     socket.on("user_disconnected", (data) => {
       alert(data + " has left the room");
     });
-    
-  }, [socket]);
-
-  setTimeout(() => {
-    setIsLoading(false);
-  }, 50);
-
-  useEffect(() => {
-    socket.emit("checkIfUserIsInRoom", roomCode);
 
     socket.on("receiveUserIsInRoom", (data) => {
       if(!data){
@@ -101,6 +92,27 @@ export default function RoomPage() {
 
     return () => {
       socket.off("userIsInRoom");
+    }
+    
+  }, [socket]);
+
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 50);
+
+  useEffect(() => {
+    socket.emit("checkIfUserIsInRoom", roomCode);
+  }, []);
+
+  const alertUser = (e: any) => {
+    e.preventDefault();
+    e.returnValue = "Are you sure you want to leave?";
+  }
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", alertUser);
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
     }
   }, []);
 

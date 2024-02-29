@@ -150,15 +150,9 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    window.addEventListener("beforeunload", alertUser);
-    return () => {
-      window.removeEventListener("beforeunload", alertUser);
-    }
+    socket.emit("disconnectUser");
+    
   }, []);
-  const alertUser = (e: any) => {
-    e.preventDefault();
-    e.returnValue = "";
-  }
 
   return (
     <div className="home">

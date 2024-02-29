@@ -187,6 +187,22 @@ module.exports = (
     socket.nsp.to(socket.id).emit("receiveUserIsInRoom", userInRoom);
   });
 
+  socket.on("disconnectUser", async () => {
+    const roomCode = await new Promise<string>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+        if(!err){
+          if(row){
+            resolve(row.id_room);
+          }
+        }
+      });
+    });
+
+    console.log("disconnectUser", roomCode);
+
+    socket.leave(roomCode);
+  });
+
   socket.on("disconnect", async () => {
 
     const roomCode = await new Promise<string>((resolve, reject) => {
