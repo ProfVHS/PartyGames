@@ -83,16 +83,6 @@ export default function RoomPage() {
     socket.on("user_disconnected", (data) => {
       alert(data + " has left the room");
     });
-
-    socket.on("receiveUserIsInRoom", (data) => {
-      if(!data){
-        navigate("/");
-      }
-    });
-
-    return () => {
-      socket.off("userIsInRoom");
-    }
     
   }, [socket]);
 
@@ -102,17 +92,15 @@ export default function RoomPage() {
 
   useEffect(() => {
     socket.emit("checkIfUserIsInRoom", roomCode);
-  }, []);
 
-  const alertUser = (e: any) => {
-    e.preventDefault();
-    e.returnValue = "Are you sure you want to leave?";
-  }
+    socket.on("receiveUserIsInRoom", (data) => {
+      if(!data){
+        navigate("/");
+      }
+    });
 
-  useEffect(() => {
-    window.addEventListener("beforeunload", alertUser);
     return () => {
-      window.removeEventListener("beforeunload", alertUser);
+      socket.off("userIsInRoom");
     }
   }, []);
 

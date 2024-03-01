@@ -18,14 +18,70 @@ module.exports = (
   updateUserSelected: (id: string, selected: number) => void,
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   ) => {
+  //#region functions 
+  const InfoAboutRoom = async () => {
+    const roomCode = await new Promise<string>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+        if(!err){
+          if(row){
+            resolve(row.id_room);
+          }
+        }
+      });
+    });
+
+    const isRoomInGame = await new Promise<boolean>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+        if(!err){
+          resolve(row.in_game);
+        }
+      });
+    });
+
+    const usersLength = await new Promise<number>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+        if(!err){
+          resolve(users_rows.length);
+        }
+      });
+    });
+
+    return { roomCode, isRoomInGame, usersLength };
+  };
+
+  const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
+    console.log(roomCode, isRoomInGame, usersLength);
+    if(usersLength == 1){
+      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+      socket.leave(roomCode)
+    }
+    if(!isRoomInGame){
+      db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
+      socket.leave(roomCode)
+    } else {
+      db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
+      socket.leave(roomCode)
+    }
+  };
+  //#endregion
+
   //#region home events (homepage, lobby, etc) needed at the beginning of the game
   // create room
-  socket.on("createRoom", async (name : string, randomRoomCode: string) => {
+  socket.on("createRoom", async (name : string, randomRoomCode: string, cookie_id: string) => {
     socket.join(randomRoomCode);
+
+    db.all(`SELECT * FROM users WHERE id = "${cookie_id}"`, [], async (err: Error, users_rows: User[]) => {
+      if(!err){
+        if(users_rows.length > 0){
+          db.run(`DELETE FROM users WHERE id = "${cookie_id}"`);
+          usersData(users_rows[0].id_room, socket);
+        }
+      }
+    });
 
     db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
     db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
-
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string, name: string, cookie_id: string }) => {
@@ -188,67 +244,19 @@ module.exports = (
   });
 
   socket.on("disconnectUser", async () => {
-    const roomCode = await new Promise<string>((resolve, reject) => {
-      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
-        if(!err){
-          if(row){
-            resolve(row.id_room);
-          }
-        }
-      });
-    });
+    const { roomCode, isRoomInGame, usersLength } = await InfoAboutRoom();
 
-    console.log("disconnectUser", roomCode);
+    CheckWhatsToDoWithRoom(roomCode, isRoomInGame, usersLength);
 
-    socket.leave(roomCode);
+    usersData(roomCode, socket);
   });
 
   socket.on("disconnect", async () => {
+    const { roomCode, isRoomInGame, usersLength } = await InfoAboutRoom();
 
-    const roomCode = await new Promise<string>((resolve, reject) => {
-      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
-        if(!err){
-          if(row){
-            resolve(row.id_room);
-          }
-        }
-      });
-    });
-
-    const isRoomInGame = await new Promise<boolean>((resolve, reject) => {
-      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-        if(!err){
-          resolve(row.in_game);
-        }
-      });
-    });
-
-    const usersLength = await new Promise<number>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-        if(!err){
-          resolve(users_rows.length);
-        }
-      });
-    })
-
-
-    if(usersLength == 1){
-      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
-      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-    }
-    if(!isRoomInGame){
-      console.log("Rafał");
-      db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-    } else {
-      db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
-    }
-
-    console.log("usersLength", usersLength);
-    console.log("roomCode", roomCode);
-    console.log("isRoomInGame", isRoomInGame);
+    CheckWhatsToDoWithRoom(roomCode, isRoomInGame, usersLength);
 
     usersData(roomCode, socket);
-
   });
   //#endregion
 };

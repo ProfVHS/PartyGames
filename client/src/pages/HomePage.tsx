@@ -78,6 +78,7 @@ export default function HomePage() {
   const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const cookie_id = document.cookie;
 
   const navigate = useNavigate();
 
@@ -117,7 +118,6 @@ export default function HomePage() {
         nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
-      const cookie_id = document.cookie;
       socket.emit("joinRoom", { roomCode, name, cookie_id });
       socket.on("joiningRoom", () => {
         startLoadingAnimation(roomCode);
@@ -143,7 +143,7 @@ export default function HomePage() {
         const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
-        socket.emit("createRoom", name, randomRoomCode );
+        socket.emit("createRoom", name, randomRoomCode, cookie_id );
         startLoadingAnimation(randomRoomCode);
       }
     });
@@ -151,7 +151,10 @@ export default function HomePage() {
 
   useEffect(() => {
     socket.emit("disconnectUser");
-    
+  }, []);
+
+  useEffect(() => {
+    console.log(socket.id);
   }, []);
 
   return (
