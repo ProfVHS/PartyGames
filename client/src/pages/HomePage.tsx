@@ -150,11 +150,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    socket.emit("disconnectUser");
-  }, []);
-
-  useEffect(() => {
-    console.log(socket.id);
+    socket.emit('disconnectUser');
   }, []);
 
   return (

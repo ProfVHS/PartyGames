@@ -104,6 +104,12 @@ export default function RoomPage() {
     }
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("popstate", () => {
+      window.location.href = "/";
+    });
+  });
+
   return (
     <>
       <div className="roomGrid">

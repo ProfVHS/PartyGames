@@ -54,15 +54,13 @@ module.exports = (
     if(usersLength == 1){
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-      socket.leave(roomCode)
     }
     if(!isRoomInGame){
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-      socket.leave(roomCode)
     } else {
       db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
-      socket.leave(roomCode)
     }
+    socket.leave(roomCode);
   };
   //#endregion
 
