@@ -1,0 +1,87 @@
+.podium {
+  //   display: flex;
+  //   flex-direction: column;
+  //   justify-content: center;
+  //   align-items: center;
+  //   gap: 35px;
+  position: relative;
+
+  &__content {
+    position: relative;
+    height: 250px;
+    width: 200px;
+
+    background-image: url("../../assets/svgs/loading-bg.svg");
+    background-size: cover;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 5px;
+    padding-top: 32px;
+  }
+  &__position {
+    color: #fff;
+    font-family: "Spicy Rice";
+    font-size: 54px;
+  }
+
+  &__username {
+    color: #fff;
+    font-family: "Poppins";
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  &__score {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: "Poppins";
+    font-weight: 700;
+    font-size: 18px;
+
+    &__number {
+      color: #fff;
+    }
+  }
+
+  &__top {
+    position: absolute;
+    top: 0;
+
+    width: 110%;
+    height: 30px;
+
+    left: 50%;
+    transform: translate(-50%, 0%);
+    background-color: #b87de8;
+    box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.4);
+  }
+
+  &__camera {
+    position: absolute;
+    top: -85px;
+    left: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 5px 0;
+
+    background-color: #fff;
+    box-sizing: border-box;
+    box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
+
+    border-radius: 5px;
+
+    width: 100px;
+    height: 75px;
+
+    &__video {
+      background-color: #000;
+
+      height: 100%;
+      width: 90%;
+    }
+  }
+}
