@@ -19,18 +19,24 @@ export const Podium = ({ position }: PodiumProps) => {
   const showUpAnimation = () => {
     animate(
       ".podium__content",
-      { height: [75, podiumHeights[position - 1]], y: [0] },
+      { height: [0, podiumHeights[position - 1]], y: [0] },
       { duration: 2, type: "spring", delay: podiumDelays[position - 1] }
-    );
-    animate(
-      ".podium__username",
-      { scale: [0, 1] },
-      { duration: 0.5, type: "spring", delay: podiumDelays[position - 1] + 1 }
     ).then(() => {
       setShowCamera(true);
     });
+
+    animate(
+      ".podium__username",
+      { scale: [0, 1] },
+      { duration: 1, type: "spring", delay: podiumDelays[position - 1] + 1 }
+    );
     animate(
       ".podium__score",
+      { scale: [0, 1] },
+      { duration: 1, type: "spring", delay: podiumDelays[position - 1] + 1 }
+    );
+    animate(
+      ".podium__position",
       { scale: [0, 1] },
       { duration: 0.5, type: "spring", delay: podiumDelays[position - 1] + 1 }
     );
