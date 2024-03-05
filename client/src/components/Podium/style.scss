@@ -5,6 +5,7 @@
   //   align-items: center;
   //   gap: 35px;
   position: relative;
+  user-select: none;
 
   &__content {
     position: relative;

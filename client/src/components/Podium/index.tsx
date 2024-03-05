@@ -9,7 +9,7 @@ interface PodiumProps {
 
 const podiumHeights = [215, 150, 150, 205, 170, 170, 155, 155];
 const podiumOrders = [2, 1, 3, 3, 2, 4, 1, 5];
-const podiumDelays = [22, 19, 16, 13, 10, 7, 4, 1];
+const podiumDelays = [10, 7, 4, 1, 1, 1, 1, 1];
 
 export const Podium = ({ position }: PodiumProps) => {
   const [scope, animate] = useAnimate();
