@@ -31,7 +31,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       socket.emit("gamesArray", roomCode);
     }
 
-    onceDone.current = true;
+    document.cookie = `${socket.id}`;
   }, []);
 
   useEffect(() => {

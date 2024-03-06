@@ -20,7 +20,6 @@ module.exports = (
     updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (roomCode: string, alive: boolean) => void,
-    updateRoomInGame: (roomCode: string, in_game: boolean) => void,
 ) => {
     //#region ctb functions
     // set data bomb
@@ -70,7 +69,6 @@ module.exports = (
         const turn = Math.round(Math.random() * ((data.usersLength * 1) - 1));
         updateRoomTurn(data.roomCode,turn,socket);
         setDataBomb(max,0,data.roomCode);
-        updateRoomInGame(data.roomCode,true);
     });
 
     // send turn to the next player
@@ -84,78 +82,69 @@ module.exports = (
     socket.on("counterCtb", async (roomCode: string) => {
         
         incrementCounter(roomCode).then(async () => {
-            return new Promise<[Bomb, User[]]>((resolve, reject) => {
-                Promise.all([
-                    new Promise<Bomb>((resolveBomb, rejectBomb) => {
-                        db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
-                            if (err) {
-                                rejectBomb(err);
-                            } else {
-                                resolveBomb(bomb_row);
-                            }
-                        });
-                    }),
-                    new Promise<User[]>((resolveUsers, rejectUsers) => {
-                        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
-                            if (err) {
-                                rejectUsers(err);
-                            } else {
-                                resolveUsers(users_rows);
-                            }
-                        });
-                    }),
-                ]).then(([bomb_row, users_rows]) => {
-                    resolve([bomb_row, users_rows]);
-                }).catch((error) => {
-                    reject(error);
+            const bombData = await new Promise<Bomb>((resolveBomb, rejectBomb) => {
+                db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
+                    if (err) {
+                        rejectBomb(err);
+                    } else {
+                        resolveBomb(bomb_row);
+                    }
                 });
-            }).then(async ([bomb_row, users_rows]) => {
-                // bomb explode
-                if(bomb_row.counter == bomb_row.max){
-                    // end the game
-                    if(users_rows.length == 2){
-                        users_rows.forEach((user) => {
-                            // -30% points to the user
-                            if( user.id == socket.id ){
-                                updateUserScoreMultiply(roomCode, user.id, 0.7, socket);
-                            } else {
-                                updateUserScore(user.id, 50, socket);
-                            }
-                        });
-                        // update in game to false 
-                        updateRoomInGame(roomCode, false);
-                        // update alive users to true
-                        updateUsersAlive(roomCode, true);
+            });
+            const usersArray = await new Promise<User[]>((resolveUsers, rejectUsers) => {
+                db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+                    if (err) {
+                        rejectUsers(err);
+                    } else {
+                        resolveUsers(users_rows);
+                    }
+                });
+            });
+
+            // bomb explode
+            if(bombData.counter == bombData.max){
+                // end the game
+                if(usersArray.length == 2){
+                    usersArray.forEach((user) => {
+                        // -30% points to the user
+                        if( user.id == socket.id ){
+                            updateUserScoreMultiply(roomCode, user.id, 0.7, socket);
+                        } else {
+                            updateUserScore(user.id, 50, socket);
+                        }
+                    });
+                    // update alive users to true
+                    updateUsersAlive(roomCode, true);
+                    // send data to the client
+                    usersData(roomCode, socket);
+                    socket.nsp.to(roomCode).emit("receiveEndCtb");
+                } else {
+                    // user explode
+                    // update new max number of clicks and reset counter
+                    const max = Math.round(Math.random() * (((usersArray.length - 1) * 5) - 1)) + 1;
+                    await updateDataBomb(max,0,roomCode).then(async () => {
+                        // update user as dead
+                        updateUserAlive(socket.id, false);
+                    }).then(async () => {
+                        // update turn
+                        await changeRoomTurn(roomCode, socket);
+                    }).then(() => {
+                        // -30% points to the user
+                        updateUserScoreMultiply(roomCode, socket.id, 0.7, socket);
+                    }).then(() => {
                         // send data to the client
                         usersData(roomCode, socket);
-                        socket.nsp.to(roomCode).emit("receiveEndCtb");
-                    } else {
-                        // user explode
-                        // update new max number of clicks and reset counter
-                        const max = Math.round(Math.random() * (((users_rows.length - 1) * 5) - 1)) + 1;
-                        await updateDataBomb(max,0,roomCode).then(async () => {
-                            // update user as dead
-                            updateUserAlive(socket.id, false);
-                        }).then(async () => {
-                            // update turn
-                            await changeRoomTurn(roomCode, socket);
-                        }).then(() => {
-                            // -30% points to the user
-                            updateUserScoreMultiply(roomCode, socket.id, 0.7, socket);
-                        }).then(() => {
-                            // send data to the client
-                            usersData(roomCode, socket);
-                            socket.nsp.to(roomCode).emit("receiveCounterCtb", 0);
-                            socket.nsp.to(roomCode).emit("receiveExplosionCtb", socket.id);
-                        });
-                    }
-                } else {
-                    // continue the game, +10 points to the user
-                    socket.nsp.to(roomCode).emit("receiveCounterCtb", bomb_row.counter);    
-                    updateUserScore(socket.id, 10, socket);
-                    usersData(roomCode, socket);
+                        socket.nsp.to(roomCode).emit("receiveCounterCtb", 0);
+                        socket.nsp.to(roomCode).emit("receiveExplosionCtb", socket.id);
+                    });
                 }
-            });
+            } else {
+                // continue the game, +10 points to the user
+                socket.nsp.to(roomCode).emit("receiveCounterCtb", bombData.counter);    
+                updateUserScore(socket.id, 10, socket);
+                usersData(roomCode, socket);
+            }
+
         });
     });
     //#endregion

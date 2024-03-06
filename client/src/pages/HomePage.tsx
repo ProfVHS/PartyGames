@@ -4,7 +4,7 @@ import Logo from "../assets/svgs/logo.svg";
 
 import ClickSound from "../assets/audio/click.mp3";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { socket } from "../socket";
@@ -66,16 +66,19 @@ const nouns = [
   "Chicken",
   "Turtle",
   "Penguin",
-  "Marcelo",
+  "Marcello",
   "Fernando Melo",
+  "Amigo",
 ];
 
 export default function HomePage() {
+  const location = useLocation();
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const cookie_id = document.cookie;
 
   const navigate = useNavigate();
 
@@ -84,7 +87,9 @@ export default function HomePage() {
   }, []);
 
   const handleRandomRoomCode = () => {
-    setRandomRoomCode(Math.round(Math.random() * 90000).toString());
+    setRandomRoomCode(
+      (Math.random() + 1).toString(36).substring(7).toUpperCase()
+    );
   };
 
   const inputHandler = (roomCode: string) => {
@@ -110,8 +115,9 @@ export default function HomePage() {
         adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
-      socket.emit("joinRoom", { roomCode, name });
-      socket.on("roomNotFull", () => {
+      socket.emit("joinRoom", { roomCode, name, cookie_id });
+      socket.on("joiningRoom", () => {
+        console.log("joining room");
         startLoadingAnimation(roomCode);
       });
       socket.on("roomFull", () => {
@@ -138,11 +144,15 @@ export default function HomePage() {
           nouns[Math.floor(Math.random() * nouns.length)];
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
-        socket.emit("createRoom", { name, randomRoomCode });
+        socket.emit("createRoom", name, randomRoomCode, cookie_id );
         startLoadingAnimation(randomRoomCode);
       }
     });
   };
+
+  useEffect(() => {
+    socket.emit('disconnectUser');
+  }, []);
 
   return (
     <div className="home">

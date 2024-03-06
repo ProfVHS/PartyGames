@@ -4,6 +4,7 @@ export type User = {
     username: string,
     score: number,
     alive: boolean,
+    isDisconnected: boolean,
     id_room: string,
     id_selected: number,
     position: number,
