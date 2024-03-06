@@ -97,7 +97,7 @@ module.exports = (
                 // send cardsArray to all users in room
                 socket.nsp.to(roomCode).emit("receiveCardsArray", cards);
                 cards.forEach((card) => {
-                    db.run(`INSERT INTO cards (id_card,id_room,isPositive,score) VALUES (${card.id},${roomCode}, ${card.isPositive}, ${card.score})`);
+                    db.run(`INSERT INTO cards (id_card,id_room,isPositive,score) VALUES (${card.id},"${roomCode}", ${card.isPositive}, ${card.score})`);
                 });
             });
 
@@ -110,7 +110,7 @@ module.exports = (
         return new Promise<[Cards, User[]]>((resolve, reject) => {
             Promise.all([
                 new Promise<Cards>((resolveCards, rejectCards) => {
-                    db.get(`SELECT * FROM cards WHERE id_room = ${data.roomCode} AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
+                    db.get(`SELECT * FROM cards WHERE id_room = "${data.roomCode}" AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
                         if(err){
                             rejectCards(err);
                         } else {
@@ -119,7 +119,7 @@ module.exports = (
                     })
                 }),
                 new Promise<User[]>((resolveUsers, rejectUsers) => {
-                    db.all(`SELECT * FROM users WHERE id_room = ${data.roomCode} AND id_selected = ${data.id}`, [], (err: Error, users_rows: User[]) => {
+                    db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id}`, [], (err: Error, users_rows: User[]) => {
                         if(err){
                             rejectUsers(err);
                         } else {
@@ -147,12 +147,12 @@ module.exports = (
     // end round cards
     socket.on("endRoundCards", async (roomCode: string) => {
         // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = ${roomCode}`);
+        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
     });
     // end game cards
     socket.on("endGameCards",async (roomCode: string) => {
         // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = ${roomCode}`);
+        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
         // update in_game to false, round to 1
         updateRoomRound(roomCode, 0, socket);
         console.log("end game cards");

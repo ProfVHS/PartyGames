@@ -75,7 +75,7 @@ server.listen(3000, async () => {
   //#region Data about rooms and users
   // info about users
   const usersData = async (roomCode: string, socket: Socket) => {
-    return new Promise<User[]>((resolve, reject) => { 
+    const userData = await new Promise<User[]>((resolve, reject) => {
       db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
         if(err) {
           reject(err);
@@ -83,13 +83,13 @@ server.listen(3000, async () => {
           resolve(rows);
         }
       });
-    }).then((rows) => {
-      socket.nsp.to(roomCode).emit("receiveUsersData", rows);
     });
+
+    socket.nsp.to(roomCode).emit("receiveUsersData", userData);
   };
   // info about room
   const roomData = async (roomCode: string, socket: Socket) => {
-    return new Promise<Room>((resolve, reject) => { 
+    const roomData = await new Promise<Room>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
         if(err) {
           reject(err);
@@ -97,9 +97,9 @@ server.listen(3000, async () => {
           resolve(row);
         }
       });
-    }).then((row) => {
-      socket.nsp.to(roomCode).emit("receiveRoomData", row);
     });
+
+    socket.nsp.to(roomCode).emit("receiveRoomData", roomData);
   };
   // reset data about users
   const usersResetData = async (roomCode: string, socket: Socket) => {
