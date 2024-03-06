@@ -28,16 +28,16 @@ module.exports = (
                 switch(room_row.round){
                     case 1:
                         resolve([250,100,35]);
+                        break;
                     case 2:
                         resolve([275,125,50]);
+                        break;
                     case 3:
                         resolve([300,150,75]);
+                        break;
                     default:
-                        // updateRoomInGame(roomCode, false);
-                        // updateRoomRound(roomCode, 0, socket);
-                        // console.log("endGameDiamonds");
-                        //reject("Error: wrong round");
                         endGameDiamonds(roomCode);
+                        break;
                 };
             });
         });

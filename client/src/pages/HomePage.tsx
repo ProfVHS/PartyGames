@@ -7,7 +7,7 @@ import ClickSound from "../assets/audio/click.mp3";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import {socket} from "../socket";
+import { socket } from "../socket";
 
 const adjective = [
   "Ultra",
@@ -109,13 +109,10 @@ export default function HomePage() {
 
   const JoinHandleClick = () => {
     new Audio(ClickSound).play();
-    
 
     if (roomExistence) {
       const randomUsername =
-        adjective[Math.floor(Math.random() * adjective.length)] +
-        " " +
-        nouns[Math.floor(Math.random() * nouns.length)];
+        adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
       socket.emit("joinRoom", { roomCode, name, cookie_id });
@@ -141,7 +138,10 @@ export default function HomePage() {
         handleRandomRoomCode();
         CreateHandleClick();
       } else {
-        const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)]
+        const randomUsername =
+          adjective[Math.floor(Math.random() * adjective.length)] +
+          " " +
+          nouns[Math.floor(Math.random() * nouns.length)];
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
         socket.emit("createRoom", name, randomRoomCode, cookie_id );
@@ -166,11 +166,7 @@ export default function HomePage() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <button
-          className="button"
-          style={{ width: "50%" }}
-          onClick={JoinHandleClick}
-        >
+        <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
           Join
         </button>
         <input
@@ -178,13 +174,9 @@ export default function HomePage() {
           placeholder="Room Code"
           style={{ width: "48%" }}
           value={roomCode}
-          onChange={(e) => inputHandler(e.target.value)}
+          onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())}
         />
-        <button
-          className="button"
-          style={{ marginTop: "40px" }}
-          onClick={CreateHandleClick}
-        >
+        <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
           Create Room
         </button>
       </div>

@@ -22,14 +22,14 @@ export function Cards({ roomCode, users }: CardsProps) {
   const [time, setTime] = useState<number>(15);
   const [round, setRound] = useState<number>(1);
   const [selectedCard, setSelectedCard] = useState<number>(0);
-  const [flipped, setFlipped] = useState<boolean>(false);
-  
+  const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
+
   const onceDone = useRef<boolean>(false);
 
   const startGame = async () => {
-    if(users.length > 0){
-      if(users[0].id == socket.id){
-        socket.emit("startGameCards", roomCode );
+    if (users.length > 0) {
+      if (users[0].id == socket.id) {
+        socket.emit("startGameCards", roomCode);
         socket.emit("stopwatchTime", roomCode);
       }
     }
@@ -37,10 +37,10 @@ export function Cards({ roomCode, users }: CardsProps) {
 
   // make sure that the game starts only once by host
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users.length > 0){
-      if(users[0].id === socket.id){
+    if (users.length > 0) {
+      if (users[0].id === socket.id) {
         startGame();
       }
     }
@@ -51,7 +51,9 @@ export function Cards({ roomCode, users }: CardsProps) {
   // data from server (cards and time)
   useEffect(() => {
     const cardsArray = (data: CardObject[]) => {
-      setCards(data);
+      setTimeout(() => {
+        setCards(data);
+      }, 400);
     };
 
     const stopwatchTime = (data: number) => {
@@ -73,7 +75,6 @@ export function Cards({ roomCode, users }: CardsProps) {
       socket.off("receiveStopwatchTime", stopwatchTime);
       socket.off("receiveRoomData", roomData);
     };
-
   }, [socket]);
 
   const delay = (ms: number): Promise<void> => {
@@ -81,39 +82,42 @@ export function Cards({ roomCode, users }: CardsProps) {
   };
 
   const handleGame = () => {
-      setFlipped(true);
-      // send the selected card to the server (receive points)
-      if(cards !== undefined){
-        socket.emit("selectedObject", selectedCard);
-      }
+    setFlipped("FLIP");
+    // send the selected card to the server (receive points)
+    if (cards !== undefined) {
+      socket.emit("selectedObject", selectedCard);
+    }
 
-      // flip the cards
-      delay(4500).then(() => {
-        // all cards at the same time flip back (animation Rafał)
+    // flip the cards
+    delay(4500).then(() => {
+      // all cards at the same time flip back (animation Rafał)
 
-        // the game ends after 3 turns
-        if(users.length > 0){
-          if(users[0].id === socket.id){
-            if(round >= 3){
-              // end the game
-              socket.emit("endGameCards", roomCode); 
-            } else {
-              // next round
-              socket.emit("endRoundCards", roomCode); 
-              startGame();
-            }
+      // the game ends after 3 turns
+      if (users.length > 0) {
+        if (users[0].id === socket.id) {
+          if (round >= 3) {
+            // end the game
+            socket.emit("endGameCards", roomCode);
+          } else {
+            // next round
+            socket.emit("endRoundCards", roomCode);
+            startGame();
           }
         }
-        // flip the cards and reset the time
-        setFlipped(false);
-        setTime(15);
-      });
+      }
+      // flip the cards and reset the time
+      setFlipped("ALL");
+      setTimeout(() => {
+        setFlipped("NONE");
+      }, 100);
+      setTime(15);
+    });
   };
 
   useEffect(() => {
-    if(time === 0) {
+    if (time === 0) {
       handleGame();
-    };
+    }
   }, [time]);
 
   const handleCardSelect = (id: number) => {
@@ -123,7 +127,7 @@ export function Cards({ roomCode, users }: CardsProps) {
   return (
     <div className="cards">
       <span className="cards__title">Cards</span>
-      <span>Round: {round}</span>
+      <span className="cards__round">Round: {round}</span>
       <div className="cards__stopwatch">
         <Stopwatch maxTime={15} timeLeft={time} size={75} />
       </div>

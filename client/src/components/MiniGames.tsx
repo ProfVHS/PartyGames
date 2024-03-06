@@ -1,10 +1,11 @@
 import { socket } from "../socket";
 //import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
-import { Ctb } from "./Ctb";
+import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
+import { Battleships } from "./Battleships/Battleships";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 
@@ -14,7 +15,6 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ users, roomCode }: MiniGamesProps) {
-
   // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
@@ -25,15 +25,13 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   const onceDone = useRef<boolean>(false);
 
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
-    if(users[0].id === socket.id){
+    if (users[0].id === socket.id) {
       socket.emit("gamesArray", roomCode);
     }
 
     document.cookie = `${socket.id}`;
-        
-    onceDone.current = true;
   }, []);
 
   useEffect(() => {
@@ -56,7 +54,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
       case 5:
         return <Buddies roomCode={roomCode} users={users} />;
       case 6:
-        return <div>Gra 6</div>;
+        return <Battleships />;
       case 7:
         return <div>Gra 7</div>;
       case 8:
@@ -67,10 +65,5 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   };
 
   // server-side : socket.emit('end-game', roomCode )
-  return (
-    <>
-      {switchGame(currentGame.current)}
-    </>
-  );
-  }
-
+  return <>{switchGame(currentGame.current)}</>;
+}

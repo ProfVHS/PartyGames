@@ -30,6 +30,7 @@ const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
 const cardsModule = require("./modules/cards");
 const diamondModule = require("./modules/diamonds");
+const battleshipsModule = require("./modules/battleships");
 const colorsMemoryModule = require("./modules/colorsmemory");
 const buddiesModule = require("./modules/buddies");
 
