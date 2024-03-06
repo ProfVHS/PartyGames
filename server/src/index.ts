@@ -218,7 +218,7 @@ server.listen(3000, async () => {
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
     new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${roomCode}`, (err) => {
+      db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           console.log("Room time error");
           reject(err);
@@ -231,7 +231,7 @@ server.listen(3000, async () => {
   // set round in room
   const updateRoomRound = async (roomCode: string, round: number, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET round = ${round} WHERE id = ${roomCode}`, (err) => {
+      db.run(`UPDATE rooms SET round = ${round} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           reject(err);
         } else {
@@ -284,7 +284,7 @@ server.listen(3000, async () => {
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE users SET alive = ${alive} WHERE id_room = ${roomCode}`, (err) => {
+      db.run(`UPDATE users SET alive = ${alive} WHERE id_room = "${roomCode}"`, (err) => {
         if(err){
           reject(err);
         } else {
@@ -354,7 +354,7 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
