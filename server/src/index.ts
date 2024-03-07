@@ -76,8 +76,9 @@ server.listen(3000, async () => {
   // info about users
   const usersData = async (roomCode: string, socket: Socket) => {
     const userData = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = ${roomCode}"`, [], (err: Error, rows: User[]) => {
         if(err) {
+          console.log(`Users data error:`);
           reject(err);
         } else {
           resolve(rows);
@@ -92,6 +93,7 @@ server.listen(3000, async () => {
     const roomData = await new Promise<Room>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
         if(err) {
+          console.log(`Room data error:`);
           reject(err);
         } else {
           resolve(row);
@@ -134,85 +136,86 @@ server.listen(3000, async () => {
   //#region Update data about rooms (turn, time, round)
   // update turn
   const updateRoomTurn = async (roomCode: string, turn: number, socket: Socket) => {
-    return new Promise<void>((resolve, reject) => {
-        const turnQuery = `UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`;
-
-        db.run(turnQuery, (err) => {
-            if(err){
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    }).then(async () => {
-      return new Promise<[Room, User[]]>((resolve, reject) => {
-        Promise.all([
-          new Promise<Room>((resolveRoom, rejectRoom) => {
-            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
-              if (err) {
-                rejectRoom(err);
-              } else {
-                resolveRoom(room_row);
-              }
-            });
-          }),
-          new Promise<User[]>((resolveUsers, rejectUsers) => {
-            db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
-              if (err) {
-                rejectUsers(err);
-              } else {
-                resolveUsers(users_rows);
-              }
-            });
-          }),
-        ]).then(([room_row, users_rows]) => {
-          resolve([room_row, users_rows]);
-        }).catch((error) => {
-          reject(error);
-        });
-      }).then(([room_row, users_rows]) => {
-        // send turn info to the client
-        const username = users_rows[room_row.turn].username;
-        const id = users_rows[room_row.turn].id;
-        socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
+    
+    const turnQuery = `UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`;
+    
+    const updateTurn = new Promise<void>((resolve, reject) => {
+      db.run(turnQuery, (err) => {
+        if(err){
+            reject(err);
+        } else {
+            resolve();
+        }
       });
+    });
+
+    const users = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(users_rows);
+        }
+      });
+    });
+
+    const room = await new Promise<Room>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(room_row);
+        }
+      });
+    });
+
+    updateTurn.then(async () => {
+      
+        Promise.all([users, room]).then(() => {
+          console.log('users', users);
+          console.log('room', room);
+          // send turn info to the client
+        const username = users[room.turn].username;
+        const id = users[room.turn].id;
+        socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
+        });
+          
+    }).catch((error: Error) => {
+      console.log("Error update turn", error);
     });
   };
   // change turn
   const changeRoomTurn = async (roomCode: string, socket: Socket) => {
-    return new Promise<[Room, User[]]>((resolve, reject) => {
-      Promise.all([
-        new Promise<Room>((resolveRoom, rejectRoom) => {
-          db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
-            if (err) {
-              rejectRoom(err);
-            } else {
-              resolveRoom(room_row);
-            }
-          });
-        }),
-        new Promise<User[]>((resolveUsers, rejectUsers) => {
-          db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
-            if (err) {
-              rejectUsers(err);
-            } else {
-              resolveUsers(users_rows);
-            }
-          });
-        }),
-      ]).then(([room_row, users_rows]) => {
-        resolve([room_row, users_rows]);
-      }).catch((error) => {
-        reject(error);
+    const users = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(users_rows);
+        }
       });
-    }).then(([room_row, users_rows]) => {
+    });
+    
+    const room = await new Promise<Room>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(room_row);
+        }
+      });
+    });
+
+    Promise.all([users, room]).then(() => {
       // turn_row.turn (0-7), users_rows.length (2-8)
       // if last user, turn = 0, else turn + 1
-      if (room_row.turn >= users_rows.length - 1) {
+      if (room.turn >= users.length - 1) {
         updateRoomTurn(roomCode, 0, socket);
       } else {
-        updateRoomTurn(roomCode, room_row.turn + 1, socket);
+        updateRoomTurn(roomCode, room.turn + 1, socket);
       }
+    }).catch((error: Error) => {
+      console.log("Error change turn", error);
     });
   };
   // set time in room
@@ -230,7 +233,7 @@ server.listen(3000, async () => {
   };
   // set round in room
   const updateRoomRound = async (roomCode: string, round: number, socket: Socket) => {
-    return new Promise<void>((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET round = ${round} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           reject(err);
@@ -242,7 +245,7 @@ server.listen(3000, async () => {
   };
   // change round in room
   const changeRoomRound = async (roomCode: string, socket: Socket) => {
-    return new Promise<void>((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET round = round + 1 WHERE id = "${roomCode}"`, [], (err) => {
         if (err) {
           reject(err);
