@@ -223,11 +223,12 @@ module.exports = (
   socket.on("stopwatchTime", async (roomCode: string) => {
     // set interval to decrease time_left every second
     const cardsTimeInterval = setInterval( async () => {
-        db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = ${roomCode}`);
+        db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = "${roomCode}"`);
         // send time_left to all users in room
-        return new Promise<Room>((resolve, reject) => {
+        new Promise<Room>((resolve, reject) => {
             db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
                 if(err){
+                    console.log("StopwatchTime error:");
                     reject(err);
                 } else {
                     resolve(row);

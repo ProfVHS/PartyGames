@@ -76,7 +76,7 @@ server.listen(3000, async () => {
   // info about users
   const usersData = async (roomCode: string, socket: Socket) => {
     const userData = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = ${roomCode}"`, [], (err: Error, rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
         if(err) {
           console.log(`Users data error:`);
           reject(err);
@@ -288,7 +288,7 @@ server.listen(3000, async () => {
 
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
-    return new Promise<void>((resolve, reject) => {
+    new Promise<void>((resolve, reject) => {
       db.run(`UPDATE users SET alive = ${alive} WHERE id_room = "${roomCode}"`, (err) => {
         if(err){
           console.log("Update Users Alive error");

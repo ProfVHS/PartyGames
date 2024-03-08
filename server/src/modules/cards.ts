@@ -25,7 +25,8 @@ module.exports = (
         return new Promise<Room>((resolve, reject) => {
             db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
                 if(err){
-                    reject("Error: Score arrays");
+                    console.log("Score Arrays Cards error:");
+                    reject(err);
                 } else {
                     resolve(room_row);                    
                 }
@@ -37,7 +38,7 @@ module.exports = (
         return new Promise<Cards[]>((resolve, reject) => {
             const array: Cards[] = [];
 
-            scoreArrays(roomCode).then((row) => {
+            scoreArrays(roomCode).then(async (row) => {
                 return new Promise<[number[], number[]]>((resolve, reject) => {
                     console.log("row.round - ",row.round);
                     switch(row.round){
@@ -112,6 +113,7 @@ module.exports = (
                 new Promise<Cards>((resolveCards, rejectCards) => {
                     db.get(`SELECT * FROM cards WHERE id_room = "${data.roomCode}" AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
                         if(err){
+                            console.log("Cards");
                             rejectCards(err);
                         } else {
                             resolveCards(card_row);
@@ -121,6 +123,7 @@ module.exports = (
                 new Promise<User[]>((resolveUsers, rejectUsers) => {
                     db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id}`, [], (err: Error, users_rows: User[]) => {
                         if(err){
+                            console.log('Users (Cards) error:');
                             rejectUsers(err);
                         } else {
                             resolveUsers(users_rows);
