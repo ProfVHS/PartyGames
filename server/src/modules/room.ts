@@ -56,12 +56,13 @@ module.exports = (
     console.log("Is room in game - ", isRoomInGame);
     console.log("Users length - ", usersLength);
 
-    if(!isRoomInGame){
+    if(usersLength == 1){
+      console.log("Nie jest w pokoju tylko jeden gracz");
+      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+    } else if(!isRoomInGame){
+      console.log("Nie jest w pokoju");
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-      if(usersLength == 1){
-        db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
-        db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-      }
     } else {
       db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
 
@@ -85,6 +86,7 @@ module.exports = (
         console.log("Czekaj na reszte graczy");
         updateRoomTurn(roomCode, 0, socket);
       } else if(users[turn].id == socket.id){
+        console.log("Zmiana tury (> 2)");
         changeRoomTurn(roomCode, socket);
       }
     }
@@ -116,7 +118,7 @@ module.exports = (
 
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
       db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND isDisconnect = true`, [], (err: Error, exist: Count) => {
-        if (!err){
+        if(!err){
           resolve(exist)
         }
       });
