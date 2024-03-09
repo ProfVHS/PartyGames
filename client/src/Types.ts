@@ -1,12 +1,12 @@
 // Users and Rooms
 export type User = {
-    id: string,
-    username: string,
-    score: number,
-    alive: boolean,
-    id_room: string,
-    id_selected: number,
-    position: number,
+  id: string;
+  username: string;
+  score: number;
+  alive: boolean;
+  id_room: string;
+  id_selected: number;
+  position: number;
 };
 
 export type Room = {
@@ -25,8 +25,6 @@ export type CtbProps = {
   users: User[];
 };
 
-// Cards
-
 // Tricky Diamonds
 export type TrickyCardColor = "BLUE" | "PURPLE" | "RED";
 
@@ -37,4 +35,12 @@ export type TrickyDiamondType = {
 };
 
 // Colors Memory
-export type ColorsMemory = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'pink' | 'brown';
+export type ColorsMemory = "red" | "blue" | "green" | "yellow" | "purple" | "orange" | "pink" | "brown";
+
+export type awardType = "ctbCLICK" | "firstDeath" | "mostLosedPoints";
+
+export type MedalProps = {
+  username: string;
+  points: number;
+  award: awardType;
+};

@@ -4,12 +4,13 @@ import "./style.scss";
 import { MedalSvg } from "./MedalSvg";
 import { LoseLineSvg, SkullSvg, TouchSvg } from "./Icons";
 import { useAnimate, usePresence } from "framer-motion";
+import { awardType } from "../../Types";
 
 interface MedalProps {
   id: number;
   username: string;
   points: number;
-  award: "ctbCLICK" | "firstDeath" | "mostLosedPoints";
+  award: awardType;
 }
 
 export const Medal = ({ id, username, points, award }: MedalProps) => {

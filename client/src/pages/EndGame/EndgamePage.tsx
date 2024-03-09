@@ -3,7 +3,7 @@ import { Medal } from "../../components/Medal/Medal";
 import "./style.scss";
 import { useEffect, useState } from "react";
 import { Podium } from "../../components/Podium";
-import { User } from "../../Types";
+import { MedalProps, User } from "../../Types";
 
 const exampleUsers: User[] = [
   { id: "0", username: "Ultra Mango Guy", score: 150, alive: true, id_room: "0", id_selected: 0, position: 1 },
@@ -16,10 +16,18 @@ const exampleUsers: User[] = [
   { id: "7", username: "Ultra Mango Guy", score: 65, alive: true, id_room: "0", id_selected: 0, position: 1 },
 ];
 
+const exampleMedals: MedalProps[] = [
+  { username: "Ultra Mango Guy", points: 150, award: "ctbCLICK" },
+  { username: "Ultra Mango Guy", points: 150, award: "firstDeath" },
+  { username: "Ultra Mango Guy", points: 150, award: "mostLosedPoints" },
+];
+
 export default function EndgamePage() {
   const [showMedals, setShowMedals] = useState<boolean>(true);
   const [showPodium, setShowPodium] = useState<boolean>(false);
+
   const [users, setUsers] = useState<User[]>(exampleUsers);
+  const [medals, setMedals] = useState<MedalProps[]>(exampleMedals);
 
   useEffect(() => {
     const newUsers = users.sort((a, b) => b.score - a.score);
@@ -57,13 +65,19 @@ export default function EndgamePage() {
           </>
         )}
         <AnimatePresence>
-          {showMedals ? <Medal id={0} username="Ultra Mango Guy" points={150} award="ctbCLICK" /> : null}
+          {showMedals ? (
+            <Medal id={0} username={medals[0].username} points={medals[0].points} award={medals[0].award} />
+          ) : null}
         </AnimatePresence>
         <AnimatePresence>
-          {showMedals ? <Medal id={1} username="Ultra Mango Guy" points={150} award="firstDeath" /> : null}
+          {showMedals ? (
+            <Medal id={1} username={medals[1].username} points={medals[1].points} award={medals[1].award} />
+          ) : null}
         </AnimatePresence>
         <AnimatePresence>
-          {showMedals ? <Medal id={2} username="Ultra Mango Guy" points={150} award="mostLosedPoints" /> : null}
+          {showMedals ? (
+            <Medal id={2} username={medals[2].username} points={medals[2].points} award={medals[2].award} />
+          ) : null}
         </AnimatePresence>
       </div>
     </div>
