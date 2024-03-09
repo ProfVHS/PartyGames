@@ -14,26 +14,15 @@
   padding: 15px;
   box-sizing: border-box;
 
-  animation: toRight 0.5s ease-in-out;
-
   &__title {
     font-size: 32px;
     font-family: "Spicy Rice";
     color: #5a189a;
-
-    animation: showUpElements 0.75s ease-in-out;
   }
-
-  &__round {
-    animation: showUpElements 0.75s ease-in-out;
-  }
-
   &__stopwatch {
     position: absolute;
     top: 15px;
     left: 15px;
-
-    animation: showUpElements 0.75s ease-in-out;
   }
 }
 
@@ -257,28 +246,5 @@
   .cardBox {
     height: 140px;
     width: 95px;
-  }
-}
-
-@keyframes toRight {
-  0% {
-    height: 50px;
-    width: 50px;
-  }
-  100% {
-    height: 375px;
-    width: 575px;
-  }
-}
-
-@keyframes showUpElements {
-  0% {
-    opacity: 0;
-  }
-  75% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }

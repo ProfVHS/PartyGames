@@ -15,6 +15,7 @@ import pinkButtonSound from "../../assets/audio/colormemory/button8.flac";
 import darkgreenButtonSound from "../../assets/audio/colormemory/button9.flac";
 import { ProgressBar } from "../ProgressBar";
 import { Hourglass } from "../Hourglass";
+import { useAnimate, usePresence, motion } from "framer-motion";
 
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
@@ -33,9 +34,10 @@ const audioForButtons = [
 interface ColorsMemoryProps {
   roomCode: string;
   users: User[];
+  onExit?: () => void;
 }
 
-export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
+export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   const round = useRef<number>(0);
 
   const onceDone = useRef<boolean>(false);
@@ -45,6 +47,9 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
   const [isDead, setIsDead] = useState<boolean>(false);
   const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
   const [time, setTime] = useState<number>(3000);
+
+  const [scope, animate] = useAnimate();
+  const [isPresence, safeToRemove] = usePresence();
 
   const ButtonsSequence = async (array: number[]) => {
     setIsInGame(false);
@@ -135,8 +140,33 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
     setTime(3000);
   };
 
+  //Show up animation
+  useEffect(() => {
+    if (isPresence) {
+      const enterAnimation = async () => {
+        await animate(".colormemory__buttons", { height: [5, 350] }, { duration: 1.6, type: "spring", delay: 0.05 });
+        await animate(
+          ".colormemory__gamestatus",
+          { opacity: [0, 1], y: [300, 0], display: "flex" },
+          { duration: 0.8, type: "spring" }
+        );
+      };
+      enterAnimation();
+    } else {
+      const exitAnimation = async () => {
+        await animate(".colormemory__gamestatus", { opacity: [1, 0], y: [0, 300] }, { duration: 1, type: "spring" });
+        await animate(".colormemory__buttons__item", { opacity: [1, 0] }, { duration: 0.2 });
+        animate(".colormemory__buttons", { opacity: [1, 0] }, { duration: 1, type: "spring", delay: 0.2 });
+        await animate(".colormemory__buttons", { height: [350, 0] }, { duration: 1, type: "spring" });
+        await safeToRemove();
+        onExit && (await onExit());
+      };
+      exitAnimation();
+    }
+  }, [isPresence]);
+
   return (
-    <div className="colormemory">
+    <div className="colormemory" ref={scope}>
       {isDead ? (
         <div className="colormemory__gameover">
           <span className="colormemory__gameover__header">Game over</span>
@@ -151,7 +181,7 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
         </div>
       ) : (
         <>
-          <div className="colormemory__buttons">
+          <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
             {ButtonsColors.map((color, index) => (
               <Button
                 key={index}
@@ -165,13 +195,13 @@ export function ColorsMemory({ users, roomCode }: ColorsMemoryProps) {
                 audio={audioForButtons[index]}
               />
             ))}
-          </div>
-          <div className="colormemory__gamestatus">
+          </motion.div>
+          <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
             <span>Round: {round.current}</span>
             <span>Score: 1</span>
             <span>Current: {currentClickNumber}</span>
             <ProgressBar max={3000} progress={time} width={"150px"} />
-          </div>
+          </motion.div>
         </>
       )}
     </div>
