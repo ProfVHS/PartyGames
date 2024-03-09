@@ -4,7 +4,7 @@ import Lobby from "../components/Lobby";
 
 import "../styles/Room.scss";
 
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
@@ -15,6 +15,7 @@ import {socket} from "../socket";
 
 
 export default function RoomPage() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -79,15 +80,35 @@ export default function RoomPage() {
       readyLength.current = data.ready;
     });
     // User disconnected
-    // socket.on("user_disconnected", (data) => {
-    //   alert(data[0].username + " has left the room");
-    // });
+    socket.on("user_disconnected", (data) => {
+      alert(data + " has left the room");
+    });
     
   }, [socket]);
 
   setTimeout(() => {
     setIsLoading(false);
   }, 50);
+
+  useEffect(() => {
+    socket.emit("checkIfUserIsInRoom", roomCode);
+
+    socket.on("receiveUserIsInRoom", (data) => {
+      if(!data){
+        navigate("/");
+      }
+    });
+
+    return () => {
+      socket.off("userIsInRoom");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("popstate", () => {
+      window.location.href = "/";
+    });
+  });
 
   return (
     <>

@@ -10,6 +10,7 @@ export interface User {
   username: string, 
   score: number, 
   alive: boolean, 
+  isDisconnect: boolean,
   id_room: string,
   id_selected: number,
   position: number,
@@ -52,7 +53,7 @@ server.listen(3000, async () => {
       'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "isDisconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -75,7 +76,7 @@ server.listen(3000, async () => {
   //#region Data about rooms and users
   // info about users
   const usersData = async (roomCode: string, socket: Socket) => {
-    return new Promise<User[]>((resolve, reject) => { 
+    const userData = await new Promise<User[]>((resolve, reject) => {
       db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
         if(err) {
           reject(err);
@@ -83,13 +84,13 @@ server.listen(3000, async () => {
           resolve(rows);
         }
       });
-    }).then((rows) => {
-      socket.nsp.to(roomCode).emit("receiveUsersData", rows);
     });
+
+    socket.nsp.to(roomCode).emit("receiveUsersData", userData);
   };
   // info about room
   const roomData = async (roomCode: string, socket: Socket) => {
-    return new Promise<Room>((resolve, reject) => { 
+    const roomData = await new Promise<Room>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
         if(err) {
           reject(err);
@@ -97,9 +98,9 @@ server.listen(3000, async () => {
           resolve(row);
         }
       });
-    }).then((row) => {
-      socket.nsp.to(roomCode).emit("receiveRoomData", row);
     });
+
+    socket.nsp.to(roomCode).emit("receiveRoomData", roomData);
   };
   // reset data about users
   const usersResetData = async (roomCode: string, socket: Socket) => {
@@ -131,7 +132,7 @@ server.listen(3000, async () => {
   };
   //#endregion
 
-  //#region Update data about rooms (turn, in_game, time, round)
+  //#region Update data about rooms (turn, time, round)
   // update turn
   const updateRoomTurn = async (roomCode: string, turn: number, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
@@ -215,23 +216,10 @@ server.listen(3000, async () => {
       }
     });
   };
-  // set is room in game
-  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = ${roomCode}`, (err) => {
-        if(err){
-          console.log("Room ingame error");
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
     new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = ${roomCode}`, (err) => {
+      db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           console.log("Room time error");
           reject(err);
@@ -244,7 +232,7 @@ server.listen(3000, async () => {
   // set round in room
   const updateRoomRound = async (roomCode: string, round: number, socket: Socket) => {
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET round = ${round} WHERE id = ${roomCode}`, (err) => {
+      db.run(`UPDATE rooms SET round = ${round} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           reject(err);
         } else {
@@ -297,7 +285,7 @@ server.listen(3000, async () => {
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE users SET alive = ${alive} WHERE id_room = ${roomCode}`, (err) => {
+      db.run(`UPDATE users SET alive = ${alive} WHERE id_room = "${roomCode}"`, (err) => {
         if(err){
           reject(err);
         } else {
@@ -367,11 +355,10 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive);
-    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
-    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
-    diamondModule(io, socket, db, updateUserScore, updateRoomInGame, updateRoomTime, updateRoomRound, changeRoomRound);
-    battleshipsModule(io, socket, db);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
+    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
+    diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
     buddiesModule(io, socket, db, changeRoomRound);
   };

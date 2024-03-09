@@ -1,12 +1,13 @@
 // Users and Rooms
 export type User = {
-  id: string;
-  username: string;
-  score: number;
-  alive: boolean;
-  id_room: string;
-  id_selected: number;
-  position: number;
+    id: string,
+    username: string,
+    score: number,
+    alive: boolean,
+    isDisconnected: boolean,
+    id_room: string,
+    id_selected: number,
+    position: number,
 };
 
 export type Room = {

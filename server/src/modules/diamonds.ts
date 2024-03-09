@@ -8,7 +8,6 @@ module.exports = (
     socket: Socket, 
     db: Database, 
     updateUserScore: (id: string, score: number, socket: Socket) => void,
-    updateRoomInGame: (roomCode: string, in_game: boolean) => void,
     updateRoomTime: (roomCode: string, time_left: number, time_max: number) => void,
     updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
     changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
@@ -92,7 +91,6 @@ module.exports = (
     }
 
     const endGameDiamonds = async (roomCode: string) => {
-        updateRoomInGame(roomCode, false);
         updateRoomRound(roomCode, 0, socket);
         console.log("endGameDiamonds");
     }
@@ -106,7 +104,6 @@ module.exports = (
                 console.log(array);
                 socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
                 updateRoomTime(roomCode, 5, 5);
-                updateRoomInGame(roomCode, true);
             });
         });
     });
