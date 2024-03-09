@@ -1,13 +1,13 @@
 // Users and Rooms
 export type User = {
-    id: string,
-    username: string,
-    score: number,
-    alive: boolean,
-    isDisconnected: boolean,
-    id_room: string,
-    id_selected: number,
-    position: number,
+  id: string;
+  username: string;
+  score: number;
+  alive: boolean;
+  isDisconnected: boolean;
+  id_room: string;
+  id_selected: number;
+  position: number;
 };
 
 export type Room = {
@@ -18,12 +18,6 @@ export type Room = {
   time_max: number;
   in_game: boolean;
   round: number;
-};
-
-// Click the bomb
-export type CtbProps = {
-  roomCode: string;
-  users: User[];
 };
 
 // Tricky Diamonds

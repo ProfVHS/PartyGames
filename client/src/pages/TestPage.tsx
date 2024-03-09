@@ -5,6 +5,7 @@ import { ColorsMemory } from "../components/ColorsMemory/ColorsMemory";
 import { AnimatePresence, useAnimate } from "framer-motion";
 import Leaderboard from "../components/Leaderboard/Leaderboard";
 import { Cards } from "../components/Cards";
+import { TrickyDiamonds } from "../components/TrickyDiamonds/TrickyDiamonds";
 
 const exampleUsers: User[] = [
   {
@@ -109,7 +110,9 @@ export default function TestPage() {
       <div className="roomContent">
         <AnimatePresence>
           {currentGame === 1 && <ColorsMemory roomCode="12345" users={exampleUsers} onExit={() => setCurrentGame(0)} />}
-          {currentGame === 2 && <Cards roomCode="12345" users={exampleUsers} onExit={() => setCurrentGame(0)} />}
+          {currentGame === 2 && (
+            <TrickyDiamonds roomCode="12345" users={exampleUsers} onExit={() => setCurrentGame(0)} />
+          )}
           {currentGame === 0 && (
             <Leaderboard oldUsers={exampleUsers} newUsers={exampleUsers} onExit={() => setCurrentGame(nextGame)} />
           )}
