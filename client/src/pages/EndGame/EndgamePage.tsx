@@ -17,9 +17,9 @@ const exampleUsers: User[] = [
 ];
 
 const exampleMedals: MedalProps[] = [
-  { username: "Ultra Mango Guy", points: 150, award: "ctbCLICK" },
-  { username: "Ultra Mango Guy", points: 150, award: "firstDeath" },
-  { username: "Ultra Mango Guy", points: 150, award: "mostLosedPoints" },
+  { userID: "0", username: "Ultra Mango Guy", points: 150, award: "ctbCLICK" },
+  { userID: "4", username: "Ultra Mango Guy", points: 150, award: "firstDeath" },
+  { userID: "3", username: "Ultra Mango Guy", points: 150, award: "mostLosedPoints" },
 ];
 
 export default function EndgamePage() {
@@ -29,9 +29,27 @@ export default function EndgamePage() {
   const [users, setUsers] = useState<User[]>(exampleUsers);
   const [medals, setMedals] = useState<MedalProps[]>(exampleMedals);
 
+  const handleMedals = () => {
+    const newUsers = users.map((user) => {
+      if (user.id.valueOf() === medals[0].userID.valueOf()) {
+        return { ...user, score: user.score + medals[0].points };
+      }
+      if (user.id.valueOf() === medals[1].userID.valueOf()) {
+        return { ...user, score: user.score + medals[1].points };
+      }
+      if (user.id.valueOf() === medals[2].userID.valueOf()) {
+        return { ...user, score: user.score + medals[2].points };
+      }
+      return user;
+    });
+
+    const sortedUsers = newUsers.sort((a, b) => b.score - a.score);
+
+    setUsers(sortedUsers);
+  };
+
   useEffect(() => {
-    const newUsers = users.sort((a, b) => b.score - a.score);
-    setUsers(newUsers);
+    handleMedals();
 
     setTimeout(() => {
       setShowMedals(false);
@@ -46,7 +64,7 @@ export default function EndgamePage() {
   return (
     <div className="endgame">
       <div className="endgame__header">
-        Rewards
+        {!showPodium ? "Rewards" : "Podium"}
         <div className="endgame__partygames">Party Games</div>
       </div>
       <div className="endgame__content" style={!showPodium ? { flexDirection: "row" } : { flexDirection: "column" }}>

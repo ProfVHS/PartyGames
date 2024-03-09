@@ -40,6 +40,7 @@ export type ColorsMemory = "red" | "blue" | "green" | "yellow" | "purple" | "ora
 export type awardType = "ctbCLICK" | "firstDeath" | "mostLosedPoints";
 
 export type MedalProps = {
+  userID: string;
   username: string;
   points: number;
   award: awardType;
