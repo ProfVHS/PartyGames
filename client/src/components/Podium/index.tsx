@@ -5,13 +5,15 @@ import { useEffect, useState } from "react";
 
 interface PodiumProps {
   position: number;
+  username: string;
+  score: number;
 }
 
 const podiumHeights = [215, 150, 150, 205, 170, 170, 155, 155];
 const podiumOrders = [2, 1, 3, 3, 2, 4, 1, 5];
 const podiumDelays = [10, 7, 4, 1, 1, 1, 1, 1];
 
-export const Podium = ({ position }: PodiumProps) => {
+export const Podium = ({ position, username, score }: PodiumProps) => {
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
   const [showCamera, setShowCamera] = useState<boolean>(false);
@@ -74,9 +76,9 @@ export const Podium = ({ position }: PodiumProps) => {
       <div className="podium__content">
         <div className="podium__top"></div>
         <span className="podium__position">#{position}</span>
-        <span className="podium__username">Ultra Mango Guy</span>
+        <span className="podium__username">{username}</span>
         <span className="podium__score">
-          <span className="podium__score__number">150</span> Score
+          <span className="podium__score__number">{score}</span> Score
         </span>
       </div>
     </div>
