@@ -70,7 +70,7 @@ export const Podium = ({ position, username, score }: PodiumProps) => {
     <div className="podium" ref={scope} style={{ order: podiumOrders[position - 1] }}>
       {showCamera && (
         <AnimatePresence>
-          <PodiumCamera />
+          <PodiumCamera position={position} />
         </AnimatePresence>
       )}
       <div className="podium__content">
