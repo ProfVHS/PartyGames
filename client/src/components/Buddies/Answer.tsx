@@ -3,6 +3,8 @@ import { socket } from "../../socket";
 import { User } from "../../Types";
 import { QuestionType } from "./Types";
 
+import { motion } from "framer-motion";
+
 interface AnswerProps {
   roomCode: string;
   users: User[];
