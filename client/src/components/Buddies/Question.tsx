@@ -2,6 +2,8 @@ import { User } from "../../Types";
 import { socket } from "../../socket";
 import { useState } from "react";
 
+import { motion } from "framer-motion";
+
 interface QuestionProps {
   roomCode: string;
   users: User[];
@@ -18,17 +20,20 @@ export function Question({ roomCode, users, onClick }: QuestionProps) {
 
   return (
     <>
-      <h1 className="buddies__header">Question</h1>
-      <input
+      <motion.h1 className="buddies__header" initial={{ opacity: 0, scale: 0 }}>
+        Question
+      </motion.h1>
+      <motion.input
         className="buddies__input"
         placeholder="Make a question"
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
+        initial={{ opacity: 0, scale: 0 }}
       />
-      <button className="buddies__button" onClick={sendQuestion}>
+      <motion.button className="buddies__button" onClick={sendQuestion} initial={{ opacity: 0, scale: 0 }}>
         Ask
-      </button>
+      </motion.button>
     </>
   );
 }

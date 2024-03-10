@@ -8,13 +8,16 @@ import { AnswersSelect } from "./AnswersSelect";
 import "./style.scss";
 import { QuestionType } from "./Types";
 import { Hourglass } from "../Hourglass";
+import { useAnimate, usePresence, motion } from "framer-motion";
+import { on } from "events";
 
 interface BuddiesProps {
   roomCode: string;
   users: User[];
+  onExit?: () => void;
 }
 
-export function Buddies({ roomCode, users }: BuddiesProps) {
+export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [allUsersWrittenQuestion, setAllUsersWrittenQuestion] = useState<number>(0);
   const [allUsersWrittenAnswer, setAllUsersWrittenAnswer] = useState<number>(0);
 
@@ -24,6 +27,31 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
   const [question, setQuestion] = useState<QuestionType>({ author: "", question: "" });
 
   const [endGame, setEndGame] = useState<boolean>(false);
+
+  const [scope, animate] = useAnimate();
+  const [isPresence, safeToRemove] = usePresence();
+
+  useEffect(() => {
+    if (isPresence) {
+      const showUpElements = async () => {
+        await animate(".buddies__header", { scale: [0, 1], opacity: [0, 1] }, { duration: 0.5, type: "spring" });
+        animate(".buddies__button", { scale: [0, 1], opacity: [0, 1] }, { duration: 0.8, type: "spring" });
+        await animate(".buddies__input", { scale: [0, 1], opacity: [0, 1] }, { duration: 0.8, type: "spring" });
+      };
+      const enterAnimation = async () => {
+        await animate(scope.current, { scaleY: [0, 1] }, { duration: 0.5 });
+        await showUpElements();
+      };
+      enterAnimation();
+    } else {
+      const exitAnimation = async () => {
+        await animate(scope.current, { scale: [1, 0] }, { duration: 0.5, type: "spring" });
+        safeToRemove();
+        onExit && onExit();
+      };
+      exitAnimation();
+    }
+  }, [isPresence]);
 
   const isQuestionWritten = () => {
     setWrittenQuestion(true);
@@ -89,7 +117,7 @@ export function Buddies({ roomCode, users }: BuddiesProps) {
   }, [allUsersWrittenQuestion, allUsersWrittenAnswer]);
 
   return (
-    <div className="buddies">
+    <div className="buddies" ref={scope}>
       {endGame ? (
         <h1>End Game</h1>
       ) : !writtenQuestion ? (
