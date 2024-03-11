@@ -238,6 +238,8 @@ module.exports = (
             });
         }).then((row) => {
             row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
+        }).catch(() => {
+            clearInterval(cardsTimeInterval);
         });
     }, 1000);
   });
