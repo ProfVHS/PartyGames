@@ -59,10 +59,6 @@ server.listen(3000, async () => {
     db.run(
       'CREATE TABLE bomb ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);'
     );
-    // cards
-    db.run(
-      'CREATE TABLE cards ("id" INTEGER NOT NULL PRIMARY KEY, "id_card" INTEGER NOT NULL, "id_room" VARCHAR(5) NOT NULL, "isPositive" BOOLEAN NOT NULL, "score" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
-    );
   });
 
   const io = new Server(server, {

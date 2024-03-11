@@ -106,9 +106,6 @@ module.exports = (
                 // send cardsArray to all users in room
                 console.log("cards in start game - ", cards);
                 socket.nsp.to(roomCode).emit("receiveCardsArray", cards);
-                cards.forEach((card) => {
-                    db.run(`INSERT INTO cards (id_card,id_room,isPositive,score) VALUES (${card.id},"${roomCode}", ${card.isPositive}, ${card.score})`);
-                });
             });
 
             updateRoomTime(roomCode, 15, 15);
@@ -125,16 +122,7 @@ module.exports = (
     // give or take points, depends on card type and number of users who selected this card
     socket.on("checkCard", async (data: {roomCode: string, id: number}) => {
         
-        const card = await new Promise<Cards>((resolve, reject) => {
-            db.get(`SELECT * FROM cards WHERE id_room = "${data.roomCode}" AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
-                if(err){
-                    console.log("Cards");
-                    reject(err);
-                } else {
-                    resolve(card_row);
-                }
-            })
-        });
+        const card = cardsArray.find((cards) => cards.roomCode === data.roomCode)?.cards.find((card) => card.id === data.id);
 
         const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
             db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
@@ -148,14 +136,14 @@ module.exports = (
         
         });
 
-        if(card.isPositive){
+        if(card?.isPositive){
             userSelectedCard.forEach((user) => {
                 const score = card.score / userSelectedCard.length;
                 updateUserScore(user.id, score, socket);
             });
-        } else {
+        } else if(card?.isPositive === false) {
             userSelectedCard.forEach((user) => {
-                const score = -card.score * userSelectedCard.length;
+                const score = card.score * userSelectedCard.length;
                 updateUserScore(user.id, score, socket);
             });
         }
@@ -163,14 +151,10 @@ module.exports = (
     });
     // end round cards
     socket.on("endRoundCards", async (roomCode: string) => {
-        // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
         cardsArray.splice(cardsArray.findIndex((cards) => cards.roomCode === roomCode), 1);
     });
     // end game cards
     socket.on("endGameCards",async (roomCode: string) => {
-        // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
         cardsArray.splice(cardsArray.findIndex((cards) => cards.roomCode === roomCode), 1);
         // update in_game to false, round to 1
         updateRoomRound(roomCode, 0, socket);
