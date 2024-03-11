@@ -155,6 +155,12 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
     }
   }, [time]);
 
+  useEffect(() => {
+    if(!cards){
+      socket.emit("getCards", roomCode);
+    };
+  }, [window.onload]);
+
   const handleCardSelect = (id: number) => {
     setSelectedCard(id);
   };

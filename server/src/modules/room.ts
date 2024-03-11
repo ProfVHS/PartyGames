@@ -57,12 +57,13 @@ module.exports = (
     console.log("Is room in game - ", isRoomInGame);
     console.log("Users length - ", usersLength);
 
-    if(!isRoomInGame){
+    if(usersLength == 1){
+      console.log("Nie jest w pokoju tylko jeden gracz");
+      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+    } else if(!isRoomInGame){
+      console.log("Nie jest w pokoju");
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-      if(usersLength == 1){
-        db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
-        db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-      }
     } else {
       db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
 
@@ -86,6 +87,7 @@ module.exports = (
         console.log("Czekaj na reszte graczy");
         updateRoomTurn(roomCode, 0, socket);
       } else if(users[turn].id == socket.id){
+        console.log("Zmiana tury (> 2)");
         changeRoomTurn(roomCode, socket);
       }
     }
@@ -117,7 +119,7 @@ module.exports = (
 
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
       db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND isDisconnect = true`, [], (err: Error, exist: Count) => {
-        if (!err){
+        if(!err){
           resolve(exist)
         }
       });
@@ -224,11 +226,12 @@ module.exports = (
   socket.on("stopwatchTime", async (roomCode: string) => {
     // set interval to decrease time_left every second
     const cardsTimeInterval = setInterval( async () => {
-        db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = ${roomCode}`);
+        db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = "${roomCode}"`);
         // send time_left to all users in room
-        return new Promise<Room>((resolve, reject) => {
+        new Promise<Room>((resolve, reject) => {
             db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
                 if(err){
+                    console.log("StopwatchTime error:");
                     reject(err);
                 } else {
                     resolve(row);
@@ -236,6 +239,8 @@ module.exports = (
             });
         }).then((row) => {
             row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
+        }).catch(() => {
+            clearInterval(cardsTimeInterval);
         });
     }, 1000);
   });

@@ -3,11 +3,18 @@ import { Database } from 'sqlite3';
 
 import { Room, User } from '../index';
 
-interface Cards {
+type Cards = {
     id: number,
     isPositive: boolean,
     score: number
 };
+
+type CardsArray = {
+    roomCode: string,
+    cards: Cards[]
+}
+
+const cardsArray: CardsArray[] = [];
 
 module.exports = (
     io: Server, 
@@ -25,7 +32,8 @@ module.exports = (
         return new Promise<Room>((resolve, reject) => {
             db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
                 if(err){
-                    reject("Error: Score arrays");
+                    console.log("Score Arrays Cards error:");
+                    reject(err);
                 } else {
                     resolve(room_row);                    
                 }
@@ -37,7 +45,7 @@ module.exports = (
         return new Promise<Cards[]>((resolve, reject) => {
             const array: Cards[] = [];
 
-            scoreArrays(roomCode).then((row) => {
+            scoreArrays(roomCode).then(async (row) => {
                 return new Promise<[number[], number[]]>((resolve, reject) => {
                     console.log("row.round - ",row.round);
                     switch(row.round){
@@ -80,6 +88,7 @@ module.exports = (
                             }
                         }
                     }
+                    cardsArray.push({ roomCode, cards: array });
                     resolve(array);
                 });
             });            
@@ -95,64 +104,58 @@ module.exports = (
             // generate cards for turn, set time_left to 15 and time_max to 15
             generateCards(roomCode).then((cards: Cards[]) => {
                 // send cardsArray to all users in room
+                console.log("cards in start game - ", cards);
                 socket.nsp.to(roomCode).emit("receiveCardsArray", cards);
-                cards.forEach((card) => {
-                    db.run(`INSERT INTO cards (id_card,id_room,isPositive,score) VALUES (${card.id},"${roomCode}", ${card.isPositive}, ${card.score})`);
-                });
             });
 
             updateRoomTime(roomCode, 15, 15);
         });
     });
+    // gets cards from database
+    socket.on("getCards", async (roomCode: string) => {
+        const cards = cardsArray.find((cards) => cards.roomCode === roomCode)?.cards;
+
+        console.log("cards when joining - ", cards);
+
+        socket.emit("receiveCardsArray", cards);
+    });
     // give or take points, depends on card type and number of users who selected this card
     socket.on("checkCard", async (data: {roomCode: string, id: number}) => {
-        // get card from cardsArray
-        return new Promise<[Cards, User[]]>((resolve, reject) => {
-            Promise.all([
-                new Promise<Cards>((resolveCards, rejectCards) => {
-                    db.get(`SELECT * FROM cards WHERE id_room = "${data.roomCode}" AND id_card = ${data.id}`, [], (err: Error, card_row: Cards) => {
-                        if(err){
-                            rejectCards(err);
-                        } else {
-                            resolveCards(card_row);
-                        }
-                    })
-                }),
-                new Promise<User[]>((resolveUsers, rejectUsers) => {
-                    db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id}`, [], (err: Error, users_rows: User[]) => {
-                        if(err){
-                            rejectUsers(err);
-                        } else {
-                            resolveUsers(users_rows);
-                        }
-                    })
-                })
-            ]).then(([card_row, users_rows]) => {
-                resolve([card_row, users_rows]);
-            }).catch((error) => {
-                reject(error);
-            });
-        }).then(([card_row, users_rows]) => {
-            users_rows.forEach((user) => {
-                if(card_row.isPositive){
-                    const score = card_row.score / users_rows.length;
-                    updateUserScore(user.id, score, socket);
+        
+        const card = cardsArray.find((cards) => cards.roomCode === data.roomCode)?.cards.find((card) => card.id === data.id);
+
+        const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+                if(err){
+                    console.log('Users (Cards) error:');
+                    reject(err);
                 } else {
-                    const score = -card_row.score * users_rows.length;
-                    updateUserScore(user.id, score, socket);
+                    resolve(users_rows);
                 }
-            });
+            })
+        
         });
+
+        if(card?.isPositive){
+            userSelectedCard.forEach((user) => {
+                const score = card.score / userSelectedCard.length;
+                updateUserScore(user.id, score, socket);
+            });
+        } else if(card?.isPositive === false) {
+            userSelectedCard.forEach((user) => {
+                const score = card.score * userSelectedCard.length;
+                updateUserScore(user.id, score, socket);
+            });
+        }
+       
     });
     // end round cards
     socket.on("endRoundCards", async (roomCode: string) => {
-        // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
+        cardsArray.splice(cardsArray.findIndex((cards) => cards.roomCode === roomCode), 1);
     });
     // end game cards
     socket.on("endGameCards",async (roomCode: string) => {
-        // delete cards from cards table
-        db.run(`DELETE FROM cards WHERE id_room = "${roomCode}"`);
+        cardsArray.splice(cardsArray.findIndex((cards) => cards.roomCode === roomCode), 1);
         // update in_game to false, round to 1
         updateRoomRound(roomCode, 0, socket);
         console.log("end game cards");
