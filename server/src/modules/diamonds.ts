@@ -46,7 +46,7 @@ module.exports = (
     // find min value in array without 0
     const findWinners = async (roomCode: string, diamondArray: number[]) => {
         return new Promise<User[]>((resolveUsers, rejectUsers) => {
-            db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND isDisconnect = false`, [], (err: Error, rows: User[]) => {
                 if(err){
                     rejectUsers(err);
                 } else {
@@ -103,8 +103,15 @@ module.exports = (
             scoreArrays(roomCode).then((array) => {
                 console.log(array);
                 socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
-                updateRoomTime(roomCode, 5, 5);
+                updateRoomTime(roomCode, 10, 10);
             });
+        });
+    });
+
+    socket.on("getDiamondsScore", async (roomCode: string) => {
+        scoreArrays(roomCode).then((array) => {
+            console.log(array);
+            socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
         });
     });
 

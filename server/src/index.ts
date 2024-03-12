@@ -183,7 +183,7 @@ server.listen(3000, async () => {
   // change turn
   const changeRoomTurn = async (roomCode: string, socket: Socket) => {
     const users = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
         if (err) {
           console.log("Users (Change Turn) error");
           reject(err);
@@ -207,11 +207,24 @@ server.listen(3000, async () => {
     Promise.all([users, room]).then(() => {
       // turn_row.turn (0-7), users_rows.length (2-8)
       // if last user, turn = 0, else turn + 1
-      if (room.turn >= users.length - 1) {
-        updateRoomTurn(roomCode, 0, socket);
-      } else {
-        updateRoomTurn(roomCode, room.turn + 1, socket);
+
+      const skipTurn = (x: number) => {
+        
+        if(users[room.turn+1].alive == false || users[room.turn+1].isDisconnect == true){
+          skipTurn(x+1);
+        }
       }
+
+
+
+      const nextTurn = () => {
+        if (room.turn >= users.length - 1) {
+          updateRoomTurn(roomCode, 0, socket);
+        } else {
+          updateRoomTurn(roomCode, room.turn + 1, socket);
+        }
+      }
+      
     }).catch((error: Error) => {
       console.log("Error Change Turn", error);
     });

@@ -85,7 +85,11 @@ module.exports = (
 
       if(usersLength == 2){
         console.log("Czekaj na reszte graczy");
-        updateRoomTurn(roomCode, 0, socket);
+        const userID = users.findIndex(user => user.id != socket.id);
+
+        console.log("UserID - ", userID);
+
+        updateRoomTurn(roomCode, userID, socket);
       } else if(users[turn].id == socket.id){
         console.log("Zmiana tury (> 2)");
         changeRoomTurn(roomCode, socket);
