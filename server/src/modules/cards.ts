@@ -177,6 +177,7 @@ module.exports = (
     // update in_game to false, round to 1
     updateRoomRound(roomCode, 0, socket);
     console.log("end game cards");
+    socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   //#endregion
 };

@@ -3,103 +3,108 @@ import { Database } from "sqlite3";
 import { Room, User } from "../index";
 
 type Question = {
-    user: string;
-    question: string;
-}
+  user: string;
+  question: string;
+};
 
 type QuestionArray = {
-    room: string;
-    questions: Question[];
-}
+  room: string;
+  questions: Question[];
+};
 
 const questionsArray: QuestionArray[] = [];
 
 type Answer = {
-    user: string;
-    answer: string;
-}
+  user: string;
+  answer: string;
+};
 
 type AnswersArray = {
-    room: string;
-    answers: Answer[];
-}
+  room: string;
+  answers: Answer[];
+};
 
 const answersArray: AnswersArray[] = [];
 
 module.exports = (
-    io: Server,
-    socket: Socket,
-    db: Database,
-    changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
+  io: Server,
+  socket: Socket,
+  db: Database,
+  changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>
 ) => {
-    //#region buddies functions
-    const startNewRound = async (roomCode: string) => {
-        await changeRoomRound(roomCode, socket);
+  //#region buddies functions
+  const startNewRound = async (roomCode: string) => {
+    await changeRoomRound(roomCode, socket);
 
-        const questionIndex = Math.floor(Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length!-1));
-        const question = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].question;
-        const user = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].user;
+    const questionIndex = Math.floor(
+      Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length! - 1)
+    );
+    const question = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].question;
+    const user = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].user;
 
-        socket.nsp.to(roomCode).emit("receiveQuestionBuddies", question, user);
-        
-        questionsArray.find((r) => r.room === roomCode)?.questions.splice(questionIndex, 1);
-        
-        answersArray.find((r) => r.room === roomCode)?.answers.splice(0, answersArray.find((r) => r.room === roomCode)?.answers.length!);
+    socket.nsp.to(roomCode).emit("receiveQuestionBuddies", question, user);
 
-        socket.nsp.to(roomCode).emit("newRoundBuddies");
-    };
+    questionsArray.find((r) => r.room === roomCode)?.questions.splice(questionIndex, 1);
 
-    const endGame = async (roomCode: string) => {
-        socket.nsp.to(roomCode).emit("endGameBuddies");
-    };
-    //#endregion
+    answersArray
+      .find((r) => r.room === roomCode)
+      ?.answers.splice(0, answersArray.find((r) => r.room === roomCode)?.answers.length!);
 
-    //#region buddies sockets
-    socket.on("sendQuestionBuddies", async (roomCode: string, question: string) => {
-        if(!questionsArray.find((r) => r.room === roomCode)){
-            questionsArray.push({room: roomCode, questions: [{user: socket.id, question: question}]});
-        }
-        else{
-            questionsArray.find((r) => r.room === roomCode)?.questions.push({user: socket.id, question: question});
-        }
+    socket.nsp.to(roomCode).emit("newRoundBuddies");
+  };
 
-        const questions_length = questionsArray.find((r) => r.room === roomCode)?.questions.length;
+  const endGame = async (roomCode: string) => {
+    socket.nsp.to(roomCode).emit("endGameBuddies");
+    socket.nsp.to(roomCode).emit("receiveNextGame");
+  };
+  //#endregion
 
-        socket.nsp.to(roomCode).emit("allQuestionsBuddies", questions_length);
-    });
+  //#region buddies sockets
+  socket.on("sendQuestionBuddies", async (roomCode: string, question: string) => {
+    if (!questionsArray.find((r) => r.room === roomCode)) {
+      questionsArray.push({ room: roomCode, questions: [{ user: socket.id, question: question }] });
+    } else {
+      questionsArray.find((r) => r.room === roomCode)?.questions.push({ user: socket.id, question: question });
+    }
 
-    socket.on("sendAnswerBuddies", async (roomCode: string, answer: string) => {
-        if(!answersArray.find((r) => r.room === roomCode)){
-            answersArray.push({room: roomCode, answers: [{user: socket.id, answer: answer}]});
-        }
-        else{
-            answersArray.find((r) => r.room === roomCode)?.answers.push({user: socket.id, answer: answer});
-        }
+    const questions_length = questionsArray.find((r) => r.room === roomCode)?.questions.length;
 
-        const answers_length = answersArray.find((r) => r.room === roomCode)?.answers.length;
-        socket.nsp.to(roomCode).emit("allAnswersBuddies", answers_length);
-    });
+    socket.nsp.to(roomCode).emit("allQuestionsBuddies", questions_length);
+  });
 
-    socket.once("getQuestionsBuddies", async (roomCode: string) => {
-        const questions = questionsArray.find((r) => r.room === roomCode)?.questions;
+  socket.on("sendAnswerBuddies", async (roomCode: string, answer: string) => {
+    if (!answersArray.find((r) => r.room === roomCode)) {
+      answersArray.push({ room: roomCode, answers: [{ user: socket.id, answer: answer }] });
+    } else {
+      answersArray.find((r) => r.room === roomCode)?.answers.push({ user: socket.id, answer: answer });
+    }
 
-        startNewRound(roomCode);
+    const answers_length = answersArray.find((r) => r.room === roomCode)?.answers.length;
+    socket.nsp.to(roomCode).emit("allAnswersBuddies", answers_length);
+  });
 
-        socket.nsp.to(roomCode).emit("receiveQuestionsBuddies", questions);
-    });
+  socket.once("getQuestionsBuddies", async (roomCode: string) => {
+    const questions = questionsArray.find((r) => r.room === roomCode)?.questions;
 
-    socket.on("getAnswersBuddies", async (roomCode: string) => {
-        const answers = answersArray.find((r) => r.room === roomCode)?.answers;
-        socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
-    });
+    startNewRound(roomCode);
 
-    socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
-        if(questionsArray.find((r) => r.room === roomCode)?.questions.length === 0){
-            endGame(roomCode);
-            socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
-            return;
-        }
-        startNewRound(roomCode);
-    });
-    //#endregion
+    socket.nsp.to(roomCode).emit("receiveQuestionsBuddies", questions);
+  });
+
+  socket.on("getAnswersBuddies", async (roomCode: string) => {
+    const answers = answersArray.find((r) => r.room === roomCode)?.answers;
+    socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
+  });
+
+  socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
+    if (questionsArray.find((r) => r.room === roomCode)?.questions.length === 0) {
+      endGame(roomCode);
+      socket.nsp
+        .to(roomCode)
+        .emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
+      return;
+    }
+    startNewRound(roomCode);
+  });
+  //#endregion
 };
