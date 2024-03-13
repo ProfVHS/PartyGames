@@ -20,7 +20,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
 
   const [gamesArray, setGamesArray] = useState<number[]>();
-  const currentGame = useRef<number | undefined>(3);
+  const currentGame = useRef<number | undefined>(1);
 
   const onceDone = useRef<boolean>(false);
 

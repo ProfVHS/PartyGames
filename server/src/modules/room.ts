@@ -53,16 +53,10 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
-    console.log("Room code - ", roomCode);
-    console.log("Is room in game - ", isRoomInGame);
-    console.log("Users length - ", usersLength);
-
     if(usersLength == 1){
-      console.log("Nie jest w pokoju tylko jeden gracz");
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
     } else if(!isRoomInGame){
-      console.log("Nie jest w pokoju");
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
     } else {
       db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
@@ -89,7 +83,7 @@ module.exports = (
 
         console.log("UserID - ", userID);
 
-        updateRoomTurn(roomCode, userID, socket);
+        changeRoomTurn(roomCode, socket);
       } else if(users[turn].id == socket.id){
         console.log("Zmiana tury (> 2)");
         changeRoomTurn(roomCode, socket);
@@ -128,8 +122,6 @@ module.exports = (
         }
       });
     })
-
-    console.log("Exist - ", ifUserExist.count);
 
     if(ifUserExist.count == 1){
       socket.join(data.roomCode);

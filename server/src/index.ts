@@ -4,6 +4,7 @@ import { Server, Socket } from "socket.io";
 import cors from "cors";
 
 import sqlite3 from "sqlite3";
+import { skip } from "node:test";
 
 export interface User {
   id: string, 
@@ -135,6 +136,8 @@ server.listen(3000, async () => {
   //#region Update data about rooms (turn, time, round)
   // update turn
   const updateRoomTurn = async (roomCode: string, turn: number, socket: Socket) => {
+    console.log("Update Room Turn - ", roomCode, turn);
+
     const updateTurn = new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`, (err) => {
         if(err){
@@ -147,7 +150,7 @@ server.listen(3000, async () => {
     });
 
     const users = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
         if (err) {
           console.log("Users (Update Room Turn) error");
           reject(err);
@@ -205,25 +208,22 @@ server.listen(3000, async () => {
     });
 
     Promise.all([users, room]).then(() => {
-      // turn_row.turn (0-7), users_rows.length (2-8)
-      // if last user, turn = 0, else turn + 1
-
-      const skipTurn = (x: number) => {
-        
-        if(users[room.turn+1].alive == false || users[room.turn+1].isDisconnect == true){
-          skipTurn(x+1);
-        }
-      }
-
-
-
-      const nextTurn = () => {
-        if (room.turn >= users.length - 1) {
-          updateRoomTurn(roomCode, 0, socket);
+  
+      const skipTurn = (turn: number) => {
+        if(turn >= users.length - 1){
+          db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+          skipTurn(-1);
         } else {
-          updateRoomTurn(roomCode, room.turn + 1, socket);
+          if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
+            skipTurn(turn+1);
+          } else {
+            updateRoomTurn(roomCode, turn+1, socket);
+          }
         }
-      }
+      };  
+
+      skipTurn(room.turn);
+
       
     }).catch((error: Error) => {
       console.log("Error Change Turn", error);
