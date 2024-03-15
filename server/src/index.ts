@@ -207,27 +207,31 @@ server.listen(3000, async () => {
       });
     });
 
-    Promise.all([users, room]).then(() => {
-  
-      const skipTurn = (turn: number) => {
-        if(turn >= users.length - 1){
-          db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
-          skipTurn(-1);
-        } else {
-          if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
-            skipTurn(turn+1);
-          } else {
-            updateRoomTurn(roomCode, turn+1, socket);
-          }
-        }
-      };  
+    // sprawdza czy ktoś jest żywy i nie jest disconnected
+    // zeby rekurencja nie robiła się w nieskończoność
 
-      skipTurn(room.turn);
+    // Promise.all([users, room]).then(() => {
+  
+    //   const skipTurn = (turn: number) => {
+    //     if(turn >= users.length - 1){
+    //       //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+    //       skipTurn(-1);
+    //     } else {
+    //       if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
+    //         skipTurn(turn+1);
+    //       } else {
+    //         updateRoomTurn(roomCode, turn+1, socket);
+    //       } 
+    //     } 
+    //   }; 
+
+    //   skipTurn(room.turn);
 
       
-    }).catch((error: Error) => {
-      console.log("Error Change Turn", error);
-    });
+    // }).catch((error: Error) => {
+    //   console.log("Error Change Turn", error);
+    // });
+
   };
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
@@ -262,6 +266,17 @@ server.listen(3000, async () => {
           reject(err);
         } else {
           resolve();
+        }
+      });
+    });
+  };
+  // set in game in room
+  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
+    new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = "${roomCode}"`, (err) => {
+        if(err){
+          console.log("Update Room In Game error");
+          reject(err);
         }
       });
     });
@@ -371,7 +386,7 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
-    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
     diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);

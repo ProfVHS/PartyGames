@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { Database } from 'sqlite3';
 
-import { User } from '../index';
+import { User, Room } from '../index';
 
 interface Bomb {
     id: string,
@@ -20,13 +20,16 @@ module.exports = (
     updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
     updateUserAlive: (id: string, alive: boolean) => void,
     updateUsersAlive: (roomCode: string, alive: boolean) => void,
+    updateRoomInGame: (roomCode: string, in_game: boolean) => void,
 ) => {
     //#region ctb functions
     // set data bomb
     const setDataBomb = async (max: number, counter: number, roomCode: string) => {
+        console.log(max, counter, roomCode);
         return new Promise<void>((resolve, reject) => {
             db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${roomCode}",${counter},${max})`, (err) => {
                 if(err){
+                    console.log("SET DATA bomb error");
                     reject(err);
                 } else {
                     resolve();
@@ -39,6 +42,7 @@ module.exports = (
         return new Promise<void>((resolve, reject) => {
             db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = "${roomCode}"`, (err) => {
                 if(err){
+                    console.log("UPDATE DATA bomb error");
                     reject(err);
                 } else {
                     resolve();
@@ -51,6 +55,7 @@ module.exports = (
         return new Promise<void>((resolve, reject) => {
             db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = "${roomCode}"`, (err) => {
                 if(err){
+                    console.log("INCREMENT bomb error");
                     reject(err);
                 } else {
                     resolve();
@@ -62,13 +67,31 @@ module.exports = (
 
     //#region ctb sockets
     // start the game click the bomb
-    socket.on("startGameCtb", (data: { roomCode: string, usersLength: number}) => {
-        // (generate max number of clicks) min - 1, max - users.lenght * 5
-        const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
-        // (generate turn) min - 0, max - users.lenght - 1
-        const turn = Math.round(Math.random() * ((data.usersLength * 1) - 1));
-        updateRoomTurn(data.roomCode,turn,socket);
-        setDataBomb(max,0,data.roomCode);
+    socket.on("startGameCtb", async (data: { roomCode: string, usersLength: number}) => {
+        const roomInGame = await new Promise<boolean>((resolve, reject) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}" AND in_game = true`, [], (err: Error, room_row: Room) => {
+                if(err){
+                    console.log("Start CTB In Room error");
+                    reject(err);
+                } else {
+                    if(room_row){
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }
+            });
+        });
+
+        if(!roomInGame){
+            // (generate max number of clicks) min - 1, max - users.lenght * 5
+            const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
+            // (generate turn) min - 0, max - users.lenght - 1
+            const turn = Math.round(Math.random() * ((data.usersLength * 1) - 1));
+            updateRoomInGame(data.roomCode, true);
+            updateRoomTurn(data.roomCode, turn, socket);
+            setDataBomb(max, 0, `${data.roomCode}`);
+        }
     });
 
     // send turn to the next player
@@ -94,6 +117,7 @@ module.exports = (
             const usersArray = await new Promise<User[]>((resolveUsers, rejectUsers) => {
                 db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
                     if (err) {
+                        
                         rejectUsers(err);
                     } else {
                         resolveUsers(users_rows);

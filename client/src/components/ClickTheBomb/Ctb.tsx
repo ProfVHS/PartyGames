@@ -109,19 +109,13 @@ export function Ctb({ roomCode, users, onExit }: CtbProps) {
 
   // make sure that the game starts only once by host
   useEffect(() => {
-    if (onceDone.current) return;
-
     if (users.length > 0) {
       if (users[0].id === socket.id) {
         const usersLength = users.length;
         socket.emit("startGameCtb", { roomCode, usersLength });
       }
     }
-
-    onceDone.current = true;
-  }, []);
-
-  setTimeout(() => {}, 2000);
+  }, [window.onload]);
 
   return (
     <div className="ctb" ref={scope}>
