@@ -63,11 +63,15 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
         setCurrentGame("MINIGAMEEND");
       }, leaderboardTime);
     }
+
+    if (currentGame === "ENDGAME") {
+      // TODO: change to end game screen
+    }
   }, [currentGame]);
 
   const handleMiniGameEnd = () => {
     const newMinigameIndex = minigameIndex + 1;
-    const newNextGame = gamesArray![newMinigameIndex];
+    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);
