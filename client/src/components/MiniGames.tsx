@@ -3,7 +3,7 @@ import { socket } from "../socket";
 import { useEffect, useState, useRef } from "react";
 import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
-import { User } from "../Types";
+import { User, Room } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 import { Battleships } from "./Battleships/Battleships";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
@@ -12,9 +12,10 @@ import { Buddies } from "./Buddies/Buddies";
 interface MiniGamesProps {
   roomCode: string;
   users: User[];
+  roomData: Room | null;
 }
 
-export default function MiniGames({ users, roomCode }: MiniGamesProps) {
+export default function MiniGames({ roomCode, users, roomData }: MiniGamesProps) {
   // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
   // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
   // const [isEndGame, setIsEndGame] = useState<boolean>(false);
@@ -44,7 +45,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   const switchGame = (currentGame: number | undefined) => {
     switch (currentGame) {
       case 1:
-        return <Ctb roomCode={roomCode} users={users} />;
+        return <Ctb roomCode={roomCode} users={users} roomData={roomData} />;
       case 2:
         return <Cards roomCode={roomCode} users={users} />;
       case 3:

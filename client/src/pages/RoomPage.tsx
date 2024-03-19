@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import ClickSound from "../assets/audio/click.mp3";
 
-import { User } from "../Types";
+import { User, Room } from "../Types";
 
 import MiniGames from "../components/MiniGames";
 import {socket} from "../socket";
@@ -19,8 +19,8 @@ export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
+  const [roomData, setRoomData] = useState<Room | null>(null);
   const [ready, setReady] = useState(false);
-
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
   const [startGame, setStartGame] = useState(false);
@@ -78,12 +78,20 @@ export default function RoomPage() {
     socket.on("receiveRoomData", (data) => {
       setUsersReady(data.ready);
       readyLength.current = data.ready;
+      setRoomData(data);
     });
-    // User disconnected
-    socket.on("user_disconnected", (data) => {
-      alert(data + " has left the room");
+
+    socket.on("receiveUserIsInRoom", (data) => {
+      if(!data){
+        navigate("/");
+      }
     });
     
+    return () => {
+      socket.off("receiveUsersData");
+      socket.off("receiveRoomData");
+      socket.off("userIsInRoom");
+    }
   }, [socket]);
 
   setTimeout(() => {
@@ -92,16 +100,6 @@ export default function RoomPage() {
 
   useEffect(() => {
     socket.emit("checkIfUserIsInRoom", roomCode);
-
-    socket.on("receiveUserIsInRoom", (data) => {
-      if(!data){
-        navigate("/");
-      }
-    });
-
-    return () => {
-      socket.off("userIsInRoom");
-    }
   }, []);
 
   useEffect(() => {
@@ -130,6 +128,7 @@ export default function RoomPage() {
             <MiniGames 
               roomCode={roomCode}
               users={users} 
+              roomData={roomData}
             />
           }
           {!startGame &&

@@ -7,17 +7,18 @@ import ClickSound from "../../assets/audio/click.mp3";
 import { socket } from "../../socket";
 import Explosion from "../Explosion";
 
-import { User } from "../../Types";
+import { User, Room } from "../../Types";
 import { useAnimate, usePresence, motion } from "framer-motion";
 import { C4 } from "./C4";
 
 interface CtbProps {
   roomCode: string;
   users: User[];
+  roomData: Room | null;
   onExit?: () => void;
 }
 
-export function Ctb({ roomCode, users, onExit }: CtbProps) {
+export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
   const [counter, setCounter] = useState<number>(0);
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
@@ -109,18 +110,28 @@ export function Ctb({ roomCode, users, onExit }: CtbProps) {
 
   // make sure that the game starts only once by host
   useEffect(() => {
+    if(onceDone.current) return;
+
     if (users.length > 0) {
       if (users[0].id === socket.id) {
         const usersLength = users.length;
         socket.emit("startGameCtb", { roomCode, usersLength });
       }
     }
+
+    onceDone.current = true;
+  }, [window.onload]);
+
+  useEffect(() => {
+    if(roomData?.in_game && turn === "") {
+      socket.emit("getBombData", roomCode);
+    }
   }, [window.onload]);
 
   return (
     <div className="ctb" ref={scope}>
       <span className="ctb__gamename">Click The Bomb</span>
-      <motion.span className="ctb__turn" initial={{ opacity: 0 }}>
+      <motion.span className="ctb__turn" initial={{ opacity: 50 }}>
         {turn}'s turn
       </motion.span>
       <motion.div className="ctb__c4" initial={{ scale: 0 }}>

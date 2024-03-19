@@ -206,31 +206,39 @@ server.listen(3000, async () => {
         }
       });
     });
+   
+      let turn = room.turn+1;
 
-    // sprawdza czy ktoś jest żywy i nie jest disconnected
-    // zeby rekurencja nie robiła się w nieskończoność
+      for(let i = 0; i < users.length; i++){
+        if(turn >= users.length){
+          console.log("Last User");
+          turn = 0;
+        } else if(users[turn].alive == false || users[turn].isDisconnect === true){
+          console.log("Next User");
+          turn++;
+        } else {
+          console.log("Update");
+          updateRoomTurn(roomCode, turn, socket);
+          break;
+        }
+      }
 
-    // Promise.all([users, room]).then(() => {
-  
-    //   const skipTurn = (turn: number) => {
-    //     if(turn >= users.length - 1){
-    //       //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
-    //       skipTurn(-1);
-    //     } else {
-    //       if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
-    //         skipTurn(turn+1);
-    //       } else {
-    //         updateRoomTurn(roomCode, turn+1, socket);
-    //       } 
-    //     } 
-    //   }; 
+      // const skipTurn = (turn: number) => {
+      //   if(turn >= users.length - 1){
+      //     //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+      //     skipTurn(-1);
+      //   } else {
+      //     if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
+      //       skipTurn(turn+1);
+      //     } else {
+      //       updateRoomTurn(roomCode, turn+1, socket);
+      //     } 
+      //   } 
+      // }; 
 
-    //   skipTurn(room.turn);
+      // skipTurn(room.turn);
 
-      
-    // }).catch((error: Error) => {
-    //   console.log("Error Change Turn", error);
-    // });
+   
 
   };
   // set time in room

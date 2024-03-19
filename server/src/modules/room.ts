@@ -1,10 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
-
-import { User } from "../index";
-import { Room } from "../index";
-import { resolve } from "path";
-import { rejects } from "assert";
+import { User, Room } from "../index";
 
 interface Count {
   count: number
@@ -80,8 +76,6 @@ module.exports = (
       if(usersLength == 2){
         console.log("Czekaj na reszte graczy");
         const userID = users.findIndex(user => user.id != socket.id);
-
-        console.log("UserID - ", userID);
 
         changeRoomTurn(roomCode, socket);
       } else if(users[turn].id == socket.id){
@@ -195,8 +189,6 @@ module.exports = (
   });
   // generate random games array
   socket.on("gamesArray", async ( roomCode: string ) => {
-    db.run(`UPDATE rooms SET in_game = "true" WHERE id = "${roomCode}"`);
-
     const gamesArray: Set<number> = new Set();
 
     while (gamesArray.size < 5 ){
