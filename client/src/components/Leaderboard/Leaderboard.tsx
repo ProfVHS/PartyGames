@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./style.scss";
 import { useAnimate, usePresence } from "framer-motion";
-import { on } from "events";
 
 interface LeaderboardProps {
   oldUsers: { username: string; score: number }[];

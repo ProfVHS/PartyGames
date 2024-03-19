@@ -1,9 +1,9 @@
 import { socket } from "../socket";
-//import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
+
 import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
-import { User } from "../Types";
+import { MinigamesType, User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
@@ -16,14 +16,10 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ users, roomCode }: MiniGamesProps) {
-  // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
-  // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
-  // const [isEndGame, setIsEndGame] = useState<boolean>(false);
+  const [gamesArray, setGamesArray] = useState<MinigamesType[]>([]);
 
-  const [gamesArray, setGamesArray] = useState<number[]>([]);
-
-  const [currentGame, setCurrentGame] = useState<number>(-1);
-  const [nextMinigame, setNextMinigame] = useState<number>(-1);
+  const [currentGame, setCurrentGame] = useState<MinigamesType>("MINIGAMEEND");
+  const [nextMinigame, setNextMinigame] = useState<MinigamesType>("MINIGAMEEND");
   const [minigameIndex, setMinigameIndex] = useState<number>(0);
 
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
@@ -40,7 +36,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
     });
 
     socket.on("receiveNextGame", () => {
-      setCurrentGame(-1);
+      setCurrentGame("MINIGAMEEND");
       console.log("next game");
     });
   }, [socket]);
@@ -58,13 +54,13 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
 
   // === on currentGame change === //
   useEffect(() => {
-    if (currentGame !== -1 && currentGame !== 0) {
+    if (currentGame !== "MINIGAMEEND" && currentGame !== "LEADERBOARD") {
       setUsersBeforeGame(users);
     }
 
-    if (currentGame === 0) {
+    if (currentGame === "LEADERBOARD") {
       setTimeout(() => {
-        setCurrentGame(-1);
+        setCurrentGame("MINIGAMEEND");
       }, 4000);
     }
   }, [currentGame]);
@@ -75,25 +71,19 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);
-    setTimeout(() => setCurrentGame(0), 1000);
+    setTimeout(() => setCurrentGame("LEADERBOARD"), 1000);
   };
 
-  console.log("usersBeforeGame");
-  console.log(usersBeforeGame);
-  console.log("users");
-  console.log(users);
-
+  console.log(gamesArray);
   return (
     <>
       <AnimatePresence>
-        {currentGame === 0 && (
-          <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />
-        )}
-        {currentGame === 1 && <Ctb roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
-        {currentGame === 2 && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
-        {currentGame === 3 && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
-        {currentGame === 4 && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
-        {currentGame === 5 && <Buddies roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "CLICKTHEBOMB" && <Ctb roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "COLORSMEMORY" && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "BUDDIES" && <Buddies roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
       </AnimatePresence>
     </>
   );

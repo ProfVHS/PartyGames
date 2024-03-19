@@ -40,3 +40,13 @@ export type MedalProps = {
   points: number;
   award: awardType;
 };
+
+export type MinigamesType =
+  | "MINIGAMEEND"
+  | "LEADERBOARD"
+  | "TRICKYDIAMONDS"
+  | "COLORSMEMORY"
+  | "BUDDIES"
+  | "CLICKTHEBOMB"
+  | "CARDS"
+  | "ENDGAME";

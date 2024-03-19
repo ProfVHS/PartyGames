@@ -218,10 +218,12 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     db.run(`UPDATE rooms SET in_game = "true" WHERE id = "${roomCode}"`);
 
-    const gamesSet: Set<number> = new Set();
+    const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "COLORSMEMORY", "CARDS", "BUDDIES"];
+    const gamesSet: Set<string> = new Set();
 
     while (gamesSet.size < 5) {
-      gamesSet.add(Math.floor(Math.random() * (5 - 1 + 1)) + 1);
+      const randomIndex = Math.floor(Math.random() * (5 - 1 + 1));
+      gamesSet.add(gamesIDarray[randomIndex]);
     }
 
     const gamesArray = Array.from(gamesSet);
