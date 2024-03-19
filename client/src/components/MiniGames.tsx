@@ -37,7 +37,6 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
 
     socket.on("receiveNextGame", () => {
       setCurrentGame("MINIGAMEEND");
-      console.log("next game");
     });
   }, [socket]);
 
@@ -59,9 +58,10 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
     }
 
     if (currentGame === "LEADERBOARD") {
+      const leaderboardTime = users.length * 500 + 3500;
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
-      }, 4000);
+      }, leaderboardTime);
     }
   }, [currentGame]);
 
@@ -74,7 +74,6 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
     setTimeout(() => setCurrentGame("LEADERBOARD"), 1000);
   };
 
-  console.log(gamesArray);
   return (
     <>
       <AnimatePresence>
