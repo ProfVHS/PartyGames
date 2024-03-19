@@ -121,8 +121,6 @@ export default function RoomPage() {
           {!startGame && (
             <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={usersReady} isReady={ready} />
           )}
-
-          <AudioVideoControls />
         </div>
       </div>
 

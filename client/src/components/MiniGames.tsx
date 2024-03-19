@@ -5,7 +5,6 @@ import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
 import { User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
-import { Battleships } from "./Battleships/Battleships";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 import { AnimatePresence } from "framer-motion";
@@ -31,47 +30,33 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
 
   const onceDone = useRef<boolean>(false);
 
+  // === Socket.io events === //
   useEffect(() => {
-    if (onceDone.current) return;
+    socket.on("receiveGamesArray", (data) => {
+      setGamesArray(data);
 
-    if (users[0].id === socket.id) {
-      socket.emit("gamesArray", roomCode);
-    }
-
-    onceDone.current = true;
-    document.cookie = `${socket.id}`;
-  }, []);
-
-  useEffect(() => {
-    if (!onceDone) {
-      socket.on("receiveGamesArray", (data) => {
-        setGamesArray(data);
-        console.log("test");
-        console.log(data);
-        console.log(gamesArray);
-        setCurrentGame(1);
-      });
-    }
+      const firstGame = data[0];
+      setCurrentGame(firstGame);
+    });
 
     socket.on("receiveNextGame", () => {
       setCurrentGame(-1);
       console.log("next game");
-      console.log(gamesArray);
-      const newMinigameIndex = minigameIndex + 1;
-      const newNextGame = gamesArray![newMinigameIndex];
-
-      setMinigameIndex(newMinigameIndex);
-      setNextMinigame(newNextGame);
     });
   }, [socket]);
 
-  //GET USERS BEFORE GAME STARTS
-
-  //on first render
+  // === on first render === //
   useEffect(() => {
     setUsersBeforeGame(users);
+    if (onceDone.current === false) {
+      if (users[0].id === socket.id) {
+        socket.emit("gamesArray", roomCode);
+      }
+      onceDone.current = true;
+    }
   }, []);
 
+  // === on currentGame change === //
   useEffect(() => {
     if (currentGame !== -1 && currentGame !== 0) {
       setUsersBeforeGame(users);
@@ -84,41 +69,31 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
     }
   }, [currentGame]);
 
-  // const switchGame = (currentGame: number | undefined) => {
-  //   switch (currentGame) {
-  //     case 1:
-  //       return <Ctb roomCode={roomCode} users={users} />;
-  //     case 2:
-  //       return <Cards roomCode={roomCode} users={users} />;
-  //     case 3:
-  //       return <TrickyDiamonds roomCode={roomCode} users={users} />;
-  //     case 4:
-  //       return <ColorsMemory roomCode={roomCode} users={users} />;
-  //     case 5:
-  //       return <Buddies roomCode={roomCode} users={users} />;
-  //     case 6:
-  //       return <Battleships />;
-  //     case 7:
-  //       return <div>Gra 7</div>;
-  //     case 8:
-  //       return <div>Gra 8</div>;
-  //     default:
-  //       return <div>Error</div>;
-  //   }
-  // };
+  const handleMiniGameEnd = () => {
+    const newMinigameIndex = minigameIndex + 1;
+    const newNextGame = gamesArray![newMinigameIndex];
 
-  // server-side : socket.emit('end-game', roomCode )
+    setMinigameIndex(newMinigameIndex);
+    setNextMinigame(newNextGame);
+    setTimeout(() => setCurrentGame(0), 1000);
+  };
+
+  console.log("usersBeforeGame");
+  console.log(usersBeforeGame);
+  console.log("users");
+  console.log(users);
+
   return (
     <>
       <AnimatePresence>
         {currentGame === 0 && (
           <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />
         )}
-        {currentGame === 1 && <Ctb roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 2 && <Cards roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 3 && <TrickyDiamonds roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 4 && <ColorsMemory roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 5 && <Buddies roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
+        {currentGame === 1 && <Ctb roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === 2 && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === 3 && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === 4 && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === 5 && <Buddies roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
       </AnimatePresence>
     </>
   );

@@ -56,11 +56,11 @@ function LeaderboardItem({ firstSideUser, secondSideUser, pos }: LeaderboardItem
   useEffect(() => {
     setTimeout(() => {
       setFlipping(true);
-    }, 300 * pos);
+    }, 500 * pos);
     setTimeout(() => {
       setIsFlipped(true);
       setFlipping(false);
-    }, 300 * pos + 300);
+    }, 500 * pos + 500);
   }, []);
 
   return (
