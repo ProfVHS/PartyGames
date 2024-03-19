@@ -165,6 +165,19 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
     }
   }, [isPresence]);
 
+  useEffect(() => {
+    console.log("isDead", isDead);
+    users.forEach((user) => {
+      if(user.id == socket.id){
+        console.log("User id");
+        if (user.alive == false) {
+          console.log("User is dead");
+          setIsDead(true);
+        }
+      }
+    });
+  }, [window.onload]);
+
   return (
     <div className="colormemory" ref={scope}>
       {isDead ? (

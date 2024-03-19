@@ -53,8 +53,10 @@ module.exports = (
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
     } else if(!isRoomInGame){
+      console.log("Usuwanie usera z pokoju");
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
     } else {
+      console.log("Zmiana usera z pokoju (in_game)");
       db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
 
       const users = await new Promise<User[]>((resolve, reject) => {
