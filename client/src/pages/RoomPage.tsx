@@ -11,8 +11,7 @@ import ClickSound from "../assets/audio/click.mp3";
 import { User } from "../Types";
 
 import MiniGames from "../components/MiniGames";
-import {socket} from "../socket";
-
+import { socket } from "../socket";
 
 export default function RoomPage() {
   const navigate = useNavigate();
@@ -38,7 +37,7 @@ export default function RoomPage() {
 
     setReady(!ready);
 
-    socket.emit("usersReady", { roomCode, ready });    
+    socket.emit("usersReady", { roomCode, ready });
   };
 
   // Resize window (Frontend)
@@ -51,7 +50,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     // check if all players are ready (must be at least 2 players)
-    if(readyLength.current == usersLength.current && readyLength.current > 1){
+    if (readyLength.current == usersLength.current && readyLength.current > 1) {
       // change lobby to mini games
       setStartGame(true);
     }
@@ -72,7 +71,6 @@ export default function RoomPage() {
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
       usersLength.current = data.length;
-      console.log(data);
     });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
@@ -83,7 +81,6 @@ export default function RoomPage() {
     socket.on("user_disconnected", (data) => {
       alert(data + " has left the room");
     });
-    
   }, [socket]);
 
   setTimeout(() => {
@@ -94,14 +91,14 @@ export default function RoomPage() {
     socket.emit("checkIfUserIsInRoom", roomCode);
 
     socket.on("receiveUserIsInRoom", (data) => {
-      if(!data){
+      if (!data) {
         navigate("/");
       }
     });
 
     return () => {
       socket.off("userIsInRoom");
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -117,30 +114,14 @@ export default function RoomPage() {
           windowSizeY > 600 &&
           users &&
           users.map((user) => {
-            return (
-              <Camera
-                key={user.id}
-                username={user.username}
-                score={user.score}
-              />
-            );
+            return <Camera key={user.id} username={user.username} score={user.score} />;
           })}
         <div className="roomContent">
-          {startGame && 
-            <MiniGames 
-              roomCode={roomCode}
-              users={users} 
-            />
-          }
-          {!startGame &&
-            <Lobby
-              roomCode={roomCode?.toString()}
-              onClick={handleReadyClick}
-              players={usersReady}
-              isReady={ready} 
-            />
-          }
-          
+          {startGame && <MiniGames roomCode={roomCode} users={users} />}
+          {!startGame && (
+            <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={usersReady} isReady={ready} />
+          )}
+
           <AudioVideoControls />
         </div>
       </div>

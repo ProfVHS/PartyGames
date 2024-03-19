@@ -30,16 +30,12 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
   const onceDone = useRef<boolean>(false);
-  const [test, setTest] = useState<boolean>(false);
 
   useEffect(() => {
     if (onceDone.current) return;
 
-    if (!test) {
-      if (users[0].id === socket.id) {
-        socket.emit("gamesArray", roomCode);
-      }
-      setTest(true);
+    if (users[0].id === socket.id) {
+      socket.emit("gamesArray", roomCode);
     }
 
     onceDone.current = true;
@@ -47,13 +43,20 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
   }, []);
 
   useEffect(() => {
-    socket.on("receiveGamesArray", (data) => {
-      setGamesArray(data);
-      setCurrentGame(data[0]);
-    });
+    if (!onceDone) {
+      socket.on("receiveGamesArray", (data) => {
+        setGamesArray(data);
+        console.log("test");
+        console.log(data);
+        console.log(gamesArray);
+        setCurrentGame(1);
+      });
+    }
 
     socket.on("receiveNextGame", () => {
+      setCurrentGame(-1);
       console.log("next game");
+      console.log(gamesArray);
       const newMinigameIndex = minigameIndex + 1;
       const newNextGame = gamesArray![newMinigameIndex];
 

@@ -133,6 +133,7 @@ module.exports = (
   socket.on("endGameColorsMemory", async (roomCode: string) => {
     updateRoomRound(roomCode, 0, socket);
     updateUsersAlive(roomCode, true);
+    socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   //#endregion
 };
