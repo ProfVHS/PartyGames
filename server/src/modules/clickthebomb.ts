@@ -9,6 +9,8 @@ interface Bomb {
     max: number
 };
 
+
+
 module.exports = (
     io: Server, 
     socket: Socket, 
@@ -27,6 +29,7 @@ module.exports = (
     const setDataBomb = async (max: number, counter: number, roomCode: string) => {
         console.log(max, counter, roomCode);
         return new Promise<void>((resolve, reject) => {
+            db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`);
             db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${roomCode}",${counter},${max})`, (err) => {
                 if(err){
                     console.log("SET DATA bomb error");
@@ -82,7 +85,8 @@ module.exports = (
                 }
             });
         });
-
+        db.run(`UPDATE rooms SET is_minigame_started = true WHERE id = "${data.roomCode}"`);
+        console.log(roomInGame);
         if(!roomInGame){
             // (generate max number of clicks) min - 1, max - users.lenght * 5
             const max = Math.round(Math.random() * ((data.usersLength * 5) - 1)) + 1;
@@ -115,7 +119,7 @@ module.exports = (
                 });
             });
             const usersArray = await new Promise<User[]>((resolveUsers, rejectUsers) => {
-                db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+                db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
                     if (err) {
                         
                         rejectUsers(err);

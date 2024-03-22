@@ -42,7 +42,7 @@ module.exports = (
     });
 
     const usersLength = await new Promise<number>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
         if(!err){
           resolve(users_rows.length);
         }
@@ -53,13 +53,18 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
+    // last user - delete room
     if(usersLength == 1){
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-    } else if(!isRoomInGame){
+    } 
+    // its lobby - delete user
+    else if(!isRoomInGame){
       db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-    } else {
-      db.run(`UPDATE users SET alive = false, isDisconnect = true WHERE id = "${socket.id}"`);
+    } 
+    // its game - set user as disconnected
+    else {
+      db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`);
 
       const users = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
@@ -77,17 +82,18 @@ module.exports = (
         });
       });
 
+      const lastUserIndex = users.findIndex(user => user.is_disconnect == false);
+      const disconnectedUserIndex = users.findIndex(user => user.id == socket.id);
+
       if(usersLength == 2){
-        console.log("Czekaj na reszte graczy");
-        const userID = users.findIndex(user => user.id != socket.id);
-
-        console.log("UserID - ", userID);
-
-        changeRoomTurn(roomCode, socket);
-      } else if(users[turn].id == socket.id){
-        console.log("Zmiana tury (> 2)");
+        socket.nsp.to(roomCode).emit("waitForOtherPlayers");
+        updateUserAlive(users[lastUserIndex].id, true);
+        updateRoomTurn(roomCode, lastUserIndex, socket);
+      } else {
         changeRoomTurn(roomCode, socket);
       }
+
+      socket.nsp.to(roomCode).emit("userDisconnectedRoom", users[disconnectedUserIndex].username);
     }
     socket.leave(roomCode);
 
@@ -108,15 +114,15 @@ module.exports = (
       }
     });
 
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
-    db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,is_minigame_started,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, false, 0)`);
+    db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string, name: string, cookie_id: string }) => {
     console.log("Cookies id - ",data.cookie_id);
 
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
-      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND isDisconnect = true`, [], (err: Error, exist: Count) => {
+      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
         if(!err){
           resolve(exist)
         }
@@ -126,7 +132,7 @@ module.exports = (
     if(ifUserExist.count == 1){
       socket.join(data.roomCode);
 
-      db.run(`UPDATE users SET id = "${socket.id}", isDisconnect = false WHERE id = "${data.cookie_id}"`);
+      db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.cookie_id}"`);
 
       socket.nsp.to(socket.id).emit("joiningRoom");;
     } else {
@@ -165,9 +171,9 @@ module.exports = (
           socket.nsp.to(socket.id).emit("joiningRoom");
 
           if(count[0].count == 0){
-            db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}",0,1)`);
+            db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}",0,1)`);
           } else {
-            db.run(`INSERT INTO users (id,username,score,alive,isDisconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1)`);
+            db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1)`);
           }  
         }   
       } else {

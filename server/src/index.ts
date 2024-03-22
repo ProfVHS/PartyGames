@@ -4,14 +4,13 @@ import { Server, Socket } from "socket.io";
 import cors from "cors";
 
 import sqlite3 from "sqlite3";
-import { skip } from "node:test";
 
 export interface User {
   id: string, 
   username: string, 
   score: number, 
   alive: boolean, 
-  isDisconnect: boolean,
+  is_disconnect: boolean, 
   id_room: string,
   id_selected: number,
   position: number,
@@ -24,6 +23,7 @@ export interface Room {
   time_left: number, 
   time_max: number,
   in_game: boolean,
+  is_minigame_started: boolean,
   round: number,
 };
 
@@ -51,10 +51,10 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "is_minigame_started" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "isDisconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -207,25 +207,22 @@ server.listen(3000, async () => {
       });
     });
 
-    // sprawdza czy ktoś jest żywy i nie jest disconnected
-    // zeby rekurencja nie robiła się w nieskończoność
-
     // Promise.all([users, room]).then(() => {
   
-    //   const skipTurn = (turn: number) => {
-    //     if(turn >= users.length - 1){
-    //       //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
-    //       skipTurn(-1);
-    //     } else {
-    //       if(users[turn+1].alive == false || users[turn+1].isDisconnect === true){
-    //         skipTurn(turn+1);
-    //       } else {
-    //         updateRoomTurn(roomCode, turn+1, socket);
-    //       } 
-    //     } 
-    //   }; 
+      const skipTurn = (turn: number) => {
+        if(turn >= users.length - 1){
+          //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+          skipTurn(-1);
+        } else {
+          if(users[turn+1].alive == false || users[turn+1].is_disconnect === true){
+            skipTurn(turn+1);
+          } else {
+            updateRoomTurn(roomCode, turn+1, socket);
+          } 
+        } 
+      }; 
 
-    //   skipTurn(room.turn);
+      skipTurn(room.turn);
 
       
     // }).catch((error: Error) => {

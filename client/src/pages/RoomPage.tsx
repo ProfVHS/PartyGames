@@ -81,10 +81,19 @@ export default function RoomPage() {
     });
     // User disconnected
     socket.on("user_disconnected", (data) => {
-      alert(data + " has left the room");
+      //alert(data + " has left the room");
     });
-    
+    socket.on("waitForOtherPlayers", () => {
+      //alert("You are the only player in the room. Wait for other players to join or leave the room.");
+    });
+    socket.on("userDisconnectedRoom", (username: string) => {
+      //alert(`${username} has left the room`);
+    });
   }, [socket]);
+
+  const handleUserDisconnect = (username: string) => {
+
+  };
 
   setTimeout(() => {
     setIsLoading(false);
@@ -134,7 +143,7 @@ export default function RoomPage() {
           }
           {!startGame &&
             <Lobby
-              roomCode={roomCode?.toString()}
+              roomCode={roomCode}
               onClick={handleReadyClick}
               players={usersReady}
               isReady={ready} 

@@ -4,7 +4,7 @@ export type User = {
   username: string;
   score: number;
   alive: boolean;
-  isDisconnected: boolean;
+  is_disconnected: boolean;
   id_room: string;
   id_selected: number;
   position: number;
@@ -17,6 +17,7 @@ export type Room = {
   time_left: number;
   time_max: number;
   in_game: boolean;
+  is_minigame_started: boolean;
   round: number;
 };
 
