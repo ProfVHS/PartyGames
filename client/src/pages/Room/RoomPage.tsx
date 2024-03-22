@@ -1,17 +1,16 @@
-import AudioVideoControls from "../components/AudioVideoControls";
-import Camera from "../components/Camera";
-import Lobby from "../components/Lobby";
+import Camera from "../../components/Camera/Camera";
+import Lobby from "../../components/Lobby";
 
-import "../styles/Room.scss";
+import "./style.scss";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import ClickSound from "../assets/audio/click.mp3";
+import ClickSound from "../../assets/audio/click.mp3";
 
-import { User } from "../Types";
+import { User } from "../../Types";
 
-import MiniGames from "../components/MiniGames";
-import { socket } from "../socket";
+import MiniGames from "../../components/MiniGames";
+import { socket } from "../../socket";
 
 export default function RoomPage() {
   const navigate = useNavigate();
@@ -118,11 +117,7 @@ export default function RoomPage() {
           })}
         <div className="roomContent">
           {startGame && <MiniGames roomCode={roomCode} users={users} />}
-          {!startGame && (
-            <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={usersReady} isReady={ready} />
-          )}
-
-          <AudioVideoControls />
+          {!startGame && <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={usersReady} isReady={ready} />}
         </div>
       </div>
 

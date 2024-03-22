@@ -1,13 +1,13 @@
-import "../styles/Home.scss";
+import "./style.scss";
 
-import Logo from "../assets/svgs/logo.svg";
+import Logo from "../../assets/svgs/logo.svg";
 
-import ClickSound from "../assets/audio/click.mp3";
+import ClickSound from "../../assets/audio/click.mp3";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import { socket } from "../socket";
+import { socket } from "../../socket";
 
 const adjective = [
   "Ultra",
@@ -87,9 +87,7 @@ export default function HomePage() {
   }, []);
 
   const handleRandomRoomCode = () => {
-    setRandomRoomCode(
-      (Math.random() + 1).toString(36).substring(7).toUpperCase()
-    );
+    setRandomRoomCode((Math.random() + 1).toString(36).substring(7).toUpperCase());
   };
 
   const inputHandler = (roomCode: string) => {
@@ -111,8 +109,7 @@ export default function HomePage() {
     new Audio(ClickSound).play();
 
     if (roomExistence) {
-      const randomUsername =
-        adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)];
+      const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)];
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
       socket.emit("joinRoom", { roomCode, name, cookie_id });
@@ -138,20 +135,17 @@ export default function HomePage() {
         handleRandomRoomCode();
         CreateHandleClick();
       } else {
-        const randomUsername =
-          adjective[Math.floor(Math.random() * adjective.length)] +
-          " " +
-          nouns[Math.floor(Math.random() * nouns.length)];
+        const randomUsername = adjective[Math.floor(Math.random() * adjective.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)];
         const name = username ? username : randomUsername;
         new Audio(ClickSound).play();
-        socket.emit("createRoom", name, randomRoomCode, cookie_id );
+        socket.emit("createRoom", name, randomRoomCode, cookie_id);
         startLoadingAnimation(randomRoomCode);
       }
     });
   };
 
   useEffect(() => {
-    socket.emit('disconnectUser');
+    socket.emit("disconnectUser");
   }, []);
 
   return (
@@ -159,23 +153,11 @@ export default function HomePage() {
       <img src={Logo} className="home__logo" />
       <span className="home__name">Party Games</span>
       <div className="home__formWrapper">
-        <input
-          className="input"
-          placeholder="Username"
-          style={{ marginBottom: "60px", marginTop: "40px" }}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+        <input className="input" placeholder="Username" style={{ marginBottom: "60px", marginTop: "40px" }} value={username} onChange={(e) => setUsername(e.target.value)} />
         <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
           Join
         </button>
-        <input
-          className="input"
-          placeholder="Room Code"
-          style={{ width: "48%" }}
-          value={roomCode}
-          onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())}
-        />
+        <input className="input" placeholder="Room Code" style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
         <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
           Create Room
         </button>

@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./style.scss";
 import { useAnimate, usePresence } from "framer-motion";
-import { on } from "events";
 
 interface LeaderboardProps {
   oldUsers: { username: string; score: number }[];
@@ -56,11 +55,11 @@ function LeaderboardItem({ firstSideUser, secondSideUser, pos }: LeaderboardItem
   useEffect(() => {
     setTimeout(() => {
       setFlipping(true);
-    }, 300 * pos);
+    }, 500 * pos);
     setTimeout(() => {
       setIsFlipped(true);
       setFlipping(false);
-    }, 300 * pos + 300);
+    }, 500 * pos + 500);
   }, []);
 
   return (

@@ -1,11 +1,10 @@
 import { socket } from "../socket";
-//import Leaderboard from "./Leaderboard";
 import { useEffect, useState, useRef } from "react";
+
 import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
-import { User } from "../Types";
+import { MinigamesType, User } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
-import { Battleships } from "./Battleships/Battleships";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 import { AnimatePresence } from "framer-motion";
@@ -17,108 +16,77 @@ interface MiniGamesProps {
 }
 
 export default function MiniGames({ users, roomCode }: MiniGamesProps) {
-  // const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(true);
-  // const [isLoadingGame, setIsLoadingGame] = useState<boolean>(false);
-  // const [isEndGame, setIsEndGame] = useState<boolean>(false);
+  const [gamesArray, setGamesArray] = useState<MinigamesType[]>([]);
 
-  const [gamesArray, setGamesArray] = useState<number[]>([]);
-
-  const [currentGame, setCurrentGame] = useState<number>(-1);
-  const [nextMinigame, setNextMinigame] = useState<number>(-1);
+  const [currentGame, setCurrentGame] = useState<MinigamesType>("MINIGAMEEND");
+  const [nextMinigame, setNextMinigame] = useState<MinigamesType>("MINIGAMEEND");
   const [minigameIndex, setMinigameIndex] = useState<number>(0);
 
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
   const onceDone = useRef<boolean>(false);
 
+  // === Socket.io events === //
   useEffect(() => {
-    if (onceDone.current) return;
+    socket.on("receiveGamesArray", (data) => {
+      setGamesArray(data);
 
-    if (users[0].id === socket.id) {
-      socket.emit("gamesArray", roomCode);
-    }
-
-    onceDone.current = true;
-    document.cookie = `${socket.id}`;
-  }, []);
-
-  useEffect(() => {
-    if (!onceDone) {
-      socket.on("receiveGamesArray", (data) => {
-        setGamesArray(data);
-        console.log("test");
-        console.log(data);
-        console.log(gamesArray);
-        setCurrentGame(1);
-      });
-    }
+      const firstGame = data[0];
+      setCurrentGame(firstGame);
+    });
 
     socket.on("receiveNextGame", () => {
-      setCurrentGame(-1);
-      console.log("next game");
-      console.log(gamesArray);
-      const newMinigameIndex = minigameIndex + 1;
-      const newNextGame = gamesArray![newMinigameIndex];
-
-      setMinigameIndex(newMinigameIndex);
-      setNextMinigame(newNextGame);
+      setCurrentGame("MINIGAMEEND");
     });
   }, [socket]);
 
-  //GET USERS BEFORE GAME STARTS
-
-  //on first render
+  // === on first render === //
   useEffect(() => {
     setUsersBeforeGame(users);
+    if (onceDone.current === false) {
+      if (users[0].id === socket.id) {
+        socket.emit("gamesArray", roomCode);
+      }
+      onceDone.current = true;
+    }
   }, []);
 
+  // === on currentGame change === //
   useEffect(() => {
-    if (currentGame !== -1 && currentGame !== 0) {
+    if (currentGame !== "MINIGAMEEND" && currentGame !== "LEADERBOARD") {
       setUsersBeforeGame(users);
     }
 
-    if (currentGame === 0) {
+    if (currentGame === "LEADERBOARD") {
+      const leaderboardTime = users.length * 500 + 3500;
       setTimeout(() => {
-        setCurrentGame(-1);
-      }, 4000);
+        setCurrentGame("MINIGAMEEND");
+      }, leaderboardTime);
+    }
+
+    if (currentGame === "ENDGAME") {
+      // TODO: change to end game screen
     }
   }, [currentGame]);
 
-  // const switchGame = (currentGame: number | undefined) => {
-  //   switch (currentGame) {
-  //     case 1:
-  //       return <Ctb roomCode={roomCode} users={users} />;
-  //     case 2:
-  //       return <Cards roomCode={roomCode} users={users} />;
-  //     case 3:
-  //       return <TrickyDiamonds roomCode={roomCode} users={users} />;
-  //     case 4:
-  //       return <ColorsMemory roomCode={roomCode} users={users} />;
-  //     case 5:
-  //       return <Buddies roomCode={roomCode} users={users} />;
-  //     case 6:
-  //       return <Battleships />;
-  //     case 7:
-  //       return <div>Gra 7</div>;
-  //     case 8:
-  //       return <div>Gra 8</div>;
-  //     default:
-  //       return <div>Error</div>;
-  //   }
-  // };
+  const handleMiniGameEnd = () => {
+    const newMinigameIndex = minigameIndex + 1;
+    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
-  // server-side : socket.emit('end-game', roomCode )
+    setMinigameIndex(newMinigameIndex);
+    setNextMinigame(newNextGame);
+    setTimeout(() => setCurrentGame("LEADERBOARD"), 1000);
+  };
+
   return (
     <>
       <AnimatePresence>
-        {currentGame === 0 && (
-          <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />
-        )}
-        {currentGame === 1 && <Ctb roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 2 && <Cards roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 3 && <TrickyDiamonds roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 4 && <ColorsMemory roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
-        {currentGame === 5 && <Buddies roomCode={roomCode} users={users} onExit={() => setCurrentGame(0)} />}
+        {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "CLICKTHEBOMB" && <Ctb roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "COLORSMEMORY" && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "BUDDIES" && <Buddies roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
       </AnimatePresence>
     </>
   );

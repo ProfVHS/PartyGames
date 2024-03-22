@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import "../styles/Camera.scss";
+import "./style.scss";
 import { motion } from "framer-motion";
 
 interface CameraProps {
@@ -35,12 +35,7 @@ function Camera({ username, score }: CameraProps) {
   }, [userScore]);
 
   return (
-    <motion.div
-      className="camera"
-      initial={{ scale: 0.0 }}
-      animate={{ scale: [0.0, 1.0] }}
-      transition={{ duration: 1, type: "spring" }}
-    >
+    <motion.div className="camera" initial={{ scale: 0.0 }} animate={{ scale: [0.0, 1.0] }} transition={{ duration: 1, type: "spring" }}>
       <span className="camera__username">{username}</span>
       <video className="camera__video" autoPlay={true} />
       <span className="camera__score">Score: {userScore}</span>
