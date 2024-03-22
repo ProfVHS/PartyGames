@@ -72,16 +72,12 @@ module.exports = (
     // start the game click the bomb
     socket.on("startGameCtb", async (data: { roomCode: string, usersLength: number}) => {
         const roomInGame = await new Promise<boolean>((resolve, reject) => {
-            db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}" AND in_game = true`, [], (err: Error, room_row: Room) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
                 if(err){
                     console.log("Start CTB In Room error");
                     reject(err);
                 } else {
-                    if(room_row){
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
+                    resolve(room_row.in_game);
                 }
             });
         });
@@ -174,6 +170,43 @@ module.exports = (
             }
 
         });
+    });
+
+    // get bomb data
+    socket.on("getBombData", async (roomCode: string) => {
+        console.log("getBombData");
+        const counter = await new Promise<number>((resolveBomb, rejectBomb) => {
+            db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
+                if (err) {
+                    rejectBomb(err);
+                } else {
+                    resolveBomb(bomb_row.counter);
+                }
+            });
+        });
+        const turn = await new Promise<number>((resolveTurn, rejectTurn) => {
+            db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+                if (err) {
+                    rejectTurn(err);
+                } else {
+                    resolveTurn(room_row.turn);
+                }
+            });
+        });
+        const users = await new Promise<User[]>((resolveUsers, rejectUsers) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+                if (err) {
+                    rejectUsers(err);
+                } else {
+                    resolveUsers(users_rows);
+                }
+            });
+        });
+        const username = users[turn].username;
+        const id = users[turn].id;
+
+        socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
+        socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
     });
     //#endregion
 };

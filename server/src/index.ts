@@ -224,10 +224,7 @@ server.listen(3000, async () => {
 
       skipTurn(room.turn);
 
-      
-    // }).catch((error: Error) => {
-    //   console.log("Error Change Turn", error);
-    // });
+   
 
   };
   // set time in room
