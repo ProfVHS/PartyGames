@@ -126,8 +126,6 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
     if(roomData?.in_game && turn === "") {
       socket.emit("getBombData", roomCode);
     }
-
-    onceDone.current = true;
   }, [window.onload]);
 
   return (

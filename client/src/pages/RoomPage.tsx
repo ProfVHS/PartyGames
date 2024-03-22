@@ -19,7 +19,7 @@ export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
-  const [roomData, setRoomData] = useState<Room | null>(null);
+  const [roomData, setRoomData] = useState<Room | null>();
   const [ready, setReady] = useState(false);
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
@@ -83,7 +83,18 @@ export default function RoomPage() {
     socket.on("user_disconnected", (data) => {
       alert(data + " has left the room");
     });
+    socket.on("receiveUserIsInRoom", (data) => {
+      if (!data) {
+        navigate("/");
+      }
+    });
     
+    return () => {
+      socket.off("receiveUsersData");
+      socket.off("receiveRoomData");
+      socket.off("user_disconnected");
+      socket.off("receiveUserIsInRoom");
+    };
   }, [socket]);
 
   const handleUserDisconnect = (username: string) => {
@@ -124,7 +135,7 @@ export default function RoomPage() {
             <MiniGames 
               roomCode={roomCode}
               users={users} 
-              roomData={roomData}
+              roomData={roomData!}
             />
           }
           {!startGame &&
