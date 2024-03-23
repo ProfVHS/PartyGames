@@ -76,6 +76,7 @@ export default function RoomPage() {
     });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
+      setRoomData(data);
       setUsersReady(data.ready);
       readyLength.current = data.ready;
     });
@@ -117,6 +118,7 @@ export default function RoomPage() {
 
   return (
     <>
+      <button onClick={() => {}}>Back</button>
       <div className="roomGrid">
         {windowSizeX > 800 &&
           windowSizeY > 600 &&
