@@ -1,0 +1,28 @@
+.last-user-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #f8f9fa;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    padding: 50px;
+    z-index: 1000;
+
+
+    button {
+        position: fixed;
+        top: 70%;
+        left: 45%;
+        background-color: #543786;
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.30);
+  }
+  

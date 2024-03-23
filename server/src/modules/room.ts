@@ -21,8 +21,11 @@ module.exports = (
   const InfoAboutRoom = async () => {
     const roomCode = await new Promise<string>((resolve, reject) => {
       db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
-        if (!err) {
-          if (row) {
+        if(err) {
+          console.log(`Info About Room (roomCode) error:`);
+          reject(err);
+        } else {
+          if(row){
             resolve(row.id_room);
           }
         }
@@ -31,7 +34,10 @@ module.exports = (
 
     const isRoomInGame = await new Promise<boolean>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-        if (!err) {
+        if(err) {
+          console.log(`Info About Room (isRoomInGame) error:`);
+          reject(err);
+        } else {
           resolve(row.in_game);
         }
       });
@@ -39,7 +45,10 @@ module.exports = (
 
     const usersLength = await new Promise<number>((resolve, reject) => {
       db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
-        if (!err) {
+        if(err) {
+          console.log(`Info About Room (usersLength) error:`);
+          reject(err);
+        } else {
           resolve(users_rows.length);
         }
       });
@@ -64,7 +73,10 @@ module.exports = (
 
       const users = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if (!err) {
+          if(err){
+            console.log(`Check Whats To Do With Room (users) error:`);
+            reject(err);
+          } else {
             resolve(users_rows);
           }
         });
@@ -72,7 +84,10 @@ module.exports = (
 
       const turn = await new Promise<number>((resolve, reject) => {
         db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-          if (!err) {
+          if(err){
+            console.log(`Check Whats To Do With Room (turn) error:`);
+            reject(err);
+          } else {
             resolve(row.turn);
           }
         });
@@ -101,7 +116,10 @@ module.exports = (
     socket.join(randomRoomCode);
 
     db.all(`SELECT * FROM users WHERE id = "${cookie_id}"`, [], async (err: Error, users_rows: User[]) => {
-      if (!err) {
+      if(err) {
+        console.log("Create Room error:");
+        console.log(err);
+      } else {
         if (users_rows.length > 0) {
           db.run(`DELETE FROM users WHERE id = "${cookie_id}"`);
           usersData(users_rows[0].id_room, socket);
@@ -118,8 +136,9 @@ module.exports = (
 
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
       db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
-        if (!err) {
-          resolve(exist);
+        if(err){
+          console.log("Join Room error:");
+          reject(err);
         }
       });
     });
@@ -133,7 +152,10 @@ module.exports = (
     } else {
       const users: User[] = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if (!err) {
+          if(err){
+            console.log("Join Room (users) error:");
+            reject(err);
+          } else {
             resolve(users_rows);
           }
         });
@@ -142,9 +164,11 @@ module.exports = (
       const count: Count[] = await new Promise<Count[]>((resolve, reject) => {
         db.all(
           `SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`,
-          [],
-          (err: Error, count_row: Count[]) => {
-            if (!err) {
+          [], (err: Error, count_row: Count[]) => {
+            if(err){
+              console.log("Join Room (count) error:");
+              reject(err);
+            } else {
               resolve(count_row);
             }
           }
@@ -153,7 +177,10 @@ module.exports = (
 
       const room: Room = await new Promise<Room>((resolve, reject) => {
         db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
-          if (!err) {
+          if(err){
+            console.log("Join Room (room) error:");
+            reject(err);
+          } else {
             resolve(room_row);
           }
         });

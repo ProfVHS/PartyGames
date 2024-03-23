@@ -145,6 +145,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    console.log("disconnecting user");
     socket.emit("disconnectUser");
   }, []);
 
