@@ -12,7 +12,7 @@ const exampleUsers: User[] = [
   {
     id: "0",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 150,
     alive: true,
     id_room: "0",
@@ -22,7 +22,7 @@ const exampleUsers: User[] = [
   {
     id: "1",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 300,
     alive: true,
     id_room: "0",
@@ -32,7 +32,7 @@ const exampleUsers: User[] = [
   {
     id: "2",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 75,
     alive: true,
     id_room: "0",
@@ -42,7 +42,7 @@ const exampleUsers: User[] = [
   {
     id: "3",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 2,
     alive: true,
     id_room: "0",
@@ -52,7 +52,7 @@ const exampleUsers: User[] = [
   {
     id: "4",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 400,
     alive: true,
     id_room: "0",
@@ -62,7 +62,7 @@ const exampleUsers: User[] = [
   {
     id: "5",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 250,
     alive: true,
     id_room: "0",
@@ -72,7 +72,7 @@ const exampleUsers: User[] = [
   {
     id: "6",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 100,
     alive: true,
     id_room: "0",
@@ -82,7 +82,7 @@ const exampleUsers: User[] = [
   {
     id: "7",
     username: "Ultra Mango Guy",
-    isDisconnected: false,
+    is_disconnected: false,
     score: 65,
     alive: true,
     id_room: "0",

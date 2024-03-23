@@ -136,7 +136,7 @@ module.exports = (
 
     const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
       db.all(
-        `SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND isDisconnect = false`,
+        `SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND is_disconnect = false`,
         [],
         (err: Error, users_rows: User[]) => {
           if (err) {

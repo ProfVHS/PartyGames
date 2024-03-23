@@ -44,6 +44,7 @@ module.exports = (
     await changeRoomRound(roomCode, socket).then(() => {
       addButton(roomCode);
       lightButton(roomCode);
+      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`);
     });
   });
 

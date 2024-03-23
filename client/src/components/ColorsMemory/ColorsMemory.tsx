@@ -105,6 +105,11 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   }, [time, isInGame]);
 
   useEffect(() => {
+    const userDead: boolean = users.find((user) => user.id == socket.id)?.alive || false;
+    setIsDead(!userDead);
+  }, [window.onload]);
+
+  useEffect(() => {
     const startGame = () => {
       socket.emit("startGameColorsMemory", roomCode);
     };
@@ -164,6 +169,19 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       exitAnimation();
     }
   }, [isPresence]);
+
+  useEffect(() => {
+    console.log("isDead", isDead);
+    users.forEach((user) => {
+      if(user.id == socket.id){
+        console.log("User id");
+        if (user.alive == false) {
+          console.log("User is dead");
+          setIsDead(true);
+        }
+      }
+    });
+  }, [window.onload]);
 
   return (
     <div className="colormemory" ref={scope}>

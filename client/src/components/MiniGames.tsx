@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
-import { MinigamesType, User } from "../Types";
+import { User, Room, MinigamesType } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
@@ -13,9 +13,10 @@ import Leaderboard from "./Leaderboard/Leaderboard";
 interface MiniGamesProps {
   roomCode: string;
   users: User[];
+  roomData: Room | null;
 }
 
-export default function MiniGames({ users, roomCode }: MiniGamesProps) {
+export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps) {
   const [gamesArray, setGamesArray] = useState<MinigamesType[]>([]);
 
   const [currentGame, setCurrentGame] = useState<MinigamesType>("MINIGAMEEND");
@@ -82,7 +83,7 @@ export default function MiniGames({ users, roomCode }: MiniGamesProps) {
     <>
       <AnimatePresence>
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
-        {currentGame === "CLICKTHEBOMB" && <Ctb roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "COLORSMEMORY" && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
