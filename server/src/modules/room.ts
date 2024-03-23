@@ -139,9 +139,13 @@ module.exports = (
         if(err){
           console.log("Join Room error:");
           reject(err);
+        } else {
+          resolve(exist);
         }
       });
     });
+
+    console.log("If user exist - ", ifUserExist);
 
     if (ifUserExist.count == 1) {
       socket.join(data.roomCode);

@@ -9,7 +9,7 @@ export default function LastUserNotification({ isOpen }: LastUserNotificationPro
         window.location.href = "/";
     };
 
-    if (!isOpen){
+    if (isOpen){
         let dialog: any = document.getElementById("last-user-dialog");
         dialog?.showModal();
     };
