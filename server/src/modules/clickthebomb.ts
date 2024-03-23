@@ -138,6 +138,7 @@ module.exports = (
           // send data to the client
           usersData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveEndCtb");
+          socket.nsp.to(roomCode).emit("receiveNextGame");
         } else {
           // user explode
           // update new max number of clicks and reset counter
