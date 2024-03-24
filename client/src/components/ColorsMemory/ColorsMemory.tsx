@@ -17,6 +17,8 @@ import { ProgressBar } from "../ProgressBar";
 import { Hourglass } from "../Hourglass";
 import { useAnimate, usePresence, motion } from "framer-motion";
 
+import LeaderboardGame from "../LeaderboardGame/LeaderboardGame";
+
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
 const audioForButtons = [
@@ -45,8 +47,11 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   const [lightButton, setLightButton] = useState<number | null>(null);
   const [isInGame, setIsInGame] = useState<boolean>(false);
   const [isDead, setIsDead] = useState<boolean>(false);
+  const [endGame, setEndGame] = useState<boolean>(false);
   const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
   const [time, setTime] = useState<number>(3000);
+
+  const [usersPositionArray, setUsersPositionArray] = useState<{ username: string; scoreToAdd: number | null; record: number }[]>();
 
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -95,7 +100,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
           setTime(time - 10);
         } else {
           setIsDead(true);
-          socket.emit("updateUserAlive", false);
+          socket.emit("buttonClickedColorsMemory", roomCode, -1, currentClickNumber);
           clearInterval(timeInterval);
         }
       }, 10);
@@ -118,8 +123,9 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       setIsDead(true);
     };
 
-    const endGame = () => {
-      console.log("end game");
+    const endGame = (usersPostion: { username: string; scoreToAdd: number | null; record: number }[]) => {
+      setEndGame(true);
+      setUsersPositionArray(usersPostion);
     };
 
     socket.on("sequenceColorsMemory", ButtonsSequence);
@@ -185,43 +191,47 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
   return (
     <div className="colormemory" ref={scope}>
-      {isDead ? (
-        <div className="colormemory__gameover">
-          <span className="colormemory__gameover__header">Game over</span>
-          <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
-          <span className="colormemory__gameover__waiting">
-            Waiting for other players
-            <div className="colormemory__gameover__waiting__dot">.</div>
-            <div className="colormemory__gameover__waiting__dot">.</div>
-            <div className="colormemory__gameover__waiting__dot">.</div>
-          </span>
-          <Hourglass />
-        </div>
-      ) : (
-        <>
-          <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
-            {ButtonsColors.map((color, index) => (
-              <Button
-                key={index}
-                id={index}
-                color={color}
-                isLight={lightButton === index}
-                isDisabled={!isInGame}
-                roomCode={roomCode}
-                onClick={handleClick}
-                currentClickNumber={currentClickNumber}
-                audio={audioForButtons[index]}
-              />
-            ))}
-          </motion.div>
-          <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
-            <span>Round: {round.current}</span>
-            <span>Score: 1</span>
-            <span>Current: {currentClickNumber}</span>
-            <ProgressBar max={3000} progress={time} width={"150px"} />
-          </motion.div>
-        </>
-      )}
+      {endGame ? 
+        <LeaderboardGame users={usersPositionArray}/>
+      : 
+        (isDead ? (
+          <div className="colormemory__gameover">
+            <span className="colormemory__gameover__header">Game over</span>
+            <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
+            <span className="colormemory__gameover__waiting">
+              Waiting for other players
+              <div className="colormemory__gameover__waiting__dot">.</div>
+              <div className="colormemory__gameover__waiting__dot">.</div>
+              <div className="colormemory__gameover__waiting__dot">.</div>
+            </span>
+            <Hourglass />
+          </div>
+        ) : (
+          <>
+            <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
+              {ButtonsColors.map((color, index) => (
+                <Button
+                  key={index}
+                  id={index}
+                  color={color}
+                  isLight={lightButton === index}
+                  isDisabled={!isInGame}
+                  roomCode={roomCode}
+                  onClick={handleClick}
+                  currentClickNumber={currentClickNumber}
+                  audio={audioForButtons[index]}
+                />
+              ))}
+            </motion.div>
+            <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
+              <span>Round: {round.current}</span>
+              <span>Score: 1</span>
+              <span>Current: {currentClickNumber}</span>
+              <ProgressBar max={3000} progress={time} width={"150px"} />
+            </motion.div>
+          </>
+        ))
+      }
     </div>
   );
 }

@@ -1,0 +1,51 @@
+.leaderboardGame {
+    background-color: #fff;
+    box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
+  
+    width: 300px;
+    min-height: 320px;
+    gap: 5px;
+    border-radius: 5px;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  
+    padding: 15px 5px;
+
+    &__title {
+        font-family: "Poppins";
+        font-size: 32px;
+        font-weight: bold;
+        color: #9d4edd;
+    }
+
+    &__grid {
+        width: 100%;
+        display: grid;
+        grid-template-rows: repeat(8, auto);
+        grid-template-columns: 100%;
+        gap: 8px;
+        justify-items: center;
+    }
+
+    &__item {
+        width: 94%;
+        height: 30px;
+        padding: 0 10px;
+    
+        border-radius: 5px;
+    
+        box-sizing: border-box;
+        box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.25);
+        background-color: #f1eaf7;
+    
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    
+        font-family: "Poppins";
+    
+        user-select: none;
+    }
+}
