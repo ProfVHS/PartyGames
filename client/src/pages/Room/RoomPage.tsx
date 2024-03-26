@@ -104,6 +104,10 @@ export default function RoomPage() {
     };
   }, [socket]);
 
+  useEffect(() => {
+    console.log(roomData);
+  }, [roomData]);
+
   const handleUserDisconnect = (username: string) => {};
 
   setTimeout(() => {

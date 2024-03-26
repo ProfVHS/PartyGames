@@ -145,7 +145,7 @@ module.exports = (
       });
     });
 
-    console.log("If user exist - ", ifUserExist);
+    console.log("If user exist - ", ifUserExist.count);
 
     if (ifUserExist.count == 1) {
       socket.join(data.roomCode);

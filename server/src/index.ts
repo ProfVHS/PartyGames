@@ -253,7 +253,7 @@ server.listen(3000, async () => {
   };
   // change round in room
   const changeRoomRound = async (roomCode: string, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET round = round + 1 WHERE id = "${roomCode}"`, [], (err) => {
         if (err) {
           console.log("Change Room Round error");
@@ -266,10 +266,21 @@ server.listen(3000, async () => {
   };
   // set in game in room
   const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = "${roomCode}"`, (err) => {
         if(err){
           console.log("Update Room In Game error");
+          reject(err);
+        }
+      });
+    });
+  };
+  // set is minigame started
+  const updateMinigameStarted = async (roomCode: string, isStarted: boolean) => {
+    await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET is_minigame_started = ${isStarted} WHERE id = "${roomCode}"`, (err) => {
+        if(err){
+          console.log("Update Minigame Started error");
           reject(err);
         }
       });
@@ -382,7 +393,7 @@ server.listen(3000, async () => {
     roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
     bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
     cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
-    diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
+    diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, updateMinigameStarted);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
     buddiesModule(io, socket, db, changeRoomRound);
   };
