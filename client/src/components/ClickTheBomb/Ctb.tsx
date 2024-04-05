@@ -22,6 +22,7 @@ export function Ctb({ roomCode, users, onExit }: CtbProps) {
   const [yourTurn, setYourTurn] = useState<boolean>(false);
   const [turn, setTurn] = useState<string>("");
   const [clicked, setClicked] = useState<boolean>(false);
+  const [yourClicks, setYourClicks] = useState<number>(0);
   const [isDead, setIsDead] = useState<boolean>(false);
   const [isExploded, setIsExploded] = useState<boolean>(false);
 
@@ -53,6 +54,7 @@ export function Ctb({ roomCode, users, onExit }: CtbProps) {
     new Audio(ClickSound).play();
     setClicked(true);
     socket.emit("counterCtb", roomCode);
+    setYourClicks((prevYourClicks) => prevYourClicks + 1);
   };
 
   const handleSkipButton = () => {
@@ -60,6 +62,8 @@ export function Ctb({ roomCode, users, onExit }: CtbProps) {
     setClicked(false);
     setYourTurn(false);
     socket.emit("changeTurnCtb", roomCode);
+    socket.emit("addClickForUser", roomCode, socket.id, yourClicks);
+    setYourClicks(0);
   };
 
   useEffect(() => {
