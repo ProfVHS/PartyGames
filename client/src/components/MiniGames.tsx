@@ -29,16 +29,31 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   // === Socket.io events === //
   useEffect(() => {
-    socket.on("receiveGamesArray", (data) => {
-      setGamesArray(data);
+    const solo = () => {
+      console.log("solo")
+      setCurrentGame("SOLOINROOM");
+    }
 
-      const firstGame = data[0];
-      setCurrentGame("CLICKTHEBOMB");
+    socket.on("receiveGamesArray", (games, current) => {
+      setGamesArray(games);
+
+      setMinigameIndex(current);
+
+      const firstGame = games[current];
+      setCurrentGame(firstGame);
     });
 
     socket.on("receiveNextGame", () => {
       setCurrentGame("MINIGAMEEND");
     });
+
+    socket.on("receiveSoloInRoom", solo);
+
+    return () => {
+      socket.off("receiveNextGame");
+      socket.off("receiveGamesArray");
+      //socket.off("receiveSoloInRoom", solo);
+    }
   }, [socket]);
 
   // === on first render === //
@@ -70,6 +85,16 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     }
   }, [currentGame]);
 
+  useEffect(() => {
+    if(!gamesArray){
+      socket.emit("gamesArray", roomCode);
+    }
+  }, [])
+
+  useEffect(() => {
+    document.cookie = `${socket.id}`;
+  }, [])
+
   const handleMiniGameEnd = () => {
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
@@ -82,6 +107,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   return (
     <>
       <AnimatePresence>
+        {currentGame === "SOLOINROOM" && <input placeholder="Samotny Wilk"/>}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}

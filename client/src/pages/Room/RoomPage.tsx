@@ -69,6 +69,11 @@ export default function RoomPage() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    const waitForOthers = (data: boolean) => {
+      console.log("wait for other", data);
+      setIsOpen(data);
+    };
+
     // Users data
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
@@ -91,24 +96,16 @@ export default function RoomPage() {
       console.log(data + " has left the room");
     });
     //
-    socket.on("waitForOtherPlayers", () => {
-      console.log("Waiting for other players...");
-      setIsOpen(true);
-    });
+    socket.on("waitForOtherPlayers", waitForOthers);
 
     return () => {
       socket.off("receiveUsersData");
       socket.off("receiveRoomData");
       socket.off("user_disconnected");
       socket.off("receiveUserIsInRoom");
+      socket.off("waitForOtherPlayers", waitForOthers);
     };
   }, [socket]);
-
-  useEffect(() => {
-    console.log(roomData);
-  }, [roomData]);
-
-  const handleUserDisconnect = (username: string) => {};
 
   setTimeout(() => {
     setIsLoading(false);
@@ -124,11 +121,9 @@ export default function RoomPage() {
     });
   });
 
-
-
   return (
     <>
-      <LastUserNotification isOpen={isOpen} />
+      {isOpen && <LastUserNotification />}
       <div className="roomGrid">
         {windowSizeX > 800 &&
           windowSizeY > 600 &&

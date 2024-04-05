@@ -43,6 +43,7 @@ export type MedalProps = {
 };
 
 export type MinigamesType =
+  | "SOLOINROOM"
   | "MINIGAMEEND"
   | "LEADERBOARD"
   | "TRICKYDIAMONDS"
