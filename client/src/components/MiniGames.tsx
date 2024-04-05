@@ -9,6 +9,7 @@ import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 import { AnimatePresence } from "framer-motion";
 import Leaderboard from "./Leaderboard/Leaderboard";
+import LastUserNotification from "./LastUserNotification/LastUserNotification";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -29,13 +30,10 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   // === Socket.io events === //
   useEffect(() => {
-    const solo = () => {
-      console.log("solo")
-      setCurrentGame("SOLOINROOM");
-    }
-
     socket.on("receiveGamesArray", (games, current) => {
       setGamesArray(games);
+
+      console.log("Gry");
 
       setMinigameIndex(current);
 
@@ -47,12 +45,14 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setCurrentGame("MINIGAMEEND");
     });
 
-    socket.on("receiveSoloInRoom", solo);
+    socket.on("receiveSoloInRoom", () => {
+      setCurrentGame("SOLOINROOM");
+    });
 
     return () => {
       socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
-      //socket.off("receiveSoloInRoom", solo);
+      socket.off("receiveSoloInRoom");
     }
   }, [socket]);
 
@@ -86,7 +86,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   }, [currentGame]);
 
   useEffect(() => {
-    if(!gamesArray){
+    if(gamesArray.length === 0){
+      console.log("no games array")
       socket.emit("gamesArray", roomCode);
     }
   }, [])
@@ -107,7 +108,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   return (
     <>
       <AnimatePresence>
-        {currentGame === "SOLOINROOM" && <input placeholder="Samotny Wilk"/>}
+        {currentGame === "SOLOINROOM" && <LastUserNotification />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}

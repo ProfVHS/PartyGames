@@ -88,17 +88,6 @@ module.exports = (
         });
       });
 
-      const turn = await new Promise<number>((resolve, reject) => {
-        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-          if(err){
-            console.log(`Check Whats To Do With Room (turn) error:`);
-            reject(err);
-          } else {
-            resolve(row.turn);
-          }
-        });
-      });
-
       const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
       const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
 
