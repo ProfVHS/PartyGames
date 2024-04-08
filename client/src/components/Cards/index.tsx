@@ -19,7 +19,7 @@ interface CardsProps {
 
 export function Cards({ roomCode, users, onExit }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
-  const [time, setTime] = useState<number>(15);
+  const [time, setTime] = useState<number>(10);
   const [round, setRound] = useState<number>(1);
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
@@ -145,7 +145,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
       setTimeout(() => {
         setFlipped("NONE");
       }, 100);
-      setTime(15);
+      setTime(10);
     });
   };
 
@@ -174,7 +174,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
         Round: {round}
       </motion.span>
       <motion.div className="cards__stopwatch" initial={{ scale: 0, opacity: 0 }}>
-        <Stopwatch maxTime={15} timeLeft={time} size={75} />
+        <Stopwatch maxTime={10} timeLeft={time} size={75} />
       </motion.div>
       <motion.div className="cardsWrapper" initial={{ scale: 0, opacity: 0 }}>
         {cards?.map((card, index) => (

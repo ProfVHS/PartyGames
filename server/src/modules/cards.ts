@@ -20,6 +20,7 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   roomData: (roomCode: string, socket: Socket) => Promise<Room>,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => Promise<void>,
@@ -47,7 +48,6 @@ module.exports = (
 
       scoreArrays(roomCode).then(async (row) => {
         return new Promise<[number[], number[]]>((resolve, reject) => {
-          console.log("row.round - ", row.round);
           switch (row.round) {
             case 1:
               resolve([
@@ -68,7 +68,7 @@ module.exports = (
               reject("Error: wrong round");
           }
         }).then(([negative, positive]) => {
-          // card id
+          // card id 
           var id = 0;
           // fill cardsArray with data from bombScore and cardsScore arrays
           while (array.length < 9) {
@@ -113,18 +113,15 @@ module.exports = (
       // generate cards for turn, set time_left to 15 and time_max to 15
       generateCards(roomCode).then((cards: Cards[]) => {
         // send cardsArray to all users in room
-        console.log("cards in start game - ", cards);
         socket.nsp.to(roomCode).emit("receiveCardsArray", cards);
       });
 
-      updateRoomTime(roomCode, 15, 15);
+      updateRoomTime(roomCode, 10, 10);
     });
   });
   // gets cards from database
   socket.on("getCards", async (roomCode: string) => {
     const cards = cardsArray.find((cards) => cards.roomCode === roomCode)?.cards;
-
-    console.log("cards when joining - ", cards);
 
     socket.emit("receiveCardsArray", cards);
   });
@@ -176,7 +173,8 @@ module.exports = (
     );
     // update in_game to false, round to 1
     updateRoomRound(roomCode, 0, socket);
-    console.log("end game cards");
+    usersResetData(roomCode, socket);
+
     socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   //#endregion

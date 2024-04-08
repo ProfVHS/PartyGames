@@ -17,7 +17,6 @@ export type Room = {
   time_left: number;
   time_max: number;
   in_game: boolean;
-  is_minigame_started: boolean;
   round: number;
 };
 

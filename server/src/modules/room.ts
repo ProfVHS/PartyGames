@@ -64,6 +64,10 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
+    console.log("Check Whats To Do With Room :");
+    console.log("-------------------->  Room code - ", roomCode);
+    console.log("--------------------> Is room in game - ", isRoomInGame);
+    console.log("--------------------> Users length - ", usersLength);
     // last user - delete room
     if (usersLength == 1) {
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
@@ -91,10 +95,9 @@ module.exports = (
       const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
       const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
 
-      if (usersLength == 2) {
-        console.log("solo server");
+      if (usersLength === 2) {
         socket.nsp.to(roomCode).emit("receiveSoloInRoom");
-        //socket.nsp.to(roomCode).emit("waitForOtherPlayers", true);
+
         updateUserAlive(users[lastUserIndex].id, true);
         updateRoomTurn(roomCode, lastUserIndex, socket);
       } else {
@@ -124,7 +127,7 @@ module.exports = (
       }
     });
 
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,is_minigame_started,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, false, 0)`);
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
     db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
   });
   // join room
@@ -142,14 +145,11 @@ module.exports = (
       });
     });
 
-    console.log("If user exist - ", ifUserExist.count);
-
     if (ifUserExist.count == 1) {
       socket.join(data.roomCode);
 
       db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.cookie_id}"`);
 
-      socket.nsp.to(data.roomCode).emit("waitForOtherPlayers", false);
       socket.nsp.to(socket.id).emit("joiningRoom");
     } else {
       const users: User[] = await new Promise<User[]>((resolve, reject) => {
@@ -228,6 +228,7 @@ module.exports = (
 
     roomData(data.roomCode, socket);
   });
+
   // generate random games array
   socket.on("gamesArray", async (roomCode: string) => {
     if(!gamesArray.find(roomCode => roomCode === roomCode)){
@@ -241,6 +242,16 @@ module.exports = (
   
       gamesArray.push({roomCode: roomCode, games: Array.from(gamesSet), currentGame: 0});
     }
+    await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
+        if(err){
+          console.log("Games Array in game error:");
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
 
     const games = gamesArray.find(roomCode => roomCode === roomCode)?.games;
     const current = gamesArray.find(roomCode => roomCode === roomCode)?.currentGame;

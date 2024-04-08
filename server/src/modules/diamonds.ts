@@ -7,12 +7,12 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
   roomData: (roomCode: string, socket: Socket) => void,
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => void,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
-  updateMinigameStarted: (roomCode: string, isStarted: boolean) => Promise<void>,
 ) => {
   //#region diamonds functions
   // arrays with ponts for diamonds in 3 different rounds
@@ -97,8 +97,8 @@ module.exports = (
 
   const endGameDiamonds = async (roomCode: string) => {
     updateRoomRound(roomCode, 0, socket);
-    updateMinigameStarted(roomCode, false);
-    //socket.nsp.to(roomCode).emit("receiveNextGame");
+    usersResetData(roomCode, socket);
+    socket.nsp.to(roomCode).emit("receiveNextGame");
     console.log("endGameDiamonds");
   };
   //#endregion
@@ -111,7 +111,6 @@ module.exports = (
         console.log(array);
         socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
         updateRoomTime(roomCode, 10, 10);
-        updateMinigameStarted(roomCode, true);
         // is minigame started
         roomData(roomCode, socket);
       });
@@ -133,7 +132,6 @@ module.exports = (
 
   // end game tricky diamonds
   // socket.on("endGameDiamonds", async (roomCode: string) => {
-  //     updateRoomInGame(roomCode, false);
   //     updateRoomRound(roomCode, 0, socket);
   //     console.log("endGameDiamonds");
   // });

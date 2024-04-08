@@ -13,6 +13,7 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
   usersData: (roomCode: string, socket: Socket) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
@@ -44,7 +45,6 @@ module.exports = (
     await changeRoomRound(roomCode, socket).then(() => {
       addButton(roomCode);
       lightButton(roomCode);
-      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`);
     });
   });
 
@@ -102,7 +102,6 @@ module.exports = (
             }
           });
 
-          updateUsersAlive(roomCode, true);
           // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND position = 1`);
           // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND position = 2`);
           socket.nsp.to(roomCode).emit("endGameColorsMemory", usersPosition);
@@ -156,7 +155,7 @@ module.exports = (
 
   socket.on("endGameColorsMemory", async (roomCode: string) => {
     updateRoomRound(roomCode, 0, socket);
-    updateUsersAlive(roomCode, true);
+    usersResetData(roomCode, socket);
     socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   //#endregion

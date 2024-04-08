@@ -23,7 +23,6 @@ export interface Room {
   time_left: number, 
   time_max: number,
   in_game: boolean,
-  is_minigame_started: boolean,
   round: number,
 };
 
@@ -51,7 +50,7 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "is_minigame_started" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
@@ -119,7 +118,7 @@ server.listen(3000, async () => {
   // reset data about room
   const roomResetData = async (roomCode: string, socket: Socket) => {
     new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET turn = 0, ready = 0, time_left = 0, time_max = 0, in_game = false, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
+      db.run(`UPDATE rooms SET turn = 0, time_left = 0, time_max = 0, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
         if (err) {
           console.log("Room reset error");
           reject(err);
@@ -264,28 +263,6 @@ server.listen(3000, async () => {
       });
     });
   };
-  // set in game in room
-  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
-    await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = "${roomCode}"`, (err) => {
-        if(err){
-          console.log("Update Room In Game error");
-          reject(err);
-        }
-      });
-    });
-  };
-  // set is minigame started
-  const updateMinigameStarted = async (roomCode: string, isStarted: boolean) => {
-    await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET is_minigame_started = ${isStarted} WHERE id = "${roomCode}"`, (err) => {
-        if(err){
-          console.log("Update Minigame Started error");
-          reject(err);
-        }
-      });
-    });
-  };
   //#endregion
 
   //#region Update data about users (selected, alive, score)
@@ -391,11 +368,11 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
-    bombModule(io, socket, db, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomInGame);
-    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
-    diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, updateMinigameStarted);
-    colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
-    buddiesModule(io, socket, db, changeRoomRound);
+    bombModule(io, socket, db, usersResetData, usersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
+    cardsModule(io, socket, db, usersResetData, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound);
+    diamondModule(io, socket, db, usersResetData, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound);
+    colorsMemoryModule(io, socket, db, usersResetData, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive);
+    buddiesModule(io, socket, db, usersResetData, changeRoomRound);
   };
 
   io.on("connection", handleModulesOnConnection);
