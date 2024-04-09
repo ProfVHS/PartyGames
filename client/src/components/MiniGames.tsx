@@ -33,7 +33,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setGamesArray(data);
 
       const firstGame = data[0];
-      setCurrentGame(firstGame);
+      setCurrentGame("COLORSMEMORY");
     });
 
     socket.on("receiveNextGame", () => {

@@ -14,6 +14,7 @@ module.exports = (
   socket: Socket,
   db: Database,
   usersData: (roomCode: string, socket: Socket) => void,
+  getUsersData: (roomCode: string) => Promise<User[]>,
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => Promise<void>,
   changeRoomTurn: (roomCode: string, socket: Socket) => Promise<void>,
   updateUserScore: (id: string, score: number, socket: Socket) => void,
@@ -51,6 +52,45 @@ module.exports = (
       });
     });
   };
+
+  // add users to the most clicks database - for medals
+  const addUserstoMostClicks = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO clickTheBombClicks (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+  const updateUsersMostClicks = async (roomCode: string, user_id: string, number: number) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE clickTheBombClicks SET number = ${number} WHERE id_user = "${user_id}" AND number < ${number}`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  const getMostClicks = async () => {
+    const usersmostclicks = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM clickTheBombClicks ORDER BY number DESC LIMIT 3`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(usersmostclicks);
+  };
   // increment counter by 1
   const incrementCounter = async (roomCode: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -64,6 +104,13 @@ module.exports = (
       });
     });
   };
+
+  socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
+    updateUsersMostClicks(roomCode, user_id, number).then(() => {
+      getMostClicks();
+    });
+  });
+
   //#endregion
 
   //#region ctb sockets
@@ -88,6 +135,7 @@ module.exports = (
       const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
       updateRoomInGame(data.roomCode, true);
       updateRoomTurn(data.roomCode, turn, socket);
+      addUserstoMostClicks(data.roomCode);
       setDataBomb(max, 0, `${data.roomCode}`);
     }
   });

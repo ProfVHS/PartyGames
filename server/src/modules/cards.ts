@@ -24,7 +24,8 @@ module.exports = (
   roomData: (roomCode: string, socket: Socket) => Promise<Room>,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
-  changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>
+  changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
+  getUsersData: (roomCode: string) => Promise<User[]>
 ) => {
   //#region cards functions
   // arrays with ponts for cards in 3 different turns
@@ -105,11 +106,55 @@ module.exports = (
   };
   //#endregion
 
+  // add users to the lowest balance after cards database - for medals
+  const addUsersToLowestBalanceDB = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return await new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO lowestBalanceAfterCards (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+  const updateUsersLowestBalance = async (user_id: string, number: number) => {
+    return await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE lowestBalanceAfterCards SET number = number + ${number} WHERE id_user = "${user_id}"`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  const getLowestBalance = async () => {
+    const usersmostclicks = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM lowestBalanceAfterCards ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(usersmostclicks);
+  };
+
+  socket.on("addUsersToLowestBalance", async (roomCode: string) => {
+    await addUsersToLowestBalanceDB(roomCode);
+  });
+
   //#region cards sockets
   // start game cards
   socket.on("startGameCards", async (roomCode: string) => {
     await changeRoomRound(roomCode, socket).then(async () => {
       await roomData(roomCode, socket);
+
       // generate cards for turn, set time_left to 15 and time_max to 15
       generateCards(roomCode).then((cards: Cards[]) => {
         // send cardsArray to all users in room
@@ -130,9 +175,7 @@ module.exports = (
   });
   // give or take points, depends on card type and number of users who selected this card
   socket.on("checkCard", async (data: { roomCode: string; id: number }) => {
-    const card = cardsArray
-      .find((cards) => cards.roomCode === data.roomCode)
-      ?.cards.find((card) => card.id === data.id);
+    const card = cardsArray.find((cards) => cards.roomCode === data.roomCode)?.cards.find((card) => card.id === data.id);
 
     const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
       db.all(
@@ -146,18 +189,26 @@ module.exports = (
             resolve(users_rows);
           }
         }
-      );
+      });
     });
 
     if (card?.isPositive) {
       userSelectedCard.forEach((user) => {
         const score = card.score / userSelectedCard.length;
         updateUserScore(user.id, score, socket);
+        updateUsersLowestBalance(user.id, score).then(() => {
+          console.log("get lowest balance");
+          getLowestBalance();
+        });
       });
     } else if (card?.isPositive === false) {
       userSelectedCard.forEach((user) => {
         const score = -card.score * userSelectedCard.length;
         updateUserScore(user.id, score, socket);
+        updateUsersLowestBalance(user.id, score).then(() => {
+          console.log("get lowest balance");
+          getLowestBalance();
+        });
       });
     }
   });
