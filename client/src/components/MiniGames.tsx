@@ -48,6 +48,10 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setCurrentGame("SOLOINROOM")
     });
 
+    socket.on("leder", () => {
+      console.log("Kazdy powinnien dostac");
+    });
+
     return () => {
       socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
@@ -92,6 +96,12 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   useEffect(() => {
     document.cookie = `${socket.id}`;
+
+    const connectedUsers = users.filter(user => !user.is_disconnect);
+
+    if(connectedUsers.length < 2){
+      socket.emit("leder2", roomCode);
+    }
   }, [])
 
   const handleMiniGameEnd = () => {

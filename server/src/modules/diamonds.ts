@@ -129,11 +129,5 @@ module.exports = (
     console.log("endRoundDiamonds");
     findWinners(roomCode, [0, 0, 0]);
   });
-
-  // end game tricky diamonds
-  // socket.on("endGameDiamonds", async (roomCode: string) => {
-  //     updateRoomRound(roomCode, 0, socket);
-  //     console.log("endGameDiamonds");
-  // });
   //#endregion
 };

@@ -115,21 +115,6 @@ server.listen(3000, async () => {
       usersData(roomCode, socket);
     });
   };
-  // reset data about room
-  const roomResetData = async (roomCode: string, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET turn = 0, time_left = 0, time_max = 0, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
-        if (err) {
-          console.log("Room reset error");
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }).then(() => {
-      roomData(roomCode, socket);
-    });
-  };
   //#endregion
 
   //#region Update data about rooms (turn, time, round)

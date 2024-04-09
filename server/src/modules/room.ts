@@ -79,7 +79,16 @@ module.exports = (
     }
     // its game - set user as disconnected
     else {
-      db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`);
+      await new Promise<void>((resolve, reject) => {
+        db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`, [], (err: Error) => {
+          if(err){
+            console.log(`Check Whats To Do With Room (Update) error:`);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      })
 
       const users = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
@@ -95,7 +104,8 @@ module.exports = (
       const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
       const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
 
-      if (usersLength === 2) {
+      if(usersLength === 2) {
+        console.log("Samotny Wilk");
         socket.nsp.to(roomCode).emit("receiveSoloInRoom");
 
         updateUserAlive(users[lastUserIndex].id, true);
@@ -105,6 +115,7 @@ module.exports = (
       }
 
       socket.nsp.to(roomCode).emit("userDisconnectedRoom", users[disconnectedUserIndex].username);
+      usersData(roomCode, socket);
     }
     socket.leave(roomCode);
   };
@@ -132,8 +143,6 @@ module.exports = (
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string; name: string; cookie_id: string }) => {
-    console.log("Cookies id - ", data.cookie_id);
-
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
       db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
         if(err){
@@ -146,11 +155,21 @@ module.exports = (
     });
 
     if (ifUserExist.count == 1) {
-      socket.join(data.roomCode);
+      await socket.join(data.roomCode);
 
-      db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.cookie_id}"`);
-
+      await new Promise<void>((resolve, reject) => {
+        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = true WHERE id = "${data.cookie_id}"`, [], (err: Error) => {
+          if(err){
+            console.log("User come back error:");
+            reject(err)
+          } else {
+            resolve();
+          }
+        });
+      })
       socket.nsp.to(socket.id).emit("joiningRoom");
+      usersData(data.roomCode, socket);
+      roomData(data.roomCode, socket);
     } else {
       const users: User[] = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
@@ -211,6 +230,10 @@ module.exports = (
         socket.nsp.to(socket.id).emit("roomFull");
       }
     }
+  });
+  socket.on("leder2", async (roomCode: string) => {
+    console.log("leder2");
+    socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   // check room existence
   socket.on("checkRoomExistence", async (roomCode: string) => {
