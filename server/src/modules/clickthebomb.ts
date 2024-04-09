@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { Database } from "sqlite3";
 
-import { User } from "../index";
+import { User, Room } from "../index";
 
 interface Bomb {
   id: string;
@@ -20,14 +20,18 @@ module.exports = (
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
   updateUserAlive: (id: string, alive: boolean) => void,
-  updateUsersAlive: (roomCode: string, alive: boolean) => void
+  updateUsersAlive: (roomCode: string, alive: boolean) => void,
+  updateRoomInGame: (roomCode: string, in_game: boolean) => void
 ) => {
   //#region ctb functions
   // set data bomb
   const setDataBomb = async (max: number, counter: number, roomCode: string) => {
+    console.log(max, counter, roomCode);
     return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`);
       db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${roomCode}",${counter},${max})`, (err) => {
         if (err) {
+          console.log("SET DATA bomb error");
           reject(err);
         } else {
           resolve();
@@ -40,6 +44,7 @@ module.exports = (
     return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE bomb SET max = ${max}, counter = ${counter} WHERE id = "${roomCode}"`, (err) => {
         if (err) {
+          console.log("UPDATE DATA bomb error");
           reject(err);
         } else {
           resolve();
@@ -91,6 +96,7 @@ module.exports = (
     return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE bomb SET counter = counter + 1 WHERE id = "${roomCode}"`, (err) => {
         if (err) {
+          console.log("INCREMENT bomb error");
           reject(err);
         } else {
           resolve();
@@ -109,14 +115,29 @@ module.exports = (
 
   //#region ctb sockets
   // start the game click the bomb
-  socket.on("startGameCtb", (data: { roomCode: string; usersLength: number }) => {
-    // (generate max number of clicks) min - 1, max - users.lenght * 5
-    const max = Math.round(Math.random() * (data.usersLength * 5 - 1)) + 1;
-    // (generate turn) min - 0, max - users.lenght - 1
-    const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
-    updateRoomTurn(data.roomCode, turn, socket);
-    setDataBomb(max, 0, data.roomCode);
-    addUserstoMostClicks(data.roomCode);
+  socket.on("startGameCtb", async (data: { roomCode: string; usersLength: number }) => {
+    const roomInGame = await new Promise<boolean>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
+        if (err) {
+          console.log("Start CTB In Room error");
+          reject(err);
+        } else {
+          resolve(room_row.in_game);
+        }
+      });
+    });
+    db.run(`UPDATE rooms SET is_minigame_started = true WHERE id = "${data.roomCode}"`);
+    console.log(roomInGame);
+    if (!roomInGame) {
+      // (generate max number of clicks) min - 1, max - users.lenght * 5
+      const max = Math.round(Math.random() * (data.usersLength * 5 - 1)) + 1;
+      // (generate turn) min - 0, max - users.lenght - 1
+      const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
+      updateRoomInGame(data.roomCode, true);
+      updateRoomTurn(data.roomCode, turn, socket);
+      addUserstoMostClicks(data.roomCode);
+      setDataBomb(max, 0, `${data.roomCode}`);
+    }
   });
 
   // send turn to the next player
@@ -139,7 +160,7 @@ module.exports = (
         });
       });
       const usersArray = await new Promise<User[]>((resolveUsers, rejectUsers) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
           if (err) {
             rejectUsers(err);
           } else {
@@ -197,6 +218,43 @@ module.exports = (
         usersData(roomCode, socket);
       }
     });
+  });
+
+  // get bomb data
+  socket.on("getBombData", async (roomCode: string) => {
+    console.log("getBombData");
+    const counter = await new Promise<number>((resolveBomb, rejectBomb) => {
+      db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
+        if (err) {
+          rejectBomb(err);
+        } else {
+          resolveBomb(bomb_row.counter);
+        }
+      });
+    });
+    const turn = await new Promise<number>((resolveTurn, rejectTurn) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+        if (err) {
+          rejectTurn(err);
+        } else {
+          resolveTurn(room_row.turn);
+        }
+      });
+    });
+    const users = await new Promise<User[]>((resolveUsers, rejectUsers) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+        if (err) {
+          rejectUsers(err);
+        } else {
+          resolveUsers(users_rows);
+        }
+      });
+    });
+    const username = users[turn].username;
+    const id = users[turn].id;
+
+    socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
+    socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
   });
   //#endregion
 };

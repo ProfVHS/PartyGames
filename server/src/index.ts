@@ -6,25 +6,26 @@ import cors from "cors";
 import sqlite3 from "sqlite3";
 
 export interface User {
-  id: string;
-  username: string;
-  score: number;
-  alive: boolean;
-  isDisconnect: boolean;
-  id_room: string;
-  id_selected: number;
-  position: number;
-}
+  id: string, 
+  username: string, 
+  score: number, 
+  alive: boolean, 
+  is_disconnect: boolean, 
+  id_room: string,
+  id_selected: number,
+  position: number,
+};
 
 export interface Room {
-  id: string;
-  turn: number;
-  ready: number;
-  time_left: number;
-  time_max: number;
-  in_game: boolean;
-  round: number;
-}
+  id: string, 
+  turn: number, 
+  ready: number, 
+  time_left: number, 
+  time_max: number,
+  in_game: boolean,
+  is_minigame_started: boolean,
+  round: number,
+};
 
 const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
@@ -50,10 +51,10 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "is_minigame_started" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "isDisconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -156,6 +157,8 @@ server.listen(3000, async () => {
   //#region Update data about rooms (turn, time, round)
   // update turn
   const updateRoomTurn = async (roomCode: string, turn: number, socket: Socket) => {
+    console.log("Update Room Turn - ", roomCode, turn);
+
     const updateTurn = new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`, (err) => {
         if (err) {
@@ -168,7 +171,7 @@ server.listen(3000, async () => {
     });
 
     const users = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, users_rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
         if (err) {
           console.log("Users (Update Room Turn) error");
           reject(err);
@@ -204,7 +207,7 @@ server.listen(3000, async () => {
   // change turn
   const changeRoomTurn = async (roomCode: string, socket: Socket) => {
     const users = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
         if (err) {
           console.log("Users (Change Turn) error");
           reject(err);
@@ -225,19 +228,23 @@ server.listen(3000, async () => {
       });
     });
 
-    Promise.all([users, room])
-      .then(() => {
-        // turn_row.turn (0-7), users_rows.length (2-8)
-        // if last user, turn = 0, else turn + 1
-        if (room.turn >= users.length - 1) {
-          updateRoomTurn(roomCode, 0, socket);
+    // Promise.all([users, room]).then(() => {
+  
+      const skipTurn = (turn: number) => {
+        if(turn >= users.length - 1){
+          //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+          skipTurn(-1);
         } else {
-          updateRoomTurn(roomCode, room.turn + 1, socket);
-        }
-      })
-      .catch((error: Error) => {
-        console.log("Error Change Turn", error);
-      });
+          if(users[turn+1].alive == false || users[turn+1].is_disconnect === true){
+            skipTurn(turn+1);
+          } else {
+            updateRoomTurn(roomCode, turn+1, socket);
+          } 
+        } 
+      }; 
+
+      skipTurn(room.turn);
+
   };
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
@@ -272,6 +279,17 @@ server.listen(3000, async () => {
           reject(err);
         } else {
           resolve();
+        }
+      });
+    });
+  };
+  // set in game in room
+  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
+    new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = "${roomCode}"`, (err) => {
+        if(err){
+          console.log("Update Room In Game error");
+          reject(err);
         }
       });
     });

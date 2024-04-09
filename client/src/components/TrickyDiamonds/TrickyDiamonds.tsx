@@ -15,10 +15,10 @@ interface TrickyDiamondsProps {
 //type DiamondsState = 0 | 1 | 2;
 
 export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps) {
-  const [selectedDiamond, setSelectedDiamond] = useState<number>(-1);
+  const [selectedDiamond, setSelectedDiamond] = useState<number>(0);
   const [round, setRound] = useState<number>(1);
   const [score, setScore] = useState<number[]>([0, 0, 0]);
-  const [time, setTime] = useState<number>(5);
+  const [time, setTime] = useState<number>(10);
   const [endRound, setEndRound] = useState<boolean>(false);
 
   const onceDone = useRef<boolean>(false);
@@ -135,11 +135,18 @@ export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps)
     }
   }, [time]);
 
+  useEffect(() => {
+    if(score[0] == 0){
+      console.log("score is null");
+      socket.emit("getDiamondsScore", roomCode);
+    }
+  }, [window.onload]);
+
   return (
     <div className="tricky" ref={scope}>
       <div className="tricky__header">
         <motion.div className="tricky__stopwatch" initial={{ scale: 0 }}>
-          <Stopwatch maxTime={5} timeLeft={time} size={50} />
+          <Stopwatch maxTime={10} timeLeft={time} size={50} />
         </motion.div>
         <motion.span className="tricky__header__text" initial={{ scale: 0 }}>
           Round - {round}

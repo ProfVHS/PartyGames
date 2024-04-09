@@ -7,8 +7,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import ClickSound from "../../assets/audio/click.mp3";
 
-import { User } from "../../Types";
-
+import { User, Room } from "../../Types";
 import MiniGames from "../../components/MiniGames";
 import { socket } from "../../socket";
 
@@ -17,8 +16,8 @@ export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
+  const [roomData, setRoomData] = useState<Room | null>();
   const [ready, setReady] = useState(false);
-
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
   const [startGame, setStartGame] = useState(false);
@@ -73,6 +72,7 @@ export default function RoomPage() {
     });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
+      setRoomData(data);
       setUsersReady(data.ready);
       readyLength.current = data.ready;
     });
@@ -80,15 +80,6 @@ export default function RoomPage() {
     socket.on("user_disconnected", (data) => {
       alert(data + " has left the room");
     });
-  }, [socket]);
-
-  setTimeout(() => {
-    setIsLoading(false);
-  }, 50);
-
-  useEffect(() => {
-    socket.emit("checkIfUserIsInRoom", roomCode);
-
     socket.on("receiveUserIsInRoom", (data) => {
       if (!data) {
         navigate("/");
@@ -96,8 +87,21 @@ export default function RoomPage() {
     });
 
     return () => {
-      socket.off("userIsInRoom");
+      socket.off("receiveUsersData");
+      socket.off("receiveRoomData");
+      socket.off("user_disconnected");
+      socket.off("receiveUserIsInRoom");
     };
+  }, [socket]);
+
+  const handleUserDisconnect = (username: string) => {};
+
+  setTimeout(() => {
+    setIsLoading(false);
+  }, 50);
+
+  useEffect(() => {
+    socket.emit("checkIfUserIsInRoom", roomCode);
   }, []);
 
   useEffect(() => {
@@ -108,6 +112,7 @@ export default function RoomPage() {
 
   return (
     <>
+      <button onClick={() => {}}>Back</button>
       <div className="roomGrid">
         {windowSizeX > 800 &&
           windowSizeY > 600 &&
@@ -116,8 +121,8 @@ export default function RoomPage() {
             return <Camera key={user.id} username={user.username} score={user.score} />;
           })}
         <div className="roomContent">
-          {startGame && <MiniGames roomCode={roomCode} users={users} />}
-          {!startGame && <Lobby roomCode={roomCode?.toString()} onClick={handleReadyClick} players={usersReady} isReady={ready} />}
+          {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}
+          {!startGame && <Lobby roomCode={roomCode} onClick={handleReadyClick} players={usersReady} isReady={ready} />}
         </div>
       </div>
 

@@ -178,12 +178,16 @@ module.exports = (
     const card = cardsArray.find((cards) => cards.roomCode === data.roomCode)?.cards.find((card) => card.id === data.id);
 
     const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND isDisconnect = false`, [], (err: Error, users_rows: User[]) => {
-        if (err) {
-          console.log("Users (Cards) error:");
-          reject(err);
-        } else {
-          resolve(users_rows);
+      db.all(
+        `SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND is_disconnect = false`,
+        [],
+        (err: Error, users_rows: User[]) => {
+          if (err) {
+            console.log("Users (Cards) error:");
+            reject(err);
+          } else {
+            resolve(users_rows);
+          }
         }
       });
     });
