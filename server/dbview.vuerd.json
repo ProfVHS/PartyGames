@@ -190,7 +190,7 @@
           "active": false,
           "left": 69.1664,
           "top": 54.0005,
-          "zIndex": 37,
+          "zIndex": 79,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFFFFF"
@@ -514,11 +514,96 @@
           }
         ],
         "ui": {
-          "active": true,
+          "active": false,
           "left": 572.9365,
           "top": 0,
           "zIndex": 62,
           "widthName": 124.80810546875,
+          "widthComment": 120
+        },
+        "visible": true
+      },
+      {
+        "id": "c131cc76-1899-4cbe-b03e-4048cfa81ae9",
+        "name": "Points Lost",
+        "comment": "for checking player that lost the most points in one minigame]",
+        "columns": [
+          {
+            "id": "07890f26-106d-4e1e-b6e1-9518df66290a",
+            "name": "id",
+            "comment": "",
+            "dataType": "",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": true,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": true,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            }
+          },
+          {
+            "id": "68502a03-6081-4f1b-9669-90c615238996",
+            "name": "id_user",
+            "comment": "",
+            "dataType": "VARCHAR",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": true,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 64.6005859375,
+              "widthDefault": 60
+            }
+          },
+          {
+            "id": "c6c896b1-2740-4e41-b37b-61c6510ee4bd",
+            "name": "points",
+            "comment": "",
+            "dataType": "int",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            }
+          }
+        ],
+        "ui": {
+          "active": false,
+          "left": 569.6033,
+          "top": 154.7291,
+          "zIndex": 91,
+          "widthName": 66.314453125,
           "widthComment": 120
         },
         "visible": true
@@ -594,7 +679,7 @@
             "3e31036c-dc95-4657-81fa-1d9190dd0f26"
           ],
           "x": 428.78895859375,
-          "y": 150.0005,
+          "y": 102.0005,
           "direction": "right"
         },
         "end": {
@@ -607,6 +692,32 @@
           "direction": "left"
         },
         "constraintName": "fk_users_to_click the bomb clicks",
+        "visible": true
+      },
+      {
+        "id": "79801576-9a79-476e-a4ed-84166d2e8fe8",
+        "identification": false,
+        "relationshipType": "OneN",
+        "startRelationshipType": "Dash",
+        "start": {
+          "tableId": "19bd6d07-dd93-44b4-aac9-5e182338dbbc",
+          "columnIds": [
+            "3e31036c-dc95-4657-81fa-1d9190dd0f26"
+          ],
+          "x": 428.78895859375,
+          "y": 198.0005,
+          "direction": "right"
+        },
+        "end": {
+          "tableId": "c131cc76-1899-4cbe-b03e-4048cfa81ae9",
+          "columnIds": [
+            "68502a03-6081-4f1b-9669-90c615238996"
+          ],
+          "x": 569.6033,
+          "y": 219.9791,
+          "direction": "left"
+        },
+        "constraintName": "fk_users_to_points lost",
         "visible": true
       }
     ]

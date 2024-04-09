@@ -77,6 +77,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
     if (users.length > 0) {
       if (users[0].id === socket.id) {
         startGame();
+        socket.emit("addUsersToLowestBalance", roomCode);
       }
     }
 
@@ -156,9 +157,9 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   }, [time]);
 
   useEffect(() => {
-    if(!cards){
+    if (!cards) {
       socket.emit("getCards", roomCode);
-    };
+    }
   }, [window.onload]);
 
   const handleCardSelect = (id: number) => {
