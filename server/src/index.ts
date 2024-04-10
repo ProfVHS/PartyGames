@@ -13,7 +13,8 @@ export interface User {
   is_disconnect: boolean, 
   id_room: string,
   id_selected: number,
-  position: number,
+  game_position: number,
+  is_host: boolean;
 };
 
 export interface Room {
@@ -53,7 +54,7 @@ server.listen(3000, async () => {
       'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "game_position" INTEGER NOT NULL, "is_host" BOOLEAN NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb

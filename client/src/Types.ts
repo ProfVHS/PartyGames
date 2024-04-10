@@ -7,7 +7,8 @@ export type User = {
   is_disconnect: boolean;
   id_room: string;
   id_selected: number;
-  position: number;
+  game_position: number;
+  is_host: boolean;
 };
 
 export type Room = {

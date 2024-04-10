@@ -1,6 +1,7 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
 import { User, Room } from "../index";
+import { Console } from "console";
 interface Count {
   count: number;
 }
@@ -11,6 +12,8 @@ interface GamesArray {
 }
 
 const gamesArray: GamesArray[] = [];
+
+let cardsTimeInterval: NodeJS.Timeout;
 
 module.exports = (
   io: Server,
@@ -106,6 +109,8 @@ module.exports = (
 
       if(usersLength === 2) {
         console.log("Samotny Wilk");
+        clearInterval(cardsTimeInterval);
+
         socket.nsp.to(roomCode).emit("receiveSoloInRoom");
 
         updateUserAlive(users[lastUserIndex].id, true);
@@ -118,6 +123,28 @@ module.exports = (
       usersData(roomCode, socket);
     }
     socket.leave(roomCode);
+  };
+
+  const StopwatchTime = async (roomCode: string) => {
+    console.log("Stopwatch Time :");
+    db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = "${roomCode}"`);
+    // send time_left to all users in room
+    new Promise<Room>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+        if (err) {
+          console.log("StopwatchTime error:");
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    })
+      .then((row) => {
+        row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
+      })
+      .catch(() => {
+        clearInterval(cardsTimeInterval);
+      });
   };
   //#endregion
 
@@ -139,7 +166,7 @@ module.exports = (
     });
 
     db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
-    db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}",0,1)`);
+    db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}", 0, 1, true)`);
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string; name: string; cookie_id: string }) => {
@@ -218,10 +245,10 @@ module.exports = (
           socket.nsp.to(socket.id).emit("joiningRoom");
 
           if (count[0].count == 0) {
-            db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}",0,1)`);
+            db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}", 0, 1, false)`);
           } else {
             db.run(
-              `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,position) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1)`
+              `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1, false)`
             );
           }
           socket.nsp.to(data.roomCode).emit("waitForOtherPlayers", false);
@@ -230,10 +257,6 @@ module.exports = (
         socket.nsp.to(socket.id).emit("roomFull");
       }
     }
-  });
-  socket.on("leder2", async (roomCode: string) => {
-    console.log("leder2");
-    socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   // check room existence
   socket.on("checkRoomExistence", async (roomCode: string) => {
@@ -284,6 +307,11 @@ module.exports = (
   //#endregion
 
   //#region room events (data, time, etc) needed during the game
+  // start next game
+  socket.on("startNextGame", async (roomCode: string) => {
+    console.log("Start Next Game :");
+    socket.nsp.to(roomCode).emit("receiveNextGame");
+  });
   // users data
   socket.on("usersData", async (roomCode: string) => {
     usersData(roomCode, socket);
@@ -295,26 +323,7 @@ module.exports = (
   // stopwatch time
   socket.on("stopwatchTime", async (roomCode: string) => {
     // set interval to decrease time_left every second
-    const cardsTimeInterval = setInterval(async () => {
-      db.run(`UPDATE rooms SET time_left = time_left - 1 WHERE id = "${roomCode}"`);
-      // send time_left to all users in room
-      new Promise<Room>((resolve, reject) => {
-        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-          if (err) {
-            console.log("StopwatchTime error:");
-            reject(err);
-          } else {
-            resolve(row);
-          }
-        });
-      })
-        .then((row) => {
-          row.time_left >= 0 ? socket.nsp.to(roomCode).emit("receiveStopwatchTime", row.time_left) : clearInterval(cardsTimeInterval);
-        })
-        .catch(() => {
-          clearInterval(cardsTimeInterval);
-        });
-    }, 1000);
+    cardsTimeInterval = setInterval(() => {StopwatchTime(roomCode)}, 1000);
   });
   //#endregion
 

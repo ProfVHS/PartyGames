@@ -68,14 +68,14 @@ module.exports = (
           });
         });
 
-        db.run(`UPDATE users SET position = ${usersAlive + 1} WHERE id = "${socket.id}"`);
+        db.run(`UPDATE users SET game_position = ${usersAlive + 1} WHERE id = "${socket.id}"`);
 
         // End Game
         if (usersAlive == 1) {
           type UserPosition = { username: string; scoreToAdd: number | null; record: number };
 
           const usersPosition = await new Promise<UserPosition[]>((resolve, reject) => {
-            db.all(`SELECT username, score AS scoreToAdd, id_selected AS record FROM users WHERE id_room = "${roomCode}" ORDER BY position`, [], (err: Error, row: UserPosition[]) => {
+            db.all(`SELECT username, score AS scoreToAdd, id_selected AS record FROM users WHERE id_room = "${roomCode}" ORDER BY game_position`, [], (err: Error, row: UserPosition[]) => {
               if (err) {
                 console.log("Users Position (colors end game) Error");
                 reject(err);
@@ -102,8 +102,8 @@ module.exports = (
             }
           });
 
-          // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND position = 1`);
-          // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND position = 2`);
+          // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND game_position = 1`);
+          // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND game_position = 2`);
           socket.nsp.to(roomCode).emit("endGameColorsMemory", usersPosition);
           //socket.nsp.to(roomCode).emit("receiveNextGame");
           usersData(roomCode, socket);

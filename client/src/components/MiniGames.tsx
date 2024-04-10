@@ -35,8 +35,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
       setMinigameIndex(current);
 
-      const firstGame = games[current];
-      setCurrentGame(firstGame);
+      const game = games[current];
+      setCurrentGame(game);
     });
 
     socket.on("receiveNextGame", () => {
@@ -46,10 +46,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     socket.on("receiveSoloInRoom", () => {
       setCurrentGame("SOLOINROOM")
-    });
-
-    socket.on("leder", () => {
-      console.log("Kazdy powinnien dostac");
     });
 
     return () => {
@@ -89,18 +85,15 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   }, [currentGame]);
 
   useEffect(() => {
-    if(gamesArray.length === 0){
-      socket.emit("gamesArray", roomCode);
-    }
-  }, [])
-
-  useEffect(() => {
     document.cookie = `${socket.id}`;
 
     const connectedUsers = users.filter(user => !user.is_disconnect);
 
     if(connectedUsers.length < 2){
-      socket.emit("leder2", roomCode);
+      socket.emit("startNextGame", roomCode);
+    }
+    if(gamesArray.length === 0){
+      socket.emit("gamesArray", roomCode);
     }
   }, [])
 
@@ -113,10 +106,15 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
     console.log(newNextGame);
+    console.log("Minigame +1");
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);
   };
+
+  useEffect(() => {
+    console.log(currentGame);
+  }, [currentGame]);
 
   return (
     <>
