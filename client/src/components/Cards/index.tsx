@@ -62,23 +62,25 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   const onceDone = useRef<boolean>(false);
 
   const startGame = async () => {
-    if (users.length > 0) {
-      if (users[0].id == socket.id) {
-        socket.emit("startGameCards", roomCode);
-        socket.emit("stopwatchTime", roomCode);
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("startGameCards", roomCode);
+      socket.emit("stopwatchTime", roomCode);
     }
+    
   };
 
   // make sure that the game starts only once by host
   useEffect(() => {
     if (onceDone.current) return;
 
-    if (users.length > 0) {
-      if (users[0].id === socket.id) {
-        startGame();
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      startGame();
     }
+    
 
     onceDone.current = true;
   }, []);
@@ -128,18 +130,20 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
       // all cards at the same time flip back (animation Rafał)
 
       // the game ends after 3 turns
-      if (users.length > 0) {
-        if (users[0].id === socket.id) {
-          if (round >= 3) {
-            // end the game
-            socket.emit("endGameCards", roomCode);
-          } else {
-            // next round
-            socket.emit("endRoundCards", roomCode);
-            startGame();
-          }
+
+      const host = users.find((user) => user.id == socket.id)?.is_host;
+
+      if (host) {
+        if (round >= 3) {
+          // end the game
+          socket.emit("endGameCards", roomCode);
+        } else {
+          // next round
+          socket.emit("endRoundCards", roomCode);
+          startGame();
         }
       }
+      
       // flip the cards and reset the time
       setFlipped("ALL");
       setTimeout(() => {
@@ -188,7 +192,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
             selected={selectedCard === index}
             socket={socket}
             roomCode={roomCode}
-            user={users[0].id}
+            user={users.find((user) => user.is_host == true)?.id}
           />
         ))}
       </motion.div>

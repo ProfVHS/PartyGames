@@ -104,13 +104,15 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   }, [socket]);
 
   useEffect(() => {
+    const host = users.find((user) => user.id === socket.id)?.is_host;
+
     if (allUsersWrittenQuestion === users.length) {
-      if (socket.id === users[0].id) {
+      if (host) {
         socket.emit("getQuestionsBuddies", roomCode);
       }
     }
     if (allUsersWrittenAnswer === users.length - 1) {
-      if (socket.id === users[0].id) {
+      if (host) {
         socket.emit("getAnswersBuddies", roomCode);
       }
     }

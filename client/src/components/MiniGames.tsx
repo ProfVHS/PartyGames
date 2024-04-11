@@ -58,12 +58,16 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   // === on first render === //
   useEffect(() => {
     setUsersBeforeGame(users);
-    if (onceDone.current === false) {
-      if (users[0].id === socket.id) {
-        socket.emit("gamesArray", roomCode);
-      }
-      onceDone.current = true;
+    
+    if (onceDone.current) return;
+
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("gamesArray", roomCode);
     }
+
+    onceDone.current = true;
   }, []);
 
   // === on currentGame change === //
@@ -107,6 +111,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     console.log(newNextGame);
     console.log("Minigame +1");
+    socket.emit("updateCurrentGameIndex", roomCode);
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);

@@ -13,7 +13,7 @@ interface CardProps {
   selected: boolean;
   socket: Socket;
   roomCode: string;
-  user: string;
+  user?: string;
 }
 export default function Card({ id, isPositive, flip, score, onSelect, selected, socket, roomCode, user }: CardProps) {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);

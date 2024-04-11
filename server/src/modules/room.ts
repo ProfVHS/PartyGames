@@ -312,6 +312,14 @@ module.exports = (
     console.log("Start Next Game :");
     socket.nsp.to(roomCode).emit("receiveNextGame");
   });
+  // update current index games
+  socket.on("updateCurrentGameIndex", async (roomCode: string) => {
+    const index = gamesArray.findIndex(roomCode => roomCode === roomCode);
+
+    gamesArray[index].currentGame += 1;
+    
+    socket.nsp.to(roomCode).emit("receiveCurrentGameIndex", gamesArray[index].currentGame);
+  });
   // users data
   socket.on("usersData", async (roomCode: string) => {
     usersData(roomCode, socket);

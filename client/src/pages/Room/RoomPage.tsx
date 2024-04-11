@@ -101,7 +101,7 @@ export default function RoomPage() {
     return () => {
       socket.off("receiveUsersData");
       socket.off("receiveRoomData");
-      socket.off("user_disconnected");
+      socket.off("userDisconnectedRoom");
       socket.off("receiveUserIsInRoom");
       socket.off("waitForOtherPlayers", waitForOthers);
     };

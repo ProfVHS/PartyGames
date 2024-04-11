@@ -80,13 +80,13 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   };
 
   const startGameDiamonds = () => {
-    if (users.length > 0) {
-      if (users[0].id == socket.id) {
-        socket.emit("startGameDiamonds", roomCode);
-        socket.emit("stopwatchTime", roomCode);
-        console.log("startGameDiamonds");
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("startGameDiamonds", roomCode);
+      socket.emit("stopwatchTime", roomCode);
     }
+    
     setEndRound(false);
   };
 
@@ -124,11 +124,12 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
 
   useEffect(() => {
     if (time == 0) {
-      if (users.length > 0) {
-        if (users[0].id == socket.id) {
-          socket.emit("endRoundDiamonds", roomCode);
-        }
+      const host = users.find((user) => user.id == socket.id)?.is_host;
+
+      if (host) {
+        socket.emit("endRoundDiamonds", roomCode);
       }
+      
       setEndRound(true);
       setTimeout(() => {
         startGameDiamonds();
