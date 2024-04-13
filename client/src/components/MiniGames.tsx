@@ -36,7 +36,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setMinigameIndex(current);
 
       const game = games[current];
-      setCurrentGame(game);
+      setCurrentGame("CLICKTHEBOMB");
     });
 
     socket.on("receiveNextGame", () => {
@@ -80,6 +80,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       const leaderboardTime = users.length * 500 + 3500;
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
+        console.log("Leaderboard time is over");
       }, leaderboardTime);
     }
 
@@ -111,7 +112,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     console.log(newNextGame);
     console.log("Minigame +1");
-    socket.emit("updateCurrentGameIndex", roomCode);
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);

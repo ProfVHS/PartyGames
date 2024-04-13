@@ -1,7 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
 import { User, Room } from "../index";
-import { Console } from "console";
 interface Count {
   count: number;
 }
@@ -302,6 +301,8 @@ module.exports = (
     const games = gamesArray.find(roomCode => roomCode === roomCode)?.games;
     const current = gamesArray.find(roomCode => roomCode === roomCode)?.currentGame;
 
+    console.log("Games - ", games);
+
     socket.nsp.to(roomCode).emit("receiveGamesArray", games, current);
   });
   //#endregion
@@ -317,8 +318,8 @@ module.exports = (
     const index = gamesArray.findIndex(roomCode => roomCode === roomCode);
 
     gamesArray[index].currentGame += 1;
-    
-    socket.nsp.to(roomCode).emit("receiveCurrentGameIndex", gamesArray[index].currentGame);
+
+    socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray[index].games, gamesArray[index].currentGame);
   });
   // users data
   socket.on("usersData", async (roomCode: string) => {
