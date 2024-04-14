@@ -10,6 +10,7 @@ import { Buddies } from "./Buddies/Buddies";
 import { AnimatePresence } from "framer-motion";
 import Leaderboard from "./Leaderboard/Leaderboard";
 import LastUserNotification from "./LastUserNotification/LastUserNotification";
+import { useNavigate } from "react-router-dom";
 import LeaderboardGame from "./LeaderboardGame/LeaderboardGame";
 
 interface MiniGamesProps {
@@ -28,6 +29,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
   const onceDone = useRef<boolean>(false);
+  const navigate = useNavigate();
 
   // === Socket.io events === //
   useEffect(() => {
@@ -46,20 +48,20 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     });
 
     socket.on("receiveSoloInRoom", () => {
-      setCurrentGame("SOLOINROOM")
+      setCurrentGame("SOLOINROOM");
     });
 
     return () => {
       socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
       socket.off("receiveSoloInRoom");
-    }
+    };
   }, [socket]);
 
   // === on first render === //
   useEffect(() => {
     setUsersBeforeGame(users);
-    
+
     if (onceDone.current) return;
 
     const host = users.find((user) => user.id == socket.id)?.is_host;
@@ -86,26 +88,26 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     }
 
     if (currentGame === "ENDGAME") {
-      // TODO: change to end game screen
+      navigate("/endgame", { state: { roomCode } });
     }
   }, [currentGame]);
 
   useEffect(() => {
     document.cookie = `${socket.id}`;
 
-    const connectedUsers = users.filter(user => !user.is_disconnect);
+    const connectedUsers = users.filter((user) => !user.is_disconnect);
 
-    if(connectedUsers.length < 2){
+    if (connectedUsers.length < 2) {
       socket.emit("startNextGame", roomCode);
     }
-    if(gamesArray.length === 0){
+    if (gamesArray.length === 0) {
       socket.emit("gamesArray", roomCode);
     }
-  }, [])
+  }, []);
 
   const handleMiniGameEnd = () => {
-    if(currentGame !== "SOLOINROOM"){
-      setCurrentGame("LEADERBOARD")
+    if (currentGame !== "SOLOINROOM") {
+      setCurrentGame("LEADERBOARD");
     }
 
     const newMinigameIndex = minigameIndex + 1;

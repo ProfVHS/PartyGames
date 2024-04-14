@@ -33,13 +33,13 @@ export type TrickyDiamondType = {
 // Colors Memory
 export type ColorsMemory = "red" | "blue" | "green" | "yellow" | "purple" | "orange" | "pink" | "brown";
 
-export type awardType = "ctbCLICK" | "firstDeath" | "mostLosedPoints";
+export type MedalsType = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory";
 
 export type MedalProps = {
   userID: string;
   username: string;
   points: number;
-  award: awardType;
+  award: MedalsType;
 };
 
 export type MinigamesType =
