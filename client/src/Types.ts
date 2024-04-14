@@ -42,4 +42,14 @@ export type MedalProps = {
   award: MedalsType;
 };
 
-export type MinigamesType = "SOLOINROOM" | "MINIGAMEEND" | "LEADERBOARD" | "TRICKYDIAMONDS" | "COLORSMEMORY" | "BUDDIES" | "CLICKTHEBOMB" | "CARDS" | "ENDGAME";
+export type MinigamesType =
+  | "SOLOINROOM"
+  | "MINIGAMEEND"
+  | "LEADERBOARD"
+  | "LEADERBOARDGAME"
+  | "TRICKYDIAMONDS"
+  | "COLORSMEMORY"
+  | "BUDDIES"
+  | "CLICKTHEBOMB"
+  | "CARDS"
+  | "ENDGAME";

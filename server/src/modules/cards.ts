@@ -20,13 +20,13 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
-  usersResetData: (roomCode: string, socket: Socket) => void,
-  updateUserScore: (id: string, score: number, socket: Socket) => void,
   roomData: (roomCode: string, socket: Socket) => Promise<Room>,
+  updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
-  getUsersData: (roomCode: string) => Promise<User[]>
+  getUsersData: (roomCode: string) => Promise<User[]>,
+  usersResetData: (roomCode: string, socket: Socket) => void,
 ) => {
   //#region cards functions
   // arrays with ponts for cards in 3 different turns
@@ -219,7 +219,7 @@ module.exports = (
       1
     );
     // update in_game to false, round to 1
-    updateRoomRound(roomCode, 0, socket);
+    await updateRoomRound(roomCode, 0, socket);
     usersResetData(roomCode, socket);
 
     socket.nsp.to(roomCode).emit("receiveNextGame");

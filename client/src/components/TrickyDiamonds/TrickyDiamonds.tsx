@@ -17,7 +17,6 @@ interface TrickyDiamondsProps {
 
 export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiamondsProps) {
   const [selectedDiamond, setSelectedDiamond] = useState<number>(0);
-  const [round, setRound] = useState<number>(1);
   const [score, setScore] = useState<number[]>([0, 0, 0]);
   const [time, setTime] = useState<number>(10);
   const [endRound, setEndRound] = useState<boolean>(false);
@@ -142,7 +141,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
       console.log("score is null");
       socket.emit("getDiamondsScore", roomCode);
     }
-  }, [window.onload]);
+  }, []);
 
   return (
     <div className="tricky" ref={scope}>
@@ -151,7 +150,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
           <Stopwatch maxTime={10} timeLeft={time} size={50} />
         </motion.div>
         <motion.span className="tricky__header__text" initial={{ scale: 0 }}>
-          Round - {round}
+          Round - {roomData?.round}
         </motion.span>
       </div>
       <div className="tricky__cards">

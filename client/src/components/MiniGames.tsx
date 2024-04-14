@@ -11,6 +11,7 @@ import { AnimatePresence } from "framer-motion";
 import Leaderboard from "./Leaderboard/Leaderboard";
 import LastUserNotification from "./LastUserNotification/LastUserNotification";
 import { useNavigate } from "react-router-dom";
+import LeaderboardGame from "./LeaderboardGame/LeaderboardGame";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -128,6 +129,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       <AnimatePresence>
         {currentGame === "SOLOINROOM" && <LastUserNotification onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
+        {/* {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={[]} onExit={() => setCurrentGame(nextMinigame)} />} */}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
