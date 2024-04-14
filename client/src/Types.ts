@@ -4,10 +4,11 @@ export type User = {
   username: string;
   score: number;
   alive: boolean;
-  is_disconnected: boolean;
+  is_disconnect: boolean;
   id_room: string;
   id_selected: number;
-  position: number;
+  game_position: number;
+  is_host: boolean;
 };
 
 export type Room = {
@@ -17,7 +18,6 @@ export type Room = {
   time_left: number;
   time_max: number;
   in_game: boolean;
-  is_minigame_started: boolean;
   round: number;
 };
 
@@ -43,6 +43,7 @@ export type MedalProps = {
 };
 
 export type MinigamesType =
+  | "SOLOINROOM"
   | "MINIGAMEEND"
   | "LEADERBOARD"
   | "TRICKYDIAMONDS"

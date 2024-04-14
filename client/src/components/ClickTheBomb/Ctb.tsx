@@ -116,12 +116,13 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
   useEffect(() => {
     if(onceDone.current) return;
 
-    if (users.length > 0) {
-      if (users[0].id === socket.id) {
-        const usersLength = users.length;
-        socket.emit("startGameCtb", { roomCode, usersLength });
-      }
+    const host = users.find((user) => user.id === socket.id)?.is_host;
+
+    if (host) {
+      const usersLength = users.length;
+      socket.emit("startGameCtb", { roomCode, usersLength });
     }
+    
 
     onceDone.current = true;
   }, [window.onload]);

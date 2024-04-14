@@ -9,6 +9,7 @@ import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
 import { AnimatePresence } from "framer-motion";
 import Leaderboard from "./Leaderboard/Leaderboard";
+import LastUserNotification from "./LastUserNotification/LastUserNotification";
 
 interface MiniGamesProps {
   roomCode: string;
@@ -29,27 +30,44 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   // === Socket.io events === //
   useEffect(() => {
-    socket.on("receiveGamesArray", (data) => {
-      setGamesArray(data);
+    socket.on("receiveGamesArray", (games, current) => {
+      setGamesArray(games);
 
-      const firstGame = data[0];
-      setCurrentGame("COLORSMEMORY");
+      setMinigameIndex(current);
+
+      const game = games[current];
+      setCurrentGame("CLICKTHEBOMB");
     });
 
     socket.on("receiveNextGame", () => {
+      console.log("receiveNextGame");
       setCurrentGame("MINIGAMEEND");
     });
+
+    socket.on("receiveSoloInRoom", () => {
+      setCurrentGame("SOLOINROOM")
+    });
+
+    return () => {
+      socket.off("receiveNextGame");
+      socket.off("receiveGamesArray");
+      socket.off("receiveSoloInRoom");
+    }
   }, [socket]);
 
   // === on first render === //
   useEffect(() => {
     setUsersBeforeGame(users);
-    if (onceDone.current === false) {
-      if (users[0].id === socket.id) {
-        socket.emit("gamesArray", roomCode);
-      }
-      onceDone.current = true;
+    
+    if (onceDone.current) return;
+
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("gamesArray", roomCode);
     }
+
+    onceDone.current = true;
   }, []);
 
   // === on currentGame change === //
@@ -62,6 +80,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       const leaderboardTime = users.length * 500 + 3500;
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
+        console.log("Leaderboard time is over");
       }, leaderboardTime);
     }
 
@@ -70,22 +89,46 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     }
   }, [currentGame]);
 
+  useEffect(() => {
+    document.cookie = `${socket.id}`;
+
+    const connectedUsers = users.filter(user => !user.is_disconnect);
+
+    if(connectedUsers.length < 2){
+      socket.emit("startNextGame", roomCode);
+    }
+    if(gamesArray.length === 0){
+      socket.emit("gamesArray", roomCode);
+    }
+  }, [])
+
   const handleMiniGameEnd = () => {
+    if(currentGame !== "SOLOINROOM"){
+      setCurrentGame("LEADERBOARD")
+    }
+
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
+    console.log(newNextGame);
+    console.log("Minigame +1");
+
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);
-    setTimeout(() => setCurrentGame("LEADERBOARD"), 1000);
   };
+
+  useEffect(() => {
+    console.log(currentGame);
+  }, [currentGame]);
 
   return (
     <>
       <AnimatePresence>
+        {currentGame === "SOLOINROOM" && <LastUserNotification onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
-        {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
+        {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "COLORSMEMORY" && <ColorsMemory roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "BUDDIES" && <Buddies roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
       </AnimatePresence>

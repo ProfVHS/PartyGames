@@ -114,7 +114,6 @@ export default function HomePage() {
       new Audio(ClickSound).play();
       socket.emit("joinRoom", { roomCode, name, cookie_id });
       socket.on("joiningRoom", () => {
-        console.log("joining room");
         startLoadingAnimation(roomCode);
       });
       socket.on("roomFull", () => {

@@ -10,6 +10,7 @@ import ClickSound from "../../assets/audio/click.mp3";
 import { User, Room } from "../../Types";
 import MiniGames from "../../components/MiniGames";
 import { socket } from "../../socket";
+import LastUserNotification from "../../components/LastUserNotification/LastUserNotification";
 
 export default function RoomPage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function RoomPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [roomData, setRoomData] = useState<Room | null>();
   const [ready, setReady] = useState(false);
+
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
   const [startGame, setStartGame] = useState(false);
@@ -64,7 +66,14 @@ export default function RoomPage() {
     });
   }, []);
 
+  const [isOpen, setIsOpen] = useState(false);
+
   useEffect(() => {
+    const waitForOthers = (data: boolean) => {
+      console.log("wait for other", data);
+      setIsOpen(data);
+    };
+
     // Users data
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
@@ -76,25 +85,27 @@ export default function RoomPage() {
       setUsersReady(data.ready);
       readyLength.current = data.ready;
     });
-    // User disconnected
-    socket.on("user_disconnected", (data) => {
-      alert(data + " has left the room");
-    });
+    //
     socket.on("receiveUserIsInRoom", (data) => {
       if (!data) {
         navigate("/");
       }
     });
+    // User disconnected
+    socket.on("userDisconnectedRoom", (data) => {
+      console.log(data + " has left the room");
+    });
+    //
+    socket.on("waitForOtherPlayers", waitForOthers);
 
     return () => {
       socket.off("receiveUsersData");
       socket.off("receiveRoomData");
-      socket.off("user_disconnected");
+      socket.off("userDisconnectedRoom");
       socket.off("receiveUserIsInRoom");
+      socket.off("waitForOtherPlayers", waitForOthers);
     };
   }, [socket]);
-
-  const handleUserDisconnect = (username: string) => {};
 
   setTimeout(() => {
     setIsLoading(false);
@@ -112,7 +123,7 @@ export default function RoomPage() {
 
   return (
     <>
-      <button onClick={() => {}}>Back</button>
+      {isOpen && <LastUserNotification />}
       <div className="roomGrid">
         {windowSizeX > 800 &&
           windowSizeY > 600 &&

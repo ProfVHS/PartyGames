@@ -7,6 +7,8 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
+  roomData: (roomCode: string, socket: Socket) => void,
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => void,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
@@ -59,32 +61,36 @@ module.exports = (
   //#region diamonds functions
   // arrays with ponts for diamonds in 3 different rounds
   const scoreArrays = async (roomCode: string) => {
-    return new Promise<Room>((resolveRoom, rejectRoom) => {
-      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+    const round = await new Promise<number>((resolveRoom, rejectRoom) => {
+      db.get(`SELECT round FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
         if (err) {
-          rejectRoom("Error: Score arrays");
+          console.log("Diamonds Score arrays error:");
+          rejectRoom(err);
         } else {
-          resolveRoom(room_row);
-        }
-      });
-    }).then((room_row) => {
-      return new Promise<number[]>((resolve, reject) => {
-        switch (room_row.round) {
-          case 1:
-            resolve([250, 100, 35]);
-            break;
-          case 2:
-            resolve([275, 125, 50]);
-            break;
-          case 3:
-            resolve([300, 150, 75]);
-            break;
-          default:
-            endGameDiamonds(roomCode);
-            break;
+          resolveRoom(row.round);
         }
       });
     });
+    
+    console.log(round);
+    return await new Promise<number[]>((resolve, reject) => {
+      switch (round) {
+        case 1:
+          resolve([250, 100, 35]);
+          break;
+        case 2:
+          resolve([275, 125, 50]);
+          break;
+        case 3:
+          resolve([300, 150, 75]);
+          break;
+        default:
+          console.log("End");
+          //endGameDiamonds(roomCode);
+          break;
+      }
+    });
+    
   };
 
   // find min value in array without 0
@@ -136,6 +142,7 @@ module.exports = (
 
   const endGameDiamonds = async (roomCode: string) => {
     updateRoomRound(roomCode, 0, socket);
+    usersResetData(roomCode, socket);
     socket.nsp.to(roomCode).emit("receiveNextGame");
     console.log("endGameDiamonds");
   };
@@ -144,11 +151,13 @@ module.exports = (
   //#region diamonds sockets
   // start game tricky diamonds
   socket.on("startGameDiamonds", async (roomCode: string) => {
-    await changeRoomRound(roomCode, socket).then(() => {
-      scoreArrays(roomCode).then((array) => {
+    await changeRoomRound(roomCode, socket).then(async () => {
+      await scoreArrays(roomCode).then((array) => {
         console.log(array);
         socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
         updateRoomTime(roomCode, 10, 10);
+        // is minigame started
+        roomData(roomCode, socket);
       });
       addUsersToSamotnyWilkDB(roomCode);
     });
@@ -163,14 +172,8 @@ module.exports = (
 
   // end round tricky diamonds
   socket.on("endRoundDiamonds", async (roomCode: string) => {
+    console.log("endRoundDiamonds");
     findWinners(roomCode, [0, 0, 0]);
   });
-
-  // end game tricky diamonds
-  // socket.on("endGameDiamonds", async (roomCode: string) => {
-  //     updateRoomInGame(roomCode, false);
-  //     updateRoomRound(roomCode, 0, socket);
-  //     console.log("endGameDiamonds");
-  // });
   //#endregion
 };

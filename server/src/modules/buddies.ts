@@ -30,6 +30,7 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>
 ) => {
   //#region buddies functions
@@ -54,6 +55,7 @@ module.exports = (
   };
 
   const endGame = async (roomCode: string) => {
+    usersResetData(roomCode, socket);
     socket.nsp.to(roomCode).emit("endGameBuddies");
     socket.nsp.to(roomCode).emit("receiveNextGame");
   };

@@ -13,7 +13,8 @@ export interface User {
   is_disconnect: boolean, 
   id_room: string,
   id_selected: number,
-  position: number,
+  game_position: number,
+  is_host: boolean;
 };
 
 export interface Room {
@@ -23,7 +24,6 @@ export interface Room {
   time_left: number, 
   time_max: number,
   in_game: boolean,
-  is_minigame_started: boolean,
   round: number,
 };
 
@@ -51,10 +51,10 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "is_minigame_started" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
     );
     db.run(
-      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "position" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+      'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "game_position" INTEGER NOT NULL, "is_host" BOOLEAN NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
     );
     // games tables
     // click the bomb
@@ -137,21 +137,6 @@ server.listen(3000, async () => {
       usersData(roomCode, socket);
     });
   };
-  // reset data about room
-  const roomResetData = async (roomCode: string, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET turn = 0, ready = 0, time_left = 0, time_max = 0, in_game = false, round = 0 WHERE id = "${roomCode}"`, [], (err) => {
-        if (err) {
-          console.log("Room reset error");
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }).then(() => {
-      roomData(roomCode, socket);
-    });
-  };
   //#endregion
 
   //#region Update data about rooms (turn, time, round)
@@ -192,12 +177,32 @@ server.listen(3000, async () => {
       });
     });
 
-    updateTurn
-      .then(async () => {
-        Promise.all([updateTurn, users, room]).then(() => {
+    updateTurn.then(async () => {
+        Promise.all([updateTurn, users, room]).then(async () => {
           const username = users[room.turn].username;
           const id = users[room.turn].id;
           socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
+
+          await new Promise<void>((resolve, reject) => {
+            db.run(`UPDATE users SET is_host = false WHERE id_room = "${roomCode}"`, (err) => {
+              if(err){
+                console.log("Update host error");
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+            db.run(`UPDATE users SET is_host = true WHERE id = "${id}"`, (err) => {
+              if(err){
+                console.log("Update host 2 error");
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+
+          usersData(roomCode, socket);
         });
       })
       .catch((error: Error) => {
@@ -230,7 +235,7 @@ server.listen(3000, async () => {
 
     // Promise.all([users, room]).then(() => {
   
-      const skipTurn = (turn: number) => {
+      const skipTurn = async (turn: number) => {
         if(turn >= users.length - 1){
           //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
           skipTurn(-1);
@@ -272,24 +277,13 @@ server.listen(3000, async () => {
   };
   // change round in room
   const changeRoomRound = async (roomCode: string, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET round = round + 1 WHERE id = "${roomCode}"`, [], (err) => {
         if (err) {
           console.log("Change Room Round error");
           reject(err);
         } else {
           resolve();
-        }
-      });
-    });
-  };
-  // set in game in room
-  const updateRoomInGame = async (roomCode: string, in_game: boolean) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = ${in_game} WHERE id = "${roomCode}"`, (err) => {
-        if(err){
-          console.log("Update Room In Game error");
-          reject(err);
         }
       });
     });

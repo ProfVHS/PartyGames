@@ -19,7 +19,7 @@ interface CardsProps {
 
 export function Cards({ roomCode, users, onExit }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
-  const [time, setTime] = useState<number>(15);
+  const [time, setTime] = useState<number>(10);
   const [round, setRound] = useState<number>(1);
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
@@ -62,24 +62,25 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   const onceDone = useRef<boolean>(false);
 
   const startGame = async () => {
-    if (users.length > 0) {
-      if (users[0].id == socket.id) {
-        socket.emit("startGameCards", roomCode);
-        socket.emit("stopwatchTime", roomCode);
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("startGameCards", roomCode);
+      socket.emit("stopwatchTime", roomCode);
     }
+    
   };
 
   // make sure that the game starts only once by host
   useEffect(() => {
     if (onceDone.current) return;
 
-    if (users.length > 0) {
-      if (users[0].id === socket.id) {
-        startGame();
-        socket.emit("addUsersToLowestBalance", roomCode);
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      startGame();
     }
+    
 
     onceDone.current = true;
   }, []);
@@ -129,24 +130,26 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
       // all cards at the same time flip back (animation Rafał)
 
       // the game ends after 3 turns
-      if (users.length > 0) {
-        if (users[0].id === socket.id) {
-          if (round >= 3) {
-            // end the game
-            socket.emit("endGameCards", roomCode);
-          } else {
-            // next round
-            socket.emit("endRoundCards", roomCode);
-            startGame();
-          }
+
+      const host = users.find((user) => user.id == socket.id)?.is_host;
+
+      if (host) {
+        if (round >= 3) {
+          // end the game
+          socket.emit("endGameCards", roomCode);
+        } else {
+          // next round
+          socket.emit("endRoundCards", roomCode);
+          startGame();
         }
       }
+      
       // flip the cards and reset the time
       setFlipped("ALL");
       setTimeout(() => {
         setFlipped("NONE");
       }, 100);
-      setTime(15);
+      setTime(10);
     });
   };
 
@@ -175,7 +178,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
         Round: {round}
       </motion.span>
       <motion.div className="cards__stopwatch" initial={{ scale: 0, opacity: 0 }}>
-        <Stopwatch maxTime={15} timeLeft={time} size={75} />
+        <Stopwatch maxTime={10} timeLeft={time} size={75} />
       </motion.div>
       <motion.div className="cardsWrapper" initial={{ scale: 0, opacity: 0 }}>
         {cards?.map((card, index) => (
@@ -189,7 +192,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
             selected={selectedCard === index}
             socket={socket}
             roomCode={roomCode}
-            user={users[0].id}
+            user={users.find((user) => user.is_host == true)?.id}
           />
         ))}
       </motion.div>

@@ -4,9 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import { Stopwatch } from "../Stopwatch/Stopwatch";
 import { socket } from "../../socket";
 
-import { User } from "../../Types";
+import { User, Room } from "../../Types";
 import { useAnimate, usePresence, motion } from "framer-motion";
 interface TrickyDiamondsProps {
+  roomData: Room | null;
   roomCode: string;
   users: User[];
   onExit?: () => void;
@@ -14,7 +15,7 @@ interface TrickyDiamondsProps {
 
 //type DiamondsState = 0 | 1 | 2;
 
-export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps) {
+export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiamondsProps) {
   const [selectedDiamond, setSelectedDiamond] = useState<number>(0);
   const [round, setRound] = useState<number>(1);
   const [score, setScore] = useState<number[]>([0, 0, 0]);
@@ -79,13 +80,13 @@ export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps)
   };
 
   const startGameDiamonds = () => {
-    if (users.length > 0) {
-      if (users[0].id == socket.id) {
-        socket.emit("startGameDiamonds", roomCode);
-        socket.emit("stopwatchTime", roomCode);
-        console.log("startGameDiamonds");
-      }
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+
+    if (host) {
+      socket.emit("startGameDiamonds", roomCode);
+      socket.emit("stopwatchTime", roomCode);
     }
+    
     setEndRound(false);
   };
 
@@ -123,11 +124,12 @@ export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps)
 
   useEffect(() => {
     if (time == 0) {
-      if (users.length > 0) {
-        if (users[0].id == socket.id) {
-          socket.emit("endRoundDiamonds", roomCode);
-        }
+      const host = users.find((user) => user.id == socket.id)?.is_host;
+
+      if (host) {
+        socket.emit("endRoundDiamonds", roomCode);
       }
+      
       setEndRound(true);
       setTimeout(() => {
         startGameDiamonds();
@@ -136,7 +138,7 @@ export function TrickyDiamonds({ roomCode, users, onExit }: TrickyDiamondsProps)
   }, [time]);
 
   useEffect(() => {
-    if(score[0] == 0){
+    if(score[0] == 0 && roomData?.in_game){
       console.log("score is null");
       socket.emit("getDiamondsScore", roomCode);
     }

@@ -13,6 +13,7 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
+  usersResetData: (roomCode: string, socket: Socket) => void,
   usersData: (roomCode: string, socket: Socket) => void,
   getUsersData: (roomCode: string) => Promise<User[]>,
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => Promise<void>,
@@ -21,14 +22,12 @@ module.exports = (
   updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
   updateUserAlive: (id: string, alive: boolean) => void,
   updateUsersAlive: (roomCode: string, alive: boolean) => void,
-  updateRoomInGame: (roomCode: string, in_game: boolean) => void
 ) => {
   //#region ctb functions
   // set data bomb
   const setDataBomb = async (max: number, counter: number, roomCode: string) => {
     console.log(max, counter, roomCode);
     return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`);
       db.run(`INSERT INTO bomb (id,counter,max) VALUES ("${roomCode}",${counter},${max})`, (err) => {
         if (err) {
           console.log("SET DATA bomb error");
@@ -116,24 +115,23 @@ module.exports = (
   //#region ctb sockets
   // start the game click the bomb
   socket.on("startGameCtb", async (data: { roomCode: string; usersLength: number }) => {
-    const roomInGame = await new Promise<boolean>((resolve, reject) => {
-      db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
+    const isGameStarted = await new Promise<Bomb>((resolve, reject) => {
+      db.get(`SELECT * FROM bomb WHERE id = "${data.roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
         if (err) {
           console.log("Start CTB In Room error");
           reject(err);
         } else {
-          resolve(room_row.in_game);
+          resolve(bomb_row);
         }
       });
     });
-    db.run(`UPDATE rooms SET is_minigame_started = true WHERE id = "${data.roomCode}"`);
-    console.log(roomInGame);
-    if (!roomInGame) {
+
+    if (!isGameStarted) {
       // (generate max number of clicks) min - 1, max - users.lenght * 5
       const max = Math.round(Math.random() * (data.usersLength * 5 - 1)) + 1;
       // (generate turn) min - 0, max - users.lenght - 1
       const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
-      updateRoomInGame(data.roomCode, true);
+      console.log("Turn - ",turn);
       updateRoomTurn(data.roomCode, turn, socket);
       addUserstoMostClicks(data.roomCode);
       setDataBomb(max, 0, `${data.roomCode}`);
@@ -185,6 +183,7 @@ module.exports = (
           updateUsersAlive(roomCode, true);
           // send data to the client
           usersData(roomCode, socket);
+          usersResetData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveEndCtb");
           socket.nsp.to(roomCode).emit("receiveNextGame");
         } else {
