@@ -18,8 +18,47 @@ module.exports = (
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
-  updateUsersAlive: (roomCode: string, alive: boolean) => Promise<void>
+  updateUsersAlive: (roomCode: string, alive: boolean) => Promise<void>,
+  getUsersData: (roomCode: string) => Promise<User[]>
 ) => {
+  const addUsersToColorsMemoryRoundRecordDB = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return await new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO colorsMemoryRoundRecord (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+  const updateUsersColorsMemoryRoundRecord = async (user_id: string, number: number) => {
+    return await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE colorsMemoryRoundRecord SET number = ${number} WHERE id_user = "${user_id}"`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  const getColorsMemoryRoundRecord = async () => {
+    const users = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM colorsMemoryRoundRecord ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(users);
+  };
+
   //#region colors memory functions
   const addButton = async (roomCode: string) => {
     const randomButton = Math.floor(Math.random() * 8);
@@ -39,6 +78,11 @@ module.exports = (
       socket.nsp.to(socket.id).emit("sequenceColorsMemory", buttons);
     }
   };
+
+  socket.on("InitColorsMemory", async (roomCode: string) => {
+    await addUsersToColorsMemoryRoundRecordDB(roomCode);
+  });
+
   //#endregion
   //#region colors memory sockets
   socket.on("startGameColorsMemory", async (roomCode: string) => {
@@ -51,6 +95,10 @@ module.exports = (
   socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number, currentClickNumber: number) => {
     const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
 
+    updateUsersColorsMemoryRoundRecord(socket.id, currentClickNumber).then(() => {
+      getColorsMemoryRoundRecord();
+    });
+    
     if (buttons) {
       // End User Game
       if (buttons[currentClickNumber] !== id) {

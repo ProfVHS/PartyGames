@@ -3,9 +3,9 @@
     "version": "2.2.11",
     "width": 2000,
     "height": 2000,
-    "scrollTop": -235,
-    "scrollLeft": -28,
-    "zoomLevel": 1,
+    "scrollTop": -59.1737,
+    "scrollLeft": -87.38109999999998,
+    "zoomLevel": 0.9,
     "show": {
       "tableComment": true,
       "columnComment": true,
@@ -43,10 +43,12 @@
   "table": {
     "tables": [
       {
+        "id": "19bd6d07-dd93-44b4-aac9-5e182338dbbc",
         "name": "users",
         "comment": "",
         "columns": [
           {
+            "id": "3e31036c-dc95-4657-81fa-1d9190dd0f26",
             "name": "id",
             "comment": "",
             "dataType": "VARCHAR",
@@ -64,12 +66,12 @@
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "3e31036c-dc95-4657-81fa-1d9190dd0f26"
+            }
           },
           {
+            "id": "00ddd68e-e6f5-4270-b6b0-8244f10b0a2f",
             "name": "username",
             "comment": "",
             "dataType": "VARCHAR",
@@ -87,12 +89,12 @@
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "00ddd68e-e6f5-4270-b6b0-8244f10b0a2f"
+            }
           },
           {
+            "id": "0d6016f8-5f61-40a0-baa5-29da40abc6ee",
             "name": "score",
             "comment": "",
             "dataType": "INTEGER",
@@ -112,10 +114,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "0d6016f8-5f61-40a0-baa5-29da40abc6ee"
+            }
           },
           {
+            "id": "4917c6cf-3a01-4910-aa06-1a9e88a00fb9",
             "name": "alive",
             "comment": "",
             "dataType": "BOOLEAN",
@@ -135,10 +137,10 @@
               "widthComment": 60,
               "widthDataType": 64.8544921875,
               "widthDefault": 60
-            },
-            "id": "4917c6cf-3a01-4910-aa06-1a9e88a00fb9"
+            }
           },
           {
+            "id": "5a5ae9eb-6a89-49d3-b5e0-e418df864eea",
             "name": "id_room",
             "comment": "",
             "dataType": "VARCHAR",
@@ -156,12 +158,12 @@
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "5a5ae9eb-6a89-49d3-b5e0-e418df864eea"
+            }
           },
           {
+            "id": "1a4430c8-8e2c-45c3-b49c-80daf159408b",
             "name": "id_selected",
             "comment": "",
             "dataType": "INTEGER",
@@ -181,27 +183,27 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "1a4430c8-8e2c-45c3-b49c-80daf159408b"
+            }
           }
         ],
         "ui": {
           "active": false,
           "left": 69.1664,
           "top": 54.0005,
-          "zIndex": 1,
+          "zIndex": 79,
           "widthName": 60,
           "widthComment": 60,
           "color": "#FFFFFF"
         },
-        "visible": true,
-        "id": "19bd6d07-dd93-44b4-aac9-5e182338dbbc"
+        "visible": true
       },
       {
+        "id": "cd22733f-d122-4998-8d18-aa04efdd3a23",
         "name": "rooms",
         "comment": "",
         "columns": [
           {
+            "id": "22591335-213f-4efc-b0fa-abc52a6a8429",
             "name": "id",
             "comment": "",
             "dataType": "VARCHAR",
@@ -219,12 +221,12 @@
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "22591335-213f-4efc-b0fa-abc52a6a8429"
+            }
           },
           {
+            "id": "1d985c8b-d921-4398-abab-c6dfad9e476f",
             "name": "turn",
             "comment": "",
             "dataType": "INTEGER",
@@ -244,10 +246,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "1d985c8b-d921-4398-abab-c6dfad9e476f"
+            }
           },
           {
+            "id": "b434424f-c28b-4cee-9a1f-eed02205c529",
             "name": "ready",
             "comment": "",
             "dataType": "INTEGER",
@@ -267,10 +269,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "b434424f-c28b-4cee-9a1f-eed02205c529"
+            }
           },
           {
+            "id": "e4c0100b-6f88-4eaf-8c84-27fc765c97c3",
             "name": "time_left",
             "comment": "",
             "dataType": "INTEGER",
@@ -290,10 +292,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "e4c0100b-6f88-4eaf-8c84-27fc765c97c3"
+            }
           },
           {
+            "id": "792815b5-328f-4093-9dbe-d4009f26116b",
             "name": "time_max",
             "comment": "",
             "dataType": "INTEGER",
@@ -313,10 +315,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "792815b5-328f-4093-9dbe-d4009f26116b"
+            }
           },
           {
+            "id": "0f0267b5-94d3-4ed7-862c-c0f911c650b2",
             "name": "in_game",
             "comment": "",
             "dataType": "BOOLEAN",
@@ -336,8 +338,7 @@
               "widthComment": 60,
               "widthDataType": 64.8544921875,
               "widthDefault": 60
-            },
-            "id": "0f0267b5-94d3-4ed7-862c-c0f911c650b2"
+            }
           }
         ],
         "ui": {
@@ -349,14 +350,15 @@
           "widthComment": 60,
           "color": "#6200BB"
         },
-        "visible": true,
-        "id": "cd22733f-d122-4998-8d18-aa04efdd3a23"
+        "visible": true
       },
       {
+        "id": "6eef0716-3f3b-4ea1-972a-112b3914fece",
         "name": "bomb",
         "comment": "",
         "columns": [
           {
+            "id": "3c71e6e5-9316-4796-a096-9f01849cf70b",
             "name": "id",
             "comment": "rooms id",
             "dataType": "VARCHAR",
@@ -374,12 +376,12 @@
               "pfk": true,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "3c71e6e5-9316-4796-a096-9f01849cf70b"
+            }
           },
           {
+            "id": "f9742c29-def4-4b02-934b-818c62c3a3f5",
             "name": "counter",
             "comment": "",
             "dataType": "INTEGER",
@@ -399,10 +401,10 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "f9742c29-def4-4b02-934b-818c62c3a3f5"
+            }
           },
           {
+            "id": "02b4033c-d655-4cdd-a9f6-a7ef86941a9a",
             "name": "max",
             "comment": "",
             "dataType": "INTEGER",
@@ -422,8 +424,7 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "02b4033c-d655-4cdd-a9f6-a7ef86941a9a"
+            }
           }
         ],
         "ui": {
@@ -435,62 +436,40 @@
           "widthComment": 60,
           "color": "#FFDB00"
         },
-        "visible": true,
-        "id": "6eef0716-3f3b-4ea1-972a-112b3914fece"
+        "visible": true
       },
       {
-        "name": "card",
-        "comment": "",
+        "id": "ff5e19a9-7982-4dce-bb95-fac8d0913dc0",
+        "name": "Click the Bomb clicks",
+        "comment": "for checking player who click the most times on bomb",
         "columns": [
           {
+            "id": "cf78cb8c-48b0-4c34-ba99-99b3fa5bbd4c",
             "name": "id",
             "comment": "",
-            "dataType": "INTEGER",
+            "dataType": "int",
             "default": "",
             "option": {
               "autoIncrement": false,
-              "primaryKey": false,
+              "primaryKey": true,
               "unique": false,
               "notNull": true
             },
             "ui": {
               "active": false,
-              "pk": false,
+              "pk": true,
               "fk": false,
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "0c357e7a-be92-4b93-aa25-d71bc5899766"
+            }
           },
           {
-            "name": "id_card",
+            "id": "4067f9e8-6044-4555-b4b1-f3cedaf20f2f",
+            "name": "id_user",
             "comment": "",
-            "dataType": "INTEGER",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": true
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 60,
-              "widthComment": 60,
-              "widthDataType": 60,
-              "widthDefault": 60
-            },
-            "id": "3e53874f-340a-48f5-bf91-f6e8f6468c3c"
-          },
-          {
-            "name": "id_room",
-            "comment": "rooms id",
             "dataType": "VARCHAR",
             "default": "",
             "option": {
@@ -502,42 +481,19 @@
             "ui": {
               "active": false,
               "pk": false,
-              "fk": false,
+              "fk": true,
               "pfk": false,
               "widthName": 60,
               "widthComment": 60,
-              "widthDataType": 64.60693359375,
+              "widthDataType": 64.6005859375,
               "widthDefault": 60
-            },
-            "id": "725de616-d35d-408f-9360-c6a48e5d1e10"
+            }
           },
           {
-            "name": "isPositive",
+            "id": "97ed6ec8-d4c8-45d1-9bf4-92e2baff52bd",
+            "name": "number",
             "comment": "",
-            "dataType": "BOOLEAN",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": true
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 60,
-              "widthComment": 60,
-              "widthDataType": 64.8544921875,
-              "widthDefault": 60
-            },
-            "id": "abb5fb34-30ac-4101-aa12-fdf34503462a"
-          },
-          {
-            "name": "score",
-            "comment": "",
-            "dataType": "INTEGER",
+            "dataType": "int",
             "default": "",
             "option": {
               "autoIncrement": false,
@@ -554,21 +510,103 @@
               "widthComment": 60,
               "widthDataType": 60,
               "widthDefault": 60
-            },
-            "id": "e7610076-847b-4d91-aea7-7e1ab40094f7"
+            }
           }
         ],
         "ui": {
           "active": false,
-          "left": 597.1849,
-          "top": 102.0331,
-          "zIndex": 4,
-          "widthName": 60,
-          "widthComment": 60,
-          "color": "#FF2323"
+          "left": 572.9365,
+          "top": 0,
+          "zIndex": 62,
+          "widthName": 124.80810546875,
+          "widthComment": 120
         },
-        "visible": true,
-        "id": "9a34d87f-0b4e-4f74-b37a-932e8684d14d"
+        "visible": true
+      },
+      {
+        "id": "c131cc76-1899-4cbe-b03e-4048cfa81ae9",
+        "name": "Points Lost",
+        "comment": "for checking player that lost the most points in one minigame]",
+        "columns": [
+          {
+            "id": "07890f26-106d-4e1e-b6e1-9518df66290a",
+            "name": "id",
+            "comment": "",
+            "dataType": "",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": true,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": true,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            }
+          },
+          {
+            "id": "68502a03-6081-4f1b-9669-90c615238996",
+            "name": "id_user",
+            "comment": "",
+            "dataType": "VARCHAR",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": true,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 64.6005859375,
+              "widthDefault": 60
+            }
+          },
+          {
+            "id": "c6c896b1-2740-4e41-b37b-61c6510ee4bd",
+            "name": "points",
+            "comment": "",
+            "dataType": "int",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": true
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            }
+          }
+        ],
+        "ui": {
+          "active": false,
+          "left": 569.6033,
+          "top": 154.7291,
+          "zIndex": 91,
+          "widthName": 66.314453125,
+          "widthComment": 120
+        },
+        "visible": true
       }
     ],
     "indexes": []
@@ -579,6 +617,7 @@
   "relationship": {
     "relationships": [
       {
+        "id": "62a525bf-ff71-4ae1-b7a0-22f7857c2c14",
         "identification": false,
         "relationshipType": "OneN",
         "startRelationshipType": "Dash",
@@ -601,10 +640,10 @@
           "direction": "bottom"
         },
         "constraintName": "fk_rooms_to_users",
-        "visible": true,
-        "id": "62a525bf-ff71-4ae1-b7a0-22f7857c2c14"
+        "visible": true
       },
       {
+        "id": "3cffe640-388a-4ad9-9123-e8cb2dd74b24",
         "identification": true,
         "relationshipType": "OneOnly",
         "startRelationshipType": "Dash",
@@ -627,8 +666,59 @@
           "direction": "left"
         },
         "constraintName": "fk_rooms_to_bomb",
-        "visible": true,
-        "id": "3cffe640-388a-4ad9-9123-e8cb2dd74b24"
+        "visible": true
+      },
+      {
+        "id": "bea4b785-b0fa-432f-abe2-1941c0e99d32",
+        "identification": false,
+        "relationshipType": "OneN",
+        "startRelationshipType": "Dash",
+        "start": {
+          "tableId": "19bd6d07-dd93-44b4-aac9-5e182338dbbc",
+          "columnIds": [
+            "3e31036c-dc95-4657-81fa-1d9190dd0f26"
+          ],
+          "x": 428.78895859375,
+          "y": 102.0005,
+          "direction": "right"
+        },
+        "end": {
+          "tableId": "ff5e19a9-7982-4dce-bb95-fac8d0913dc0",
+          "columnIds": [
+            "4067f9e8-6044-4555-b4b1-f3cedaf20f2f"
+          ],
+          "x": 572.9365,
+          "y": 65.25,
+          "direction": "left"
+        },
+        "constraintName": "fk_users_to_click the bomb clicks",
+        "visible": true
+      },
+      {
+        "id": "79801576-9a79-476e-a4ed-84166d2e8fe8",
+        "identification": false,
+        "relationshipType": "OneN",
+        "startRelationshipType": "Dash",
+        "start": {
+          "tableId": "19bd6d07-dd93-44b4-aac9-5e182338dbbc",
+          "columnIds": [
+            "3e31036c-dc95-4657-81fa-1d9190dd0f26"
+          ],
+          "x": 428.78895859375,
+          "y": 198.0005,
+          "direction": "right"
+        },
+        "end": {
+          "tableId": "c131cc76-1899-4cbe-b03e-4048cfa81ae9",
+          "columnIds": [
+            "68502a03-6081-4f1b-9669-90c615238996"
+          ],
+          "x": 569.6033,
+          "y": 219.9791,
+          "direction": "left"
+        },
+        "constraintName": "fk_users_to_points lost",
+        "visible": true
       }
     ]
   }

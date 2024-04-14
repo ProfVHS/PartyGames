@@ -13,7 +13,51 @@ module.exports = (
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => void,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
+  getUsersData: (roomCode: string) => Promise<User[]>
 ) => {
+  // add users to the lowest balance after cards database - for medals
+  const addUsersToSamotnyWilkDB = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return await new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO samotnyWilk (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+  const updateUsersSamotnyWilk = async (user_id: string, number: number) => {
+    return await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE samotnyWilk SET number = number + ${number} WHERE id_user = "${user_id}"`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  const getSamotnyWilk = async () => {
+    const users = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM samotnyWilk ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(users);
+  };
+
+  socket.on("addUsersToLowestBalance", async (roomCode: string) => {
+    await addUsersToSamotnyWilkDB(roomCode);
+  });
+
   //#region diamonds functions
   // arrays with ponts for diamonds in 3 different rounds
   const scoreArrays = async (roomCode: string) => {
@@ -86,6 +130,7 @@ module.exports = (
               rows.forEach((row) => {
                 if (row.id_selected === diamondArray.indexOf(min)) {
                   updateUserScore(row.id, array[index], socket);
+                  updateUsersSamotnyWilk(row.id, 1);
                 }
               });
             });
@@ -114,6 +159,7 @@ module.exports = (
         // is minigame started
         roomData(roomCode, socket);
       });
+      addUsersToSamotnyWilkDB(roomCode);
     });
   });
 

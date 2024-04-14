@@ -160,9 +160,9 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   }, [time]);
 
   useEffect(() => {
-    if(!cards){
+    if (!cards) {
       socket.emit("getCards", roomCode);
-    };
+    }
   }, [window.onload]);
 
   const handleCardSelect = (id: number) => {

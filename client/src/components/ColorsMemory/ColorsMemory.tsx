@@ -90,6 +90,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
     if (host) {
       socket.emit("startGameColorsMemory", roomCode);
+      socket.emit("InitColorsMemory", roomCode);
     }
 
     onceDone.current = true;
@@ -158,11 +159,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
     if (isPresence) {
       const enterAnimation = async () => {
         await animate(".colormemory__buttons", { height: [5, 350] }, { duration: 1.6, type: "spring", delay: 0.05 });
-        await animate(
-          ".colormemory__gamestatus",
-          { opacity: [0, 1], y: [300, 0], display: "flex" },
-          { duration: 0.8, type: "spring" }
-        );
+        await animate(".colormemory__gamestatus", { opacity: [0, 1], y: [300, 0], display: "flex" }, { duration: 0.8, type: "spring" });
       };
       enterAnimation();
     } else {
