@@ -124,8 +124,8 @@ server.listen(3000, async () => {
   };
   // reset data about users
   const usersResetData = async (roomCode: string, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE users SET alive = true, id_selected = 0 WHERE id_room = "${roomCode}"`, [], (err) => {
+    await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE users SET alive = true, id_selected = 0, game_position = 1 WHERE id_room = "${roomCode}"`, [], (err) => {
         if (err) {
           console.log("Users reset error");
           reject(err);
@@ -146,11 +146,11 @@ server.listen(3000, async () => {
 
     const updateTurn = new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`, (err) => {
-        if (err) {
-          console.log("Update Room Turn error");
-          reject(err);
+        if(err){
+            console.log("Update Room Turn error");
+            reject(err);
         } else {
-          resolve();
+            resolve();
         }
       });
     });
@@ -253,7 +253,7 @@ server.listen(3000, async () => {
   };
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET time_left = ${time_left}, time_max = ${time_max} WHERE id = "${roomCode}"`, (err) => {
         if (err) {
           console.log("Update Room Time error");
@@ -264,7 +264,7 @@ server.listen(3000, async () => {
   };
   // set round in room
   const updateRoomRound = async (roomCode: string, round: number, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET round = ${round} WHERE id = "${roomCode}"`, (err) => {
         if (err) {
           console.log("Update Room Round error");
@@ -306,7 +306,7 @@ server.listen(3000, async () => {
 
   // change alive user
   const updateUserAlive = async (id: string, alive: boolean) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE users SET alive = ${alive} WHERE id = "${id}"`, (err) => {
         if (err) {
           console.log("Update User Alive error");
@@ -320,7 +320,7 @@ server.listen(3000, async () => {
 
   // change alive users
   const updateUsersAlive = async (roomCode: string, alive: boolean) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE users SET alive = ${alive} WHERE id_room = "${roomCode}"`, (err) => {
         if (err) {
           console.log("Update Users Alive error");
@@ -371,7 +371,7 @@ server.listen(3000, async () => {
 
   // update user score by multiplying score
   const updateUserScoreMultiply = async (roomCode: string, id: string, score: number, socket: Socket) => {
-    new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE users SET score = ROUND(score * ${score}) WHERE id = "${id}"`, (err) => {
         if (err) {
           console.log(err);
@@ -390,11 +390,11 @@ server.listen(3000, async () => {
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
     roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn);
-    bombModule(io, socket, db, usersData, getUsersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive);
-    cardsModule(io, socket, db, updateUserScore, roomData, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData);
-    diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData);
-    colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive, getUsersData);
-    buddiesModule(io, socket, db, changeRoomRound);
+    bombModule(io, socket, db, usersData, getUsersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomRound, usersResetData);
+    cardsModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
+    diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
+    colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive, getUsersData, usersResetData);
+    buddiesModule(io, socket, db, changeRoomRound, updateRoomRound, usersResetData);
   };
 
   io.on("connection", handleModulesOnConnection);

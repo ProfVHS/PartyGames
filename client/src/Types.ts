@@ -46,6 +46,7 @@ export type MinigamesType =
   | "SOLOINROOM"
   | "MINIGAMEEND"
   | "LEADERBOARD"
+  | "LEADERBOARDGAME"
   | "TRICKYDIAMONDS"
   | "COLORSMEMORY"
   | "BUDDIES"

@@ -98,11 +98,10 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
   useEffect(() => {
     if (isInGame && !isDead) {
-      const timeInterval = setInterval(() => {
+      const timeInterval = setInterval(async () => {
         if (time > 0) {
           setTime(time - 10);
         } else {
-          setIsDead(true);
           socket.emit("buttonClickedColorsMemory", roomCode, -1, currentClickNumber);
           clearInterval(timeInterval);
         }
@@ -126,24 +125,16 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       setIsDead(true);
     };
 
-    const endGame = (usersPostion: { username: string; scoreToAdd: number | null; record: number }[]) => {
-      setEndGame(true);
-      setUsersPositionArray(usersPostion);
-    };
-
     socket.on("sequenceColorsMemory", ButtonsSequence);
 
     socket.on("endRoundColorsMemory", startGame);
 
     socket.on("endGameUserColorsMemory", endGameUser);
 
-    socket.on("endGameColorsMemory", endGame);
-
     return () => {
       socket.off("sequenceColorsMemory", ButtonsSequence);
       socket.off("endRoundColorsMemory", startGame);
       socket.off("endGameUserColorsMemory", endGameUser);
-      socket.off("endGameColorsMemory", endGame);
     };
   }, [socket]);
 
@@ -164,10 +155,10 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       enterAnimation();
     } else {
       const exitAnimation = async () => {
-        await animate(".colormemory__gamestatus", { opacity: [1, 0], y: [0, 300] }, { duration: 1, type: "spring" });
-        await animate(".colormemory__buttons__item", { opacity: [1, 0] }, { duration: 0.2 });
-        animate(".colormemory__buttons", { opacity: [1, 0] }, { duration: 1, type: "spring", delay: 0.2 });
-        await animate(".colormemory__buttons", { height: [350, 0] }, { duration: 1, type: "spring" });
+        // await animate(".colormemory__gamestatus", { opacity: [1, 0], y: [0, 300] }, { duration: 1, type: "spring" });
+        // await animate(".colormemory__buttons__item", { opacity: [1, 0] }, { duration: 0.2 });
+        // animate(".colormemory__buttons", { opacity: [1, 0] }, { duration: 1, type: "spring", delay: 0.2 });
+        // await animate(".colormemory__buttons", { height: [350, 0] }, { duration: 1, type: "spring" });
         await safeToRemove();
         onExit && (await onExit());
       };
@@ -176,12 +167,9 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   }, [isPresence]);
 
   useEffect(() => {
-    console.log("isDead", isDead);
     users.forEach((user) => {
       if(user.id == socket.id){
-        console.log("User id");
         if (user.alive == false) {
-          console.log("User is dead");
           setIsDead(true);
         }
       }
@@ -190,10 +178,8 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
   return (
     <div className="colormemory" ref={scope}>
-      {endGame ? 
-        <LeaderboardGame users={usersPositionArray}/>
-      : 
-        (isDead ? (
+      
+        {(isDead ? (
           <div className="colormemory__gameover">
             <span className="colormemory__gameover__header">Game over</span>
             <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
@@ -229,8 +215,8 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
               <ProgressBar max={3000} progress={time} width={"150px"} />
             </motion.div>
           </>
-        ))
-      }
+        ))}
+      
     </div>
   );
 }

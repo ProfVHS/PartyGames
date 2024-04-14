@@ -13,7 +13,6 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
-  usersResetData: (roomCode: string, socket: Socket) => void,
   usersData: (roomCode: string, socket: Socket) => void,
   getUsersData: (roomCode: string) => Promise<User[]>,
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => Promise<void>,
@@ -22,6 +21,8 @@ module.exports = (
   updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
   updateUserAlive: (id: string, alive: boolean) => void,
   updateUsersAlive: (roomCode: string, alive: boolean) => void,
+  updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
+  usersResetData: (roomCode: string, socket: Socket) => void,
 ) => {
   //#region ctb functions
   // set data bomb
@@ -183,8 +184,9 @@ module.exports = (
           updateUsersAlive(roomCode, true);
           // send data to the client
           usersData(roomCode, socket);
-          usersResetData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveEndCtb");
+          await updateRoomRound(roomCode, 0, socket);
+          usersResetData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveNextGame");
         } else {
           // user explode
@@ -221,39 +223,50 @@ module.exports = (
 
   // get bomb data
   socket.on("getBombData", async (roomCode: string) => {
-    console.log("getBombData");
-    const counter = await new Promise<number>((resolveBomb, rejectBomb) => {
+    const isGameStarted = await new Promise<Bomb>((resolve, reject) => {
       db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
         if (err) {
-          rejectBomb(err);
+          console.log("Start CTB In Room error");
+          reject(err);
         } else {
-          resolveBomb(bomb_row.counter);
+          resolve(bomb_row);
         }
       });
     });
-    const turn = await new Promise<number>((resolveTurn, rejectTurn) => {
-      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
-        if (err) {
-          rejectTurn(err);
-        } else {
-          resolveTurn(room_row.turn);
-        }
+    if(isGameStarted){
+      const counter = await new Promise<number>((resolveBomb, rejectBomb) => {
+        db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
+          if (err) {
+            rejectBomb(err);
+          } else {
+            resolveBomb(bomb_row.counter);
+          }
+        });
       });
-    });
-    const users = await new Promise<User[]>((resolveUsers, rejectUsers) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-        if (err) {
-          rejectUsers(err);
-        } else {
-          resolveUsers(users_rows);
-        }
+      const turn = await new Promise<number>((resolveTurn, rejectTurn) => {
+        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, room_row: Room) => {
+          if (err) {
+            rejectTurn(err);
+          } else {
+            resolveTurn(room_row.turn);
+          }
+        });
       });
-    });
-    const username = users[turn].username;
-    const id = users[turn].id;
-
-    socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
-    socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
+      const users = await new Promise<User[]>((resolveUsers, rejectUsers) => {
+        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+          if (err) {
+            rejectUsers(err);
+          } else {
+            resolveUsers(users_rows);
+          }
+        });
+      });
+      const username = users[turn].username;
+      const id = users[turn].id;
+  
+      socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
+      socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
+    };
   });
   //#endregion
 };
