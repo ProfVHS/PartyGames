@@ -69,7 +69,7 @@ module.exports = (
               reject("Error: wrong round");
           }
         }).then(([negative, positive]) => {
-          // card id 
+          // card id
           var id = 0;
           // fill cardsArray with data from bombScore and cardsScore arrays
           while (array.length < 9) {
@@ -175,16 +175,12 @@ module.exports = (
     const card = cardsArray.find((cards) => cards.roomCode === data.roomCode)?.cards.find((card) => card.id === data.id);
 
     const userSelectedCard = await new Promise<User[]>((resolve, reject) => {
-      db.all(
-        `SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND is_disconnect = false`,
-        [],
-        (err: Error, users_rows: User[]) => {
-          if (err) {
-            console.log("Users (Cards) error:");
-            reject(err);
-          } else {
-            resolve(users_rows);
-          }
+      db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND id_selected = ${data.id} AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
+        if (err) {
+          console.log("Users (Cards) error:");
+          reject(err);
+        } else {
+          resolve(users_rows);
         }
       });
     });
