@@ -6,26 +6,26 @@ import cors from "cors";
 import sqlite3 from "sqlite3";
 
 export interface User {
-  id: string, 
-  username: string, 
-  score: number, 
-  alive: boolean, 
-  is_disconnect: boolean, 
-  id_room: string,
-  id_selected: number,
-  game_position: number,
+  id: string;
+  username: string;
+  score: number;
+  alive: boolean;
+  is_disconnect: boolean;
+  id_room: string;
+  id_selected: number;
+  game_position: number;
   is_host: boolean;
-};
+}
 
 export interface Room {
-  id: string, 
-  turn: number, 
-  ready: number, 
-  time_left: number, 
-  time_max: number,
-  in_game: boolean,
-  round: number,
-};
+  id: string;
+  turn: number;
+  ready: number;
+  time_left: number;
+  time_max: number;
+  in_game: boolean;
+  round: number;
+}
 
 const roomModule = require("./modules/room");
 const bombModule = require("./modules/clickthebomb");
@@ -34,6 +34,7 @@ const diamondModule = require("./modules/diamonds");
 const battleshipsModule = require("./modules/battleships");
 const colorsMemoryModule = require("./modules/colorsmemory");
 const buddiesModule = require("./modules/buddies");
+const endgameModule = require("./modules/endgame");
 
 const db = new sqlite3.Database(":memory:", (err) => {
   if (err) {
@@ -177,7 +178,8 @@ server.listen(3000, async () => {
       });
     });
 
-    updateTurn.then(async () => {
+    updateTurn
+      .then(async () => {
         Promise.all([updateTurn, users, room]).then(async () => {
           const username = users[room.turn].username;
           const id = users[room.turn].id;
@@ -185,7 +187,7 @@ server.listen(3000, async () => {
 
           await new Promise<void>((resolve, reject) => {
             db.run(`UPDATE users SET is_host = false WHERE id_room = "${roomCode}"`, (err) => {
-              if(err){
+              if (err) {
                 console.log("Update host error");
                 reject(err);
               } else {
@@ -193,7 +195,7 @@ server.listen(3000, async () => {
               }
             });
             db.run(`UPDATE users SET is_host = true WHERE id = "${id}"`, (err) => {
-              if(err){
+              if (err) {
                 console.log("Update host 2 error");
                 reject(err);
               } else {
@@ -234,22 +236,21 @@ server.listen(3000, async () => {
     });
 
     // Promise.all([users, room]).then(() => {
-  
-      const skipTurn = async (turn: number) => {
-        if(turn >= users.length - 1){
-          //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
-          skipTurn(-1);
+
+    const skipTurn = async (turn: number) => {
+      if (turn >= users.length - 1) {
+        //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
+        skipTurn(-1);
+      } else {
+        if (users[turn + 1].alive == false || users[turn + 1].is_disconnect === true) {
+          skipTurn(turn + 1);
         } else {
-          if(users[turn+1].alive == false || users[turn+1].is_disconnect === true){
-            skipTurn(turn+1);
-          } else {
-            updateRoomTurn(roomCode, turn+1, socket);
-          } 
-        } 
-      }; 
+          updateRoomTurn(roomCode, turn + 1, socket);
+        }
+      }
+    };
 
-      skipTurn(room.turn);
-
+    skipTurn(room.turn);
   };
   // set time in room
   const updateRoomTime = async (roomCode: string, time_left: number, time_max: number) => {
@@ -395,6 +396,7 @@ server.listen(3000, async () => {
     diamondModule(io, socket, db, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive, getUsersData);
     buddiesModule(io, socket, db, changeRoomRound);
+    endgameModule(io, socket, db, updateUserScore, getUsersData);
   };
 
   io.on("connection", handleModulesOnConnection);

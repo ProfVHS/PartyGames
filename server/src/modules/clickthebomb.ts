@@ -21,7 +21,7 @@ module.exports = (
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateUserScoreMultiply: (roomCode: string, id: string, score: number, socket: Socket) => void,
   updateUserAlive: (id: string, alive: boolean) => void,
-  updateUsersAlive: (roomCode: string, alive: boolean) => void,
+  updateUsersAlive: (roomCode: string, alive: boolean) => void
 ) => {
   //#region ctb functions
   // set data bomb
@@ -77,19 +77,7 @@ module.exports = (
       });
     });
   };
-  const getMostClicks = async () => {
-    const usersmostclicks = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM clickTheBombClicks ORDER BY number DESC LIMIT 3`, [], (err: Error, rows: User[]) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
 
-    console.log(usersmostclicks);
-  };
   // increment counter by 1
   const incrementCounter = async (roomCode: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -106,7 +94,7 @@ module.exports = (
 
   socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
     updateUsersMostClicks(roomCode, user_id, number).then(() => {
-      getMostClicks();
+      console.log("Added click for user");
     });
   });
 
@@ -131,7 +119,7 @@ module.exports = (
       const max = Math.round(Math.random() * (data.usersLength * 5 - 1)) + 1;
       // (generate turn) min - 0, max - users.lenght - 1
       const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
-      console.log("Turn - ",turn);
+      console.log("Turn - ", turn);
       updateRoomTurn(data.roomCode, turn, socket);
       addUserstoMostClicks(data.roomCode);
       setDataBomb(max, 0, `${data.roomCode}`);

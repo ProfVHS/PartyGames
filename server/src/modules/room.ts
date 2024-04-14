@@ -29,11 +29,11 @@ module.exports = (
   const InfoAboutRoom = async () => {
     const roomCode = await new Promise<string>((resolve, reject) => {
       db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
-        if(err) {
+        if (err) {
           console.log(`Info About Room (roomCode) error:`);
           reject(err);
         } else {
-          if(row){
+          if (row) {
             resolve(row.id_room);
           }
         }
@@ -42,7 +42,7 @@ module.exports = (
 
     const isRoomInGame = await new Promise<boolean>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-        if(err) {
+        if (err) {
           console.log(`Info About Room (isRoomInGame) error:`);
           reject(err);
         } else {
@@ -53,7 +53,7 @@ module.exports = (
 
     const usersLength = await new Promise<number>((resolve, reject) => {
       db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false`, [], (err: Error, users_rows: User[]) => {
-        if(err) {
+        if (err) {
           console.log(`Info About Room (usersLength) error:`);
           reject(err);
         } else {
@@ -83,18 +83,18 @@ module.exports = (
     else {
       await new Promise<void>((resolve, reject) => {
         db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`, [], (err: Error) => {
-          if(err){
+          if (err) {
             console.log(`Check Whats To Do With Room (Update) error:`);
             reject(err);
           } else {
             resolve();
           }
         });
-      })
+      });
 
       const users = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if(err){
+          if (err) {
             console.log(`Check Whats To Do With Room (users) error:`);
             reject(err);
           } else {
@@ -106,7 +106,7 @@ module.exports = (
       const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
       const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
 
-      if(usersLength === 2) {
+      if (usersLength === 2) {
         console.log("Samotny Wilk");
         clearInterval(cardsTimeInterval);
 
@@ -153,7 +153,7 @@ module.exports = (
     socket.join(randomRoomCode);
 
     db.all(`SELECT * FROM users WHERE id = "${cookie_id}"`, [], async (err: Error, users_rows: User[]) => {
-      if(err) {
+      if (err) {
         console.log("Create Room error:");
         console.error(err);
       } else {
@@ -171,7 +171,7 @@ module.exports = (
   socket.on("joinRoom", async (data: { roomCode: string; name: string; cookie_id: string }) => {
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
       db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
-        if(err){
+        if (err) {
           console.log("Join Room error:");
           reject(err);
         } else {
@@ -185,21 +185,21 @@ module.exports = (
 
       await new Promise<void>((resolve, reject) => {
         db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = true WHERE id = "${data.cookie_id}"`, [], (err: Error) => {
-          if(err){
+          if (err) {
             console.log("User come back error:");
-            reject(err)
+            reject(err);
           } else {
             resolve();
           }
         });
-      })
+      });
       socket.nsp.to(socket.id).emit("joiningRoom");
       usersData(data.roomCode, socket);
       roomData(data.roomCode, socket);
     } else {
       const users: User[] = await new Promise<User[]>((resolve, reject) => {
         db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if(err){
+          if (err) {
             console.log("Join Room (users) error:");
             reject(err);
           } else {
@@ -211,8 +211,9 @@ module.exports = (
       const count: Count[] = await new Promise<Count[]>((resolve, reject) => {
         db.all(
           `SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`,
-          [], (err: Error, count_row: Count[]) => {
-            if(err){
+          [],
+          (err: Error, count_row: Count[]) => {
+            if (err) {
               console.log("Join Room (count) error:");
               reject(err);
             } else {
@@ -224,7 +225,7 @@ module.exports = (
 
       const room: Room = await new Promise<Room>((resolve, reject) => {
         db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
-          if(err){
+          if (err) {
             console.log("Join Room (room) error:");
             reject(err);
           } else {
@@ -244,7 +245,9 @@ module.exports = (
           socket.nsp.to(socket.id).emit("joiningRoom");
 
           if (count[0].count == 0) {
-            db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}", 0, 1, false)`);
+            db.run(
+              `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}", 0, 1, false)`
+            );
           } else {
             db.run(
               `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1, false)`
@@ -276,20 +279,20 @@ module.exports = (
 
   // generate random games array
   socket.on("gamesArray", async (roomCode: string) => {
-    if(!gamesArray.find(roomCode => roomCode === roomCode)){
+    if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "COLORSMEMORY", "CARDS", "BUDDIES"];
-  
-      while (gamesSet.size < 5) {
-        const randomIndex = Math.floor(Math.random() * (5 - 1 + 1));
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "CARDS", "BUDDIES"]; //"COLORSMEMORY"
+
+      while (gamesSet.size < 4) {
+        const randomIndex = Math.floor(Math.random() * 4);
         gamesSet.add(gamesIDarray[randomIndex]);
       }
-  
-      gamesArray.push({roomCode: roomCode, games: Array.from(gamesSet), currentGame: 0});
+
+      gamesArray.push({ roomCode: roomCode, games: Array.from(gamesSet), currentGame: 0 });
     }
     await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
-        if(err){
+        if (err) {
           console.log("Games Array in game error:");
           reject(err);
         } else {
@@ -298,8 +301,8 @@ module.exports = (
       });
     });
 
-    const games = gamesArray.find(roomCode => roomCode === roomCode)?.games;
-    const current = gamesArray.find(roomCode => roomCode === roomCode)?.currentGame;
+    const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
+    const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
 
     console.log("Games - ", games);
 
@@ -315,7 +318,7 @@ module.exports = (
   });
   // update current index games
   socket.on("updateCurrentGameIndex", async (roomCode: string) => {
-    const index = gamesArray.findIndex(roomCode => roomCode === roomCode);
+    const index = gamesArray.findIndex((roomCode) => roomCode === roomCode);
 
     gamesArray[index].currentGame += 1;
 
@@ -332,7 +335,9 @@ module.exports = (
   // stopwatch time
   socket.on("stopwatchTime", async (roomCode: string) => {
     // set interval to decrease time_left every second
-    cardsTimeInterval = setInterval(() => {StopwatchTime(roomCode)}, 1000);
+    cardsTimeInterval = setInterval(() => {
+      StopwatchTime(roomCode);
+    }, 1000);
   });
   //#endregion
 
