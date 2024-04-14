@@ -123,15 +123,14 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
       socket.emit("startGameCtb", { roomCode, usersLength });
     }
     
-
     onceDone.current = true;
-  }, [window.onload]);
+  }, []);
 
   useEffect(() => {
     if(roomData?.in_game && turn === "") {
       socket.emit("getBombData", roomCode);
     }
-  }, [window.onload]);
+  }, []);
 
   return (
     <div className="ctb" ref={scope}>

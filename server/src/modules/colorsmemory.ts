@@ -13,13 +13,13 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
-  usersResetData: (roomCode: string, socket: Socket) => void,
   usersData: (roomCode: string, socket: Socket) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   updateUsersAlive: (roomCode: string, alive: boolean) => Promise<void>,
-  getUsersData: (roomCode: string) => Promise<User[]>
+  getUsersData: (roomCode: string) => Promise<User[]>,
+  usersResetData: (roomCode: string, socket: Socket) => void,
 ) => {
   const addUsersToColorsMemoryRoundRecordDB = async (roomCode: string) => {
     const usersArray = await getUsersData(roomCode);
@@ -93,6 +93,8 @@ module.exports = (
   });
 
   socket.on("buttonClickedColorsMemory", async (roomCode: string, id: number, currentClickNumber: number) => {
+    console.log("buttonClickedColorsMemory", roomCode, id, currentClickNumber);
+
     const buttons = ButtonsArray.find((room) => roomCode === room.room)?.buttons;
 
     updateUsersColorsMemoryRoundRecord(socket.id, currentClickNumber).then(() => {
@@ -102,60 +104,67 @@ module.exports = (
     if (buttons) {
       // End User Game
       if (buttons[currentClickNumber] !== id) {
-        updateUserAlive(socket.id, false);
-        socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
+        console.log("End Game User Colors Memory");
+        await updateUserAlive(socket.id, false).then(async () => {
+          socket.nsp.to(socket.id).emit("endGameUserColorsMemory");
 
-        const usersAlive = await new Promise<number>((resolve, reject) => {
-          db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = 1`, [], (err: Error, rows: User[]) => {
-            if (err) {
-              console.log("Users Alive (colors end game) Error");
-              reject(err);
-            } else {
-              resolve(rows.length);
-            }
-          });
-        });
-
-        db.run(`UPDATE users SET game_position = ${usersAlive + 1} WHERE id = "${socket.id}"`);
-
-        // End Game
-        if (usersAlive == 1) {
-          type UserPosition = { username: string; scoreToAdd: number | null; record: number };
-
-          const usersPosition = await new Promise<UserPosition[]>((resolve, reject) => {
-            db.all(`SELECT username, score AS scoreToAdd, id_selected AS record FROM users WHERE id_room = "${roomCode}" ORDER BY game_position`, [], (err: Error, row: UserPosition[]) => {
+          const usersAlive = await new Promise<number>((resolve, reject) => {
+            db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND alive = true`, [], (err: Error, rows: User[]) => {
               if (err) {
-                console.log("Users Position (colors end game) Error");
+                console.log("Users Alive (colors end game) Error");
                 reject(err);
               } else {
-                resolve(row);
+                resolve(rows.length);
               }
             });
           });
+  
+          db.run(`UPDATE users SET game_position = ${usersAlive + 1} WHERE id = "${socket.id}"`);
+  
+          console.log("Users Alive: ", usersAlive);
+          // End Game
+          if (usersAlive == 1) {
+            console.log("End Game Colors Memory");
+            type UserPosition = { username: string; scoreToAdd: number | null; record: number };
+  
+            const usersPosition = await new Promise<UserPosition[]>((resolve, reject) => {
+              db.all(`SELECT username, score AS scoreToAdd, id_selected AS record FROM users WHERE id_room = "${roomCode}" ORDER BY game_position`, [], (err: Error, row: UserPosition[]) => {
+                if (err) {
+                  console.log("Users Position (colors end game) Error");
+                  reject(err);
+                } else {
+                  resolve(row);
+                }
+              });
+            });
+  
+            usersPosition.forEach((user, index) => {
+              switch (index) {
+                case 0:
+                  usersPosition[index].scoreToAdd = 100;
+                  break;
+                case 1:
+                  usersPosition[index].scoreToAdd = 70;
+                  break;
+                case 2:
+                  usersPosition[index].scoreToAdd = 40;
+                  break;
+                default:
+                  usersPosition[index].scoreToAdd = 10;
+                  break;
+              }
+            });
+  
+            // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND game_position = 1`);
+            // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND game_position = 2`);
+            
+            await updateRoomRound(roomCode, 0, socket);
+            usersResetData(roomCode, socket);
+            socket.nsp.to(roomCode).emit("receiveNextGame");
 
-          usersPosition.forEach((user, index) => {
-            switch (index) {
-              case 0:
-                usersPosition[index].scoreToAdd = 100;
-                break;
-              case 1:
-                usersPosition[index].scoreToAdd = 70;
-                break;
-              case 2:
-                usersPosition[index].scoreToAdd = 40;
-                break;
-              default:
-                usersPosition[index].scoreToAdd = 10;
-                break;
-            }
-          });
-
-          // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND game_position = 1`);
-          // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND game_position = 2`);
-          socket.nsp.to(roomCode).emit("endGameColorsMemory", usersPosition);
-          //socket.nsp.to(roomCode).emit("receiveNextGame");
-          usersData(roomCode, socket);
-        }
+            usersData(roomCode, socket);
+          }
+        });
         return;
       }
 
@@ -199,12 +208,6 @@ module.exports = (
         }
       }
     }
-  });
-
-  socket.on("endGameColorsMemory", async (roomCode: string) => {
-    updateRoomRound(roomCode, 0, socket);
-    usersResetData(roomCode, socket);
-    socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   //#endregion
 };

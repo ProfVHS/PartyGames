@@ -7,13 +7,13 @@ module.exports = (
   io: Server,
   socket: Socket,
   db: Database,
-  usersResetData: (roomCode: string, socket: Socket) => void,
   roomData: (roomCode: string, socket: Socket) => void,
   updateUserScore: (id: string, score: number, socket: Socket) => void,
   updateRoomTime: (roomCode: string, time_left: number, time_max: number) => void,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
-  getUsersData: (roomCode: string) => Promise<User[]>
+  getUsersData: (roomCode: string) => Promise<User[]>,
+  usersResetData: (roomCode: string, socket: Socket) => void,
 ) => {
   // add users to the lowest balance after cards database - for medals
   const addUsersToSamotnyWilkDB = async (roomCode: string) => {
@@ -85,8 +85,7 @@ module.exports = (
           resolve([300, 150, 75]);
           break;
         default:
-          console.log("End");
-          //endGameDiamonds(roomCode);
+          endGameDiamonds(roomCode);
           break;
       }
     });
@@ -141,7 +140,7 @@ module.exports = (
   };
 
   const endGameDiamonds = async (roomCode: string) => {
-    updateRoomRound(roomCode, 0, socket);
+    await updateRoomRound(roomCode, 0, socket);
     usersResetData(roomCode, socket);
     socket.nsp.to(roomCode).emit("receiveNextGame");
     console.log("endGameDiamonds");
