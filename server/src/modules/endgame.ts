@@ -121,7 +121,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "MostBombClicks") {
           const usersMostClicks = await getMostBombClicks(roomCode);
           const user = usersMostClicks[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -132,7 +132,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "LowestBalanceAfterCardGame") {
           const userWithLowestBalance = await getLowestBalanceAfterCardGame(roomCode);
           const user = userWithLowestBalance[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -143,7 +143,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "BestRoundInColorsMemory") {
           const userWithLowestBalance = await getBestRoundInColorMemory(roomCode);
           const user = userWithLowestBalance[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -153,7 +153,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "MostFiguredOutDiamonds") {
           const userWithMostFiguredOutDiamonds = await getMostFiguredOutDiamonds(roomCode);
           const user = userWithMostFiguredOutDiamonds[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -164,7 +164,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "MostBestAnswersInBuddies") {
           const userWithMostBestAnswers = await getMostBestAnswersInBuddies(roomCode);
           const user = userWithMostBestAnswers[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);

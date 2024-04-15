@@ -33,7 +33,7 @@ export type TrickyDiamondType = {
 // Colors Memory
 export type ColorsMemory = "red" | "blue" | "green" | "yellow" | "purple" | "orange" | "pink" | "brown";
 
-export type MedalsType = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory" | "MostFiguredOutDiamonds";
+export type MedalsType = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory" | "MostFiguredOutDiamonds" | "MostBestAnswersInBuddies";
 
 export type MedalProps = {
   userID: string;

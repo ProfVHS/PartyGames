@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import "./style.scss";
 import { MedalSvg } from "./MedalSvg";
-import { ColorSvg, LoseLineSvg, MagnifyingGlassSvg, TouchSvg } from "./Icons";
+import { BuddiesSvg, ColorSvg, LoseLineSvg, MagnifyingGlassSvg, TouchSvg } from "./Icons";
 import { useAnimate, usePresence } from "framer-motion";
 import { MedalsType } from "../../Types";
 
@@ -42,6 +42,7 @@ export const Medal = ({ id, username, points, award }: MedalProps) => {
         {award === "BestRoundInColorsMemory" && <ColorSvg className="medal__svg__icon" />}
         {award === "LowestBalanceAfterCardGame" && <LoseLineSvg className="medal__svg__icon" />}
         {award === "MostFiguredOutDiamonds" && <MagnifyingGlassSvg className="medal__svg__icon" />}
+        {award == "MostBestAnswersInBuddies" && <BuddiesSvg className="medal__svg__icon" />}
       </div>
       <div className="medal__info">
         <span>
@@ -49,6 +50,7 @@ export const Medal = ({ id, username, points, award }: MedalProps) => {
           {award === "BestRoundInColorsMemory" && "Best Round in Colors Memory"}
           {award === "LowestBalanceAfterCardGame" && "Lowest Balance After Card Game"}
           {award === "MostFiguredOutDiamonds" && "Most Figured Out Diamonds"}
+          {award == "MostBestAnswersInBuddies" && "Most Best Answers in Buddies"}
         </span>
         <span>{points} points</span>
       </div>
