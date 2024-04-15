@@ -15,9 +15,7 @@ import pinkButtonSound from "../../assets/audio/colormemory/button8.flac";
 import darkgreenButtonSound from "../../assets/audio/colormemory/button9.flac";
 import { ProgressBar } from "../ProgressBar";
 import { Hourglass } from "../Hourglass";
-import { useAnimate, usePresence, motion } from "framer-motion";
-
-import LeaderboardGame from "../LeaderboardGame/LeaderboardGame";
+import { useAnimate, usePresence, motion, AnimatePresence } from "framer-motion";
 
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
@@ -47,11 +45,8 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   const [lightButton, setLightButton] = useState<number | null>(null);
   const [isInGame, setIsInGame] = useState<boolean>(false);
   const [isDead, setIsDead] = useState<boolean>(false);
-  const [endGame, setEndGame] = useState<boolean>(false);
   const [currentClickNumber, setCurrentClickNumber] = useState<number>(0);
   const [time, setTime] = useState<number>(3000);
-
-  const [usersPositionArray, setUsersPositionArray] = useState<{ username: string; scoreToAdd: number | null; record: number }[]>();
 
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -66,20 +61,20 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
     sequenceInterval = setInterval(() => {
       if (currentButton < array.length) {
         const newNumber: number = array[currentButton];
-  
+
         setLightButton(newNumber);
         new Audio(audioForButtons[newNumber].src).play();
-  
+
         setTimeout(() => {
           setLightButton(null);
         }, 500);
-  
+
         currentButton++;
       } else {
         setLightButton(null);
         setCurrentClickNumber(0);
         setIsInGame(true);
-  
+
         clearInterval(sequenceInterval);
       }
     }, 1000);
@@ -158,12 +153,9 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       enterAnimation();
     } else {
       const exitAnimation = async () => {
-        // await animate(".colormemory__gamestatus", { opacity: [1, 0], y: [0, 300] }, { duration: 1, type: "spring" });
-        // await animate(".colormemory__buttons__item", { opacity: [1, 0] }, { duration: 0.2 });
-        // animate(".colormemory__buttons", { opacity: [1, 0] }, { duration: 1, type: "spring", delay: 0.2 });
-        // await animate(".colormemory__buttons", { height: [350, 0] }, { duration: 1, type: "spring" });
-        await safeToRemove();
-        onExit && (await onExit());
+        await animate(scope.current, { scale: [1, 0], opacity: [1, 0] }, { duration: 0.8, type: "spring" });
+        safeToRemove();
+        onExit && onExit();
       };
       exitAnimation();
     }
@@ -171,7 +163,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
   useEffect(() => {
     users.forEach((user) => {
-      if(user.id == socket.id){
+      if (user.id == socket.id) {
         if (user.alive == false) {
           setIsDead(true);
         }
@@ -181,23 +173,23 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
   return (
     <div className="colormemory" ref={scope}>
-      
-        {(isDead ? (
-          <div className="colormemory__gameover">
-            <span className="colormemory__gameover__header">Game over</span>
-            <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
-            <span className="colormemory__gameover__waiting">
-              Waiting for other players
-              <div className="colormemory__gameover__waiting__dot">.</div>
-              <div className="colormemory__gameover__waiting__dot">.</div>
-              <div className="colormemory__gameover__waiting__dot">.</div>
-            </span>
-            <Hourglass />
-          </div>
-        ) : (
-          <>
-            <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
-              {ButtonsColors.map((color, index) => (
+      {isDead ? (
+        <div className="colormemory__gameover">
+          <span className="colormemory__gameover__header">Game over</span>
+          <span className="colormemory__gameover__score">Your Record: {round.current} round</span>
+          <span className="colormemory__gameover__waiting">
+            Waiting for other players
+            <div className="colormemory__gameover__waiting__dot">.</div>
+            <div className="colormemory__gameover__waiting__dot">.</div>
+            <div className="colormemory__gameover__waiting__dot">.</div>
+          </span>
+          <Hourglass />
+        </div>
+      ) : (
+        <>
+          <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
+            {ButtonsColors.map((color, index) => (
+              <AnimatePresence>
                 <Button
                   key={index}
                   id={index}
@@ -209,17 +201,17 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
                   currentClickNumber={currentClickNumber}
                   audio={audioForButtons[index]}
                 />
-              ))}
-            </motion.div>
-            <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
-              <span>Round: {round.current}</span>
-              <span>Score: 1</span>
-              <span>Current: {currentClickNumber}</span>
-              <ProgressBar max={3000} progress={time} width={"150px"} />
-            </motion.div>
-          </>
-        ))}
-      
+              </AnimatePresence>
+            ))}
+          </motion.div>
+          <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
+            <span>Round: {round.current}</span>
+            <span>Score: 1</span>
+            <span>Current: {currentClickNumber}</span>
+            <ProgressBar max={3000} progress={time} width={"150px"} />
+          </motion.div>
+        </>
+      )}
     </div>
   );
 }
