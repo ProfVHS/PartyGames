@@ -15,7 +15,7 @@ import pinkButtonSound from "../../assets/audio/colormemory/button8.flac";
 import darkgreenButtonSound from "../../assets/audio/colormemory/button9.flac";
 import { ProgressBar } from "../ProgressBar";
 import { Hourglass } from "../Hourglass";
-import { useAnimate, usePresence, motion } from "framer-motion";
+import { useAnimate, usePresence, motion, AnimatePresence } from "framer-motion";
 
 const ButtonsColors = ["red", "orange", "yellow", "darkblue", "blue", "green", "purple", "pink", "darkgreen"];
 
@@ -189,17 +189,19 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
         <>
           <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
             {ButtonsColors.map((color, index) => (
-              <Button
-                key={index}
-                id={index}
-                color={color}
-                isLight={lightButton === index}
-                isDisabled={!isInGame}
-                roomCode={roomCode}
-                onClick={handleClick}
-                currentClickNumber={currentClickNumber}
-                audio={audioForButtons[index]}
-              />
+              <AnimatePresence>
+                <Button
+                  key={index}
+                  id={index}
+                  color={color}
+                  isLight={lightButton === index}
+                  isDisabled={!isInGame}
+                  roomCode={roomCode}
+                  onClick={handleClick}
+                  currentClickNumber={currentClickNumber}
+                  audio={audioForButtons[index]}
+                />
+              </AnimatePresence>
             ))}
           </motion.div>
           <motion.div className="colormemory__gamestatus" initial={{ x: "105%" }}>
