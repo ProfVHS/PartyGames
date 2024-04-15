@@ -26,7 +26,7 @@ module.exports = (
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   getUsersData: (roomCode: string) => Promise<User[]>,
-  usersResetData: (roomCode: string, socket: Socket) => void,
+  usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
   //#region cards functions
   // arrays with ponts for cards in 3 different turns
@@ -132,7 +132,7 @@ module.exports = (
     });
   };
   const getLowestBalance = async () => {
-    const usersmostclicks = await new Promise<User[]>((resolve, reject) => {
+    const userLowestBalance = await new Promise<User[]>((resolve, reject) => {
       db.all(`SELECT * FROM lowestBalanceAfterCards ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
         if (err) {
           reject(err);
@@ -142,7 +142,7 @@ module.exports = (
       });
     });
 
-    console.log(usersmostclicks);
+    console.log(userLowestBalance);
   };
 
   socket.on("addUsersToLowestBalance", async (roomCode: string) => {

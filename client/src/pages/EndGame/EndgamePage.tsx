@@ -1,137 +1,49 @@
-import { AnimatePresence, motion, useAnimate } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Medal } from "../../components/Medal/Medal";
 import "./style.scss";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Podium } from "../../components/Podium";
 import { MedalProps, User } from "../../Types";
-
-const exampleUsers: User[] = [
-  {
-    id: "0",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 150,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "1",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 300,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "2",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 75,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "3",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 2,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "4",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 400,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "5",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 250,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "6",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 100,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-  {
-    id: "7",
-    username: "Ultra Mango Guy",
-    is_disconnected: false,
-    score: 65,
-    alive: true,
-    id_room: "0",
-    id_selected: 0,
-    position: 1,
-  },
-];
-
-const exampleMedals: MedalProps[] = [
-  { userID: "0", username: "Ultra Mango Guy", points: 150, award: "ctbCLICK" },
-  { userID: "4", username: "Ultra Mango Guy", points: 150, award: "firstDeath" },
-  { userID: "3", username: "Ultra Mango Guy", points: 150, award: "mostLosedPoints" },
-];
+import { socket } from "../../socket";
+import { useLocation } from "react-router-dom";
 
 export default function EndgamePage() {
   const [showMedals, setShowMedals] = useState<boolean>(true);
   const [showPodium, setShowPodium] = useState<boolean>(false);
 
-  const [users, setUsers] = useState<User[]>(exampleUsers);
-  const [medals, setMedals] = useState<MedalProps[]>(exampleMedals);
+  const [podium, setPodium] = useState<User[]>([]);
+  const [medals, setMedals] = useState<MedalProps[]>([]);
 
-  const handleMedals = () => {
-    const newUsers = users.map((user) => {
-      if (user.id.valueOf() === medals[0].userID.valueOf()) {
-        return { ...user, score: user.score + medals[0].points };
-      }
-      if (user.id.valueOf() === medals[1].userID.valueOf()) {
-        return { ...user, score: user.score + medals[1].points };
-      }
-      if (user.id.valueOf() === medals[2].userID.valueOf()) {
-        return { ...user, score: user.score + medals[2].points };
-      }
-      return user;
-    });
+  const onceDone = useRef<boolean>(false);
+  const location = useLocation();
 
-    const sortedUsers = newUsers.sort((a, b) => b.score - a.score);
-
-    setUsers(sortedUsers);
-  };
+  const roomCode: string = location.state?.roomCode;
+  const users: User[] = location.state?.users;
+  useEffect(() => {
+    if (onceDone.current) return;
+    console.log("getMedals");
+    if (users[0].id === socket.id) socket.emit("getMedals", roomCode);
+    onceDone.current = true;
+  }, []);
 
   useEffect(() => {
-    handleMedals();
+    socket.on("receiveMedals", (medals) => {
+      console.log(medals);
+      setMedals(medals);
+      setTimeout(() => {
+        setShowMedals(false);
+        socket.emit("getPodium", roomCode);
+      }, 5000);
+    });
 
-    setTimeout(() => {
-      setShowMedals(false);
+    socket.on("receivePodium", (users) => {
+      console.log(users);
+      setPodium(users);
       setTimeout(() => {
         setShowPodium(true);
       }, 2000);
-    }, 5000);
-  }, []);
-
-  console.log(users);
+    });
+  }, [socket]);
 
   return (
     <div className="endgame">
@@ -143,31 +55,23 @@ export default function EndgamePage() {
         {showPodium && (
           <>
             <div className="endgame__podium__top3">
-              {users.slice(0, 3).map((user, index) => (
-                <Podium position={index + 1} score={user.score} username={user.username} key={index} />
+              {podium.slice(0, 3).map((user, index) => (
+                <Podium position={index + 1} score={user.score} username={user.username} key={index} usersLength={podium.length} />
               ))}
             </div>
             <div className="endgame__podium__lower">
-              {users.slice(3, 8).map((user, index) => (
-                <Podium position={index + 4} score={user.score} username={user.username} key={index} />
+              {podium.slice(3, 8).map((user, index) => (
+                <Podium position={index + 4} score={user.score} username={user.username} key={index} usersLength={podium.length} />
               ))}
             </div>
           </>
         )}
         <AnimatePresence>
-          {showMedals ? (
-            <Medal id={0} username={medals[0].username} points={medals[0].points} award={medals[0].award} />
-          ) : null}
-        </AnimatePresence>
-        <AnimatePresence>
-          {showMedals ? (
-            <Medal id={1} username={medals[1].username} points={medals[1].points} award={medals[1].award} />
-          ) : null}
-        </AnimatePresence>
-        <AnimatePresence>
-          {showMedals ? (
-            <Medal id={2} username={medals[2].username} points={medals[2].points} award={medals[2].award} />
-          ) : null}
+          {medals.length > 0 && showMedals
+            ? medals.map((medal, i) => {
+                return <Medal id={i} key={i} username={medal.username} points={medal.points} award={medal.award} />;
+              })
+            : null}
         </AnimatePresence>
       </div>
     </div>

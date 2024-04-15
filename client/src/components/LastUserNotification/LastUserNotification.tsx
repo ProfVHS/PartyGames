@@ -3,6 +3,8 @@ import "./LastUserNotification.scss";
 import { socket } from "../../socket";
 
 import { usePresence } from "framer-motion";
+import { Hourglass } from "../Hourglass";
+
 
 interface LastUserNotificationProps{
     roomCode: string;
@@ -12,28 +14,27 @@ interface LastUserNotificationProps{
 export default function LastUserNotification({roomCode, onExit}: LastUserNotificationProps) {
     const [isPresence, safeToRemove] = usePresence();
 
-    const handleLeaveRoom = () => {
-        window.location.href = "/";
-    };
+  const handleLeaveRoom = () => {
+    window.location.href = "/";
+  };
 
-    useEffect(() => {
-        if(isPresence){
-
-        }
-        else{
-            console.log("emit updateCurrentGameIndex");
-            socket.emit("updateCurrentGameIndex", roomCode);
-            safeToRemove();
-            onExit && onExit();
-        }
+  useEffect(() => {
+    if (isPresence) {
+    }else{
+        console.log("emit updateCurrentGameIndex");
+        socket.emit("updateCurrentGameIndex", roomCode);
+        safeToRemove();
+        onExit && onExit();
+      }
     }, [isPresence])
 
-    return (
+return (
     <>
-        <div id="last-user-dialog" className="last-user-notification">
-            <h1>Waiting for other players...</h1>
-            <button onClick={handleLeaveRoom}>Leave</button>
-        </div>
+      <div id="last-user-dialog" className="last-user-notification">
+        <h1>Waiting for other players...</h1>
+        <Hourglass />
+        <button onClick={handleLeaveRoom}>Leave</button>
+      </div>
     </>
-  )
+  );
 }
