@@ -155,9 +155,15 @@ module.exports = (
               }
             });
   
-            // db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND game_position = 1`);
-            // db.run(`UPDATE users SET score = score + 50 WHERE id_room = "${roomCode}" AND game_position = 2`);
+            console.log("Users Position: ", usersPosition);
+
+            db.run(`UPDATE users SET score = score + 100 WHERE id_room = "${roomCode}" AND game_position = 1`);
+            db.run(`UPDATE users SET score = score + 70 WHERE id_room = "${roomCode}" AND game_position = 2`);
+            db.run(`UPDATE users SET score = score + 40 WHERE id_room = "${roomCode}" AND game_position = 3`);
+            db.run(`UPDATE users SET score = score + 10 WHERE id_room = "${roomCode}" AND game_position > 3`);
             
+            socket.nsp.to(roomCode).emit("endGameUserColorsMemory");
+
             await updateRoomRound(roomCode, 0, socket);
             usersResetData(roomCode, socket);
             socket.nsp.to(roomCode).emit("receiveNextGame");

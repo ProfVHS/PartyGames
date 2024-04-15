@@ -10,6 +10,7 @@ import { QuestionType } from "./Types";
 import { Hourglass } from "../Hourglass";
 import { useAnimate, usePresence, motion } from "framer-motion";
 import { on } from "events";
+import { BestAnswer } from "./BestAnswer";
 
 interface BuddiesProps {
   roomCode: string;
@@ -23,6 +24,8 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [writtenQuestion, setWrittenQuestion] = useState<boolean>(false);
   const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
   const [question, setQuestion] = useState<QuestionType>({ author: "", question: "" });
+
+  const [bestAnswer, setBestAnswer] = useState<{user: string, answer: string}>({user: "", answer: ""});
   const [endGame, setEndGame] = useState<boolean>(false);
 
   const [scope, animate] = useAnimate();
@@ -74,6 +77,14 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
       setQuestion({ author: user, question: question });
     };
 
+    const receiveTheBestAnswer = (data: {user: string, answer: string}) => {
+      setBestAnswer(data);
+
+      setTimeout(() => {
+        setBestAnswer({user: "", answer: ""});
+      }, 5000);
+    };
+
     const newRound = () => {
       setAllUsersWrittenAnswer(0);
       setWrittenAnswer(false);
@@ -88,6 +99,8 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
     socket.on("allAnswersBuddies", isEveryUserHasAnswer);
 
     socket.on("receiveQuestionBuddies", receiveQuestion);
+
+    socket.on("receiveTheBestAnswerBuddies", receiveTheBestAnswer);
 
     socket.on("newRoundBuddies", newRound);
 
@@ -142,9 +155,9 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
             <h3 className="buddies__waiting">Waiting for all players to answer</h3>
             <Hourglass />
           </>
-        ) : (
-          <AnswersSelect roomCode={roomCode} users={users} question={question} />
-        )
+        ) : bestAnswer.answer !== "" ? 
+        <BestAnswer bestAnswer={bestAnswer} />
+        : <AnswersSelect roomCode={roomCode} users={users} question={question} />
       ) : (
         <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
       )}

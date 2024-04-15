@@ -56,28 +56,30 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
 
+  let sequenceInterval: NodeJS.Timeout;
+
   const ButtonsSequence = async (array: number[]) => {
     setIsInGame(false);
     round.current++;
-    let x = 0;
+    let currentButton = 0;
 
-    const sequenceInterval = setInterval(() => {
-      if (x < array.length) {
-        const newNumber: number = array[x];
-
+    sequenceInterval = setInterval(() => {
+      if (currentButton < array.length) {
+        const newNumber: number = array[currentButton];
+  
         setLightButton(newNumber);
         new Audio(audioForButtons[newNumber].src).play();
-
+  
         setTimeout(() => {
           setLightButton(null);
         }, 500);
-
-        x++;
+  
+        currentButton++;
       } else {
         setLightButton(null);
         setCurrentClickNumber(0);
         setIsInGame(true);
-
+  
         clearInterval(sequenceInterval);
       }
     }, 1000);
@@ -123,6 +125,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
 
     const endGameUser = () => {
       setIsDead(true);
+      clearInterval(sequenceInterval);
     };
 
     socket.on("sequenceColorsMemory", ButtonsSequence);

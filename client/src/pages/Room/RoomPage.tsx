@@ -10,7 +10,6 @@ import ClickSound from "../../assets/audio/click.mp3";
 import { User, Room } from "../../Types";
 import MiniGames from "../../components/MiniGames";
 import { socket } from "../../socket";
-import LastUserNotification from "../../components/LastUserNotification/LastUserNotification";
 
 export default function RoomPage() {
   const navigate = useNavigate();
@@ -66,14 +65,7 @@ export default function RoomPage() {
     });
   }, []);
 
-  const [isOpen, setIsOpen] = useState(false);
-
   useEffect(() => {
-    const waitForOthers = (data: boolean) => {
-      console.log("wait for other", data);
-      setIsOpen(data);
-    };
-
     // Users data
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
@@ -96,14 +88,12 @@ export default function RoomPage() {
       console.log(data + " has left the room");
     });
     //
-    socket.on("waitForOtherPlayers", waitForOthers);
 
     return () => {
       socket.off("receiveUsersData");
       socket.off("receiveRoomData");
       socket.off("userDisconnectedRoom");
       socket.off("receiveUserIsInRoom");
-      socket.off("waitForOtherPlayers", waitForOthers);
     };
   }, [socket]);
 
@@ -123,7 +113,6 @@ export default function RoomPage() {
 
   return (
     <>
-      {isOpen && <LastUserNotification />}
       <div className="roomGrid">
         {windowSizeX > 800 &&
           windowSizeY > 600 &&

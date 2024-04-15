@@ -29,7 +29,7 @@ module.exports = (
       resolve();
     });
   };
-  const updateUseriguredOut = async (user_id: string, number: number) => {
+  const updateUserFiguredOut = async (user_id: string, number: number) => {
     return await new Promise<void>((resolve, reject) => {
       db.run(`UPDATE figuredOutDiamonds SET number = number + ${number} WHERE id_user = "${user_id}"`, (err) => {
         if (err) {
@@ -75,13 +75,13 @@ module.exports = (
     console.log(round);
     return await new Promise<number[]>((resolve, reject) => {
       switch (round) {
-        case 1:
+        case 0:
           resolve([250, 100, 35]);
           break;
-        case 2:
+        case 1:
           resolve([275, 125, 50]);
           break;
-        case 3:
+        case 2:
           resolve([300, 150, 75]);
           break;
         default:
@@ -122,7 +122,7 @@ module.exports = (
               rows.forEach((row) => {
                 if (row.id_selected === diamondArray.indexOf(min)) {
                   updateUserScore(row.id, array[index], socket);
-                  updateUseriguredOut(row.id, 1).then(() => {
+                  updateUserFiguredOut(row.id, 1).then(() => {
                     console.log("Samotny Wilk");
                     getFiguredOut();
                   });
@@ -146,7 +146,6 @@ module.exports = (
   //#region diamonds sockets
   // start game tricky diamonds
   socket.on("startGameDiamonds", async (roomCode: string) => {
-    await changeRoomRound(roomCode, socket).then(async () => {
       await scoreArrays(roomCode).then((array) => {
         console.log(array);
         socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
@@ -154,7 +153,6 @@ module.exports = (
         // is minigame started
         roomData(roomCode, socket);
       });
-    });
   });
 
   socket.on("getDiamondsScore", async (roomCode: string) => {
@@ -167,6 +165,7 @@ module.exports = (
   // end round tricky diamonds
   socket.on("endRoundDiamonds", async (roomCode: string) => {
     console.log("endRoundDiamonds");
+    await changeRoomRound(roomCode, socket);
     findWinners(roomCode, [0, 0, 0]);
   });
   //#endregion

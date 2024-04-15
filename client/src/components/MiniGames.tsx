@@ -34,6 +34,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   // === Socket.io events === //
   useEffect(() => {
     socket.on("receiveGamesArray", (games, current) => {
+      console.log("Przypisanie games array", current);
       setGamesArray(games);
 
       setMinigameIndex(current);
@@ -127,7 +128,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   return (
     <>
       <AnimatePresence>
-        {currentGame === "SOLOINROOM" && <LastUserNotification onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {/* {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={[]} onExit={() => setCurrentGame(nextMinigame)} />} */}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}

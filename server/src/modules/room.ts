@@ -253,7 +253,6 @@ module.exports = (
               `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1, false)`
             );
           }
-          socket.nsp.to(data.roomCode).emit("waitForOtherPlayers", false);
         }
       } else {
         socket.nsp.to(socket.id).emit("roomFull");

@@ -16,9 +16,10 @@ export function Answer({ roomCode, users, onClick, question }: AnswerProps) {
   const [answer, setAnswer] = useState<string>("");
 
   const sendAnswer = () => {
-    onClick();
-
-    socket.emit("sendAnswerBuddies", roomCode, answer);
+    if(answer.trim() !== ""){
+      socket.emit("sendAnswerBuddies", roomCode, answer);
+      onClick();
+    }
   };
 
   useEffect(() => {}, [socket]);
