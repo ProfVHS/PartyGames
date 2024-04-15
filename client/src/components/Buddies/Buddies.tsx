@@ -118,12 +118,14 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   useEffect(() => {
     const host = users.find((user) => user.id === socket.id)?.is_host;
 
-    if (allUsersWrittenQuestion === users.length) {
+    const activeUsers = users.filter((user) => user.alive && !user.is_disconnect);
+
+    if (allUsersWrittenQuestion === activeUsers.length) {
       if (host) {
         socket.emit("getQuestionsBuddies", roomCode);
       }
     }
-    if (allUsersWrittenAnswer === users.length - 1) {
+    if (allUsersWrittenAnswer === activeUsers.length - 1) {
       if (host) {
         socket.emit("getAnswersBuddies", roomCode);
       }
@@ -132,9 +134,11 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
 
   useEffect(() => {
     if (onceDone.current) return;
-    console.log("test");
+    
     const host = users.find((user) => user.id === socket.id)?.is_host;
+
     if (host) socket.emit("initBestBuddiesAnswers", roomCode);
+
     onceDone.current = true;
   }, []);
 
@@ -144,13 +148,13 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
         <></>
       ) : !writtenQuestion ? (
         <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
-      ) : allUsersWrittenQuestion !== users.length ? (
+      ) : allUsersWrittenQuestion !== users.filter((user) => user.alive && !user.is_disconnect).length ? (
         <>
           <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
           <Hourglass />
         </>
       ) : writtenAnswer || socket.id === question.author ? (
-        allUsersWrittenAnswer !== users.length - 1 ? (
+        allUsersWrittenAnswer !== users.filter((user) => user.alive && !user.is_disconnect).length - 1 ? (
           <>
             <h3 className="buddies__waiting">Waiting for all players to answer</h3>
             <Hourglass />

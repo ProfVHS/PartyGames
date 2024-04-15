@@ -43,7 +43,23 @@ export default function EndgamePage() {
         setShowPodium(true);
       }, 2000);
     });
+
+    socket.on("receiveUserIsInRoom", (data) => {
+      if (!data) {
+        window.location.href = "/";
+      }
+    });
   }, [socket]);
+
+  useEffect(() => {
+    socket.emit("checkIfUserIsInRoom", roomCode);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("popstate", () => {
+      window.location.href = "/";
+    });
+  });
 
   return (
     <div className="endgame">

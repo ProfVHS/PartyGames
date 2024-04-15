@@ -19,8 +19,11 @@ interface CardsProps {
 
 export function Cards({ roomCode, users, onExit }: CardsProps) {
   const [cards, setCards] = useState<CardObject[]>();
+
   const [time, setTime] = useState<number>(10);
   const [round, setRound] = useState<number>(1);
+
+  const [isDead, setIsDead] = useState<boolean>(false);
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
 
@@ -162,9 +165,17 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
     if (!cards) {
       socket.emit("getCards", roomCode);
     }
-  }, [window.onload]);
+
+    const user = users.find((user) => user.id == socket.id);
+
+    if(socket.id === user?.id && !user?.alive) {
+      setIsDead(true);
+      setSelectedCard(-1);
+    }
+  }, []);
 
   const handleCardSelect = (id: number) => {
+    if(isDead) return;
     setSelectedCard(id);
   };
 

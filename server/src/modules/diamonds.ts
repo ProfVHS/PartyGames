@@ -94,7 +94,7 @@ module.exports = (
   // find min value in array without 0
   const findWinners = async (roomCode: string, diamondArray: number[]) => {
     return new Promise<User[]>((resolveUsers, rejectUsers) => {
-      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false`, [], (err: Error, rows: User[]) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false AND alive = true`, [], (err: Error, rows: User[]) => {
         if (err) {
           rejectUsers(err);
         } else {

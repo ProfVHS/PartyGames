@@ -20,6 +20,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   const [score, setScore] = useState<number[]>([0, 0, 0]);
   const [time, setTime] = useState<number>(10);
   const [endRound, setEndRound] = useState<boolean>(false);
+  const [isDead, setIsDead] = useState<boolean>(false);
 
   const onceDone = useRef<boolean>(false);
 
@@ -72,6 +73,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   }, [isPresence]);
 
   const handleClick = (color: number) => {
+    if(isDead) return;
     const newColor = color;
     setSelectedDiamond(newColor);
   };
@@ -104,6 +106,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   }, []);
 
   useEffect(() => {
+    if(isDead) return;
     socket.emit("selectedObject", selectedDiamond);
   }, [selectedDiamond]);
 
@@ -146,6 +149,13 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
     if (score[0] == 0 && roomData?.in_game) {
       console.log("score is null");
       socket.emit("getDiamondsScore", roomCode);
+    }
+
+    const user = users.find((user) => user.id == socket.id);
+
+    if(socket.id === user?.id && !user?.alive) {
+      setSelectedDiamond(-1);
+      setIsDead(true);
     }
   }, []);
 
