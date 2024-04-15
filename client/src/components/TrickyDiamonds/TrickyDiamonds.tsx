@@ -24,7 +24,6 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   const onceDone = useRef<boolean>(false);
 
   // Enter and exit Animations
-
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
 
@@ -75,7 +74,6 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   const handleClick = (color: number) => {
     const newColor = color;
     setSelectedDiamond(newColor);
-    console.log(newColor);
   };
 
   const startGameDiamonds = () => {
@@ -91,8 +89,10 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
 
   useEffect(() => {
     if (onceDone.current) return;
-
-    startGameDiamonds();
+    
+    setTimeout(() => {
+      startGameDiamonds();
+    }, 2500);
 
     onceDone.current = true;
   }, []);

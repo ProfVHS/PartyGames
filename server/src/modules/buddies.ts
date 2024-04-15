@@ -100,15 +100,29 @@ module.exports = (
     socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
   });
 
-  socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
-    if (questionsArray.find((r) => r.room === roomCode)?.questions.length === 0) {
-      endGame(roomCode);
-      socket.nsp
-        .to(roomCode)
-        .emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
-      return;
-    }
-    startNewRound(roomCode);
+  socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswerIndex: number) => {
+    const answer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].answer;
+    const userId = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].user;
+
+    const user = await new Promise<User>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${userId}"`, (err, row: User) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+    
+    socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", { user: user.username, answer: answer });
+
+    setTimeout(() => {
+      if(questionsArray.find((r) => r.room === roomCode)?.questions.length === 0){
+        endGame(roomCode);
+      } else {
+        startNewRound(roomCode);
+      }
+    }, 5000);
   });
   //#endregion
 };

@@ -81,7 +81,6 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
       startGame();
     }
     
-
     onceDone.current = true;
   }, []);
 

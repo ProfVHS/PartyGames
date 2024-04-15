@@ -5,10 +5,11 @@ import { socket } from "../../socket";
 import { usePresence } from "framer-motion";
 
 interface LastUserNotificationProps{
+    roomCode: string;
     onExit?: () => void;
 }
 
-export default function LastUserNotification({onExit}: LastUserNotificationProps) {
+export default function LastUserNotification({roomCode, onExit}: LastUserNotificationProps) {
     const [isPresence, safeToRemove] = usePresence();
 
     const handleLeaveRoom = () => {
@@ -20,6 +21,9 @@ export default function LastUserNotification({onExit}: LastUserNotificationProps
 
         }
         else{
+            console.log("emit updateCurrentGameIndex");
+            socket.emit("updateCurrentGameIndex", roomCode);
+            safeToRemove();
             onExit && onExit();
         }
     }, [isPresence])

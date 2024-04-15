@@ -16,15 +16,15 @@ interface AnswersSelectProps {
 
 export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps) {
   const [answers, setAnswers] = useState<AnswersArray[]>([]);
-  const [bestAnswer, setBestAnswer] = useState<number>(0);
+  const [bestAnswerIndex, setBestAnswerIndex] = useState<number>(0);
   const [canChooseAnswer, setCanChooseAnswer] = useState<boolean>(false);
 
   const selectTheBestAnswer = (index: number) => {
-    setBestAnswer(index);
+    setBestAnswerIndex(index);
   };
 
   const sendTheBestAnswer = () => {
-    socket.emit("sendTheBestAnswerBuddies", roomCode, bestAnswer);
+    socket.emit("sendTheBestAnswerBuddies", roomCode, bestAnswerIndex);
   };
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps)
       <div className="buddies__answers">
         {answers.map((answer, index) => (
           <button
-            className={`buddies__answers__item ${index === bestAnswer ? "selected" : ""}`}
+            className={`buddies__answers__item ${index === bestAnswerIndex ? "selected" : ""}`}
             key={index}
             onClick={() => selectTheBestAnswer(index)}
             disabled={!canChooseAnswer}>
