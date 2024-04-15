@@ -37,7 +37,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
         await animate(".cardsWrapper", { opacity: [0, 1], scale: [0, 1] }, { duration: 0.5, type: "spring" });
       };
       const enterAnimation = async () => {
-        await animate(scope.current, { height: ["0%", "100%"] }, { duration: 1, type: "spring" });
+        await animate(scope.current, { scaleY: [0, 1] }, { duration: 1, type: "spring" });
         await showUpElements();
       };
       enterAnimation();
