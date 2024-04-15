@@ -149,16 +149,16 @@ module.exports = (
 
   //#region home events (homepage, lobby, etc) needed at the beginning of the game
   // create room
-  socket.on("createRoom", async (name: string, randomRoomCode: string, cookie_id: string) => {
+  socket.on("createRoom", async (name: string, randomRoomCode: string, socket_id: string) => {
     socket.join(randomRoomCode);
 
-    db.all(`SELECT * FROM users WHERE id = "${cookie_id}"`, [], async (err: Error, users_rows: User[]) => {
+    db.all(`SELECT * FROM users WHERE id = "${socket_id}"`, [], async (err: Error, users_rows: User[]) => {
       if (err) {
         console.log("Create Room error:");
         console.error(err);
       } else {
         if (users_rows.length > 0) {
-          db.run(`DELETE FROM users WHERE id = "${cookie_id}"`);
+          db.run(`DELETE FROM users WHERE id = "${socket_id}"`);
           usersData(users_rows[0].id_room, socket);
         }
       }
@@ -168,9 +168,9 @@ module.exports = (
     db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}", 0, 1, true)`);
   });
   // join room
-  socket.on("joinRoom", async (data: { roomCode: string; name: string; cookie_id: string }) => {
+  socket.on("joinRoom", async (data: { roomCode: string; name: string; socket_id: string }) => {
     const ifUserExist = await new Promise<Count>((resolve, reject) => {
-      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.cookie_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
+      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.socket_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
         if (err) {
           console.log("Join Room error:");
           reject(err);
@@ -184,7 +184,7 @@ module.exports = (
       await socket.join(data.roomCode);
 
       await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.cookie_id}"`, [], (err: Error) => {
+        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.socket_id}"`, [], (err: Error) => {
           if (err) {
             console.log("User come back error:");
             reject(err);
@@ -280,7 +280,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["BUDDIES"]; //, "TRICKYDIAMONDS", "CLICKTHEBOMB", "CARDS", "COLORSMEMORY"
+      const gamesIDarray: string[] = ["CLICKTHEBOMB"]; //, "TRICKYDIAMONDS", "CLICKTHEBOMB", "CARDS", "COLORSMEMORY"
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
@@ -363,6 +363,8 @@ module.exports = (
 
   socket.on("disconnectUser", async () => {
     const { roomCode, isRoomInGame, usersLength } = await InfoAboutRoom();
+
+    console.log("Disconnect User :");
 
     CheckWhatsToDoWithRoom(roomCode, isRoomInGame, usersLength);
 
