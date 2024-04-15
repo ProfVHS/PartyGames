@@ -80,6 +80,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
     const host = users.find((user) => user.id == socket.id)?.is_host;
 
     if (host) {
+      console.log("startGameDiamonds");
       socket.emit("startGameDiamonds", roomCode);
       socket.emit("stopwatchTime", roomCode);
     }
@@ -150,7 +151,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
           <Stopwatch maxTime={10} timeLeft={time} size={50} />
         </motion.div>
         <motion.span className="tricky__header__text" initial={{ scale: 0 }}>
-          Round - {roomData?.round}
+          Round - {roomData?.round ? roomData.round+1 : 1}
         </motion.span>
       </div>
       <div className="tricky__cards">

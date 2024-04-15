@@ -33,6 +33,7 @@ module.exports = (
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   usersResetData: (roomCode: string, socket: Socket) => void,
+  updateUserScore: (id: string, score: number, socket: Socket) => Promise<void>,
 ) => {
   //#region buddies functions
   const startNewRound = async (roomCode: string) => {
@@ -101,7 +102,7 @@ module.exports = (
   });
 
   socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswerIndex: number) => {
-    const answer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].answer;
+    const bestAnswer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].answer;
     const userId = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].user;
 
     const user = await new Promise<User>((resolve, reject) => {
@@ -113,8 +114,10 @@ module.exports = (
         }
       });
     });
-    
-    socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", { user: user.username, answer: answer });
+
+    socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", { user: user.username, answer: bestAnswer });
+
+    updateUserScore(userId!, 70, socket);
 
     setTimeout(() => {
       if(questionsArray.find((r) => r.room === roomCode)?.questions.length === 0){

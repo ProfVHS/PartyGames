@@ -117,10 +117,6 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   }, [socket]);
 
   useEffect(() => {
-    console.log(bestAnswer);
-  }, [bestAnswer]);
-
-  useEffect(() => {
     const host = users.find((user) => user.id === socket.id)?.is_host;
 
     if (allUsersWrittenQuestion === users.length) {

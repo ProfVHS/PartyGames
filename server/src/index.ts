@@ -124,7 +124,15 @@ server.listen(3000, async () => {
   };
   // reset data about users
   const usersResetData = async (roomCode: string, socket: Socket) => {
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>(async (resolve, reject) => {
+      db.run(`UPDATE rooms SET round = 0 WHERE id = "${roomCode}"`, [], (err) => {
+        if (err) {
+          console.log("Room reset error");
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
       db.run(`UPDATE users SET alive = true, id_selected = 0, game_position = 1 WHERE id_room = "${roomCode}"`, [], (err) => {
         if (err) {
           console.log("Users reset error");
@@ -394,7 +402,7 @@ server.listen(3000, async () => {
     cardsModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive, getUsersData, usersResetData);
-    buddiesModule(io, socket, db, changeRoomRound, updateRoomRound, usersResetData);
+    buddiesModule(io, socket, db, changeRoomRound, updateRoomRound, usersResetData, updateUserScore);
   };
 
   io.on("connection", handleModulesOnConnection);

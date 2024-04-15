@@ -75,13 +75,13 @@ module.exports = (
     console.log(round);
     return await new Promise<number[]>((resolve, reject) => {
       switch (round) {
-        case 1:
+        case 0:
           resolve([250, 100, 35]);
           break;
-        case 2:
+        case 1:
           resolve([275, 125, 50]);
           break;
-        case 3:
+        case 2:
           resolve([300, 150, 75]);
           break;
         default:
@@ -150,7 +150,6 @@ module.exports = (
   //#region diamonds sockets
   // start game tricky diamonds
   socket.on("startGameDiamonds", async (roomCode: string) => {
-    await changeRoomRound(roomCode, socket).then(async () => {
       await scoreArrays(roomCode).then((array) => {
         console.log(array);
         socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
@@ -159,7 +158,6 @@ module.exports = (
         roomData(roomCode, socket);
       });
       addUsersToSamotnyWilkDB(roomCode);
-    });
   });
 
   socket.on("getDiamondsScore", async (roomCode: string) => {
@@ -172,6 +170,7 @@ module.exports = (
   // end round tricky diamonds
   socket.on("endRoundDiamonds", async (roomCode: string) => {
     console.log("endRoundDiamonds");
+    await changeRoomRound(roomCode, socket);
     findWinners(roomCode, [0, 0, 0]);
   });
   //#endregion

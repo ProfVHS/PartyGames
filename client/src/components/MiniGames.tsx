@@ -38,7 +38,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setMinigameIndex(current);
 
       const game = games[current];
-      setCurrentGame("BUDDIES");
+      setCurrentGame(game);
     });
 
     socket.on("receiveNextGame", () => {
