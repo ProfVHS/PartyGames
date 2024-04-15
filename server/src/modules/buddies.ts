@@ -145,11 +145,11 @@ module.exports = (
   });
 
   socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswerIndex: number) => {
-    const bestAnswer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex];    
+    const bestAnswer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex];
     bestAnswer && updateBestBuddiesAnswers(roomCode, bestAnswer.user, 1).then(() => getUsersBestBuddiesAnswers());
 
     const user = await new Promise<User>((resolve, reject) => {
-      db.get(`SELECT * FROM users WHERE id = "${bestAnswer.user}"`, (err, row: User) => {
+      db.get(`SELECT * FROM users WHERE id = "${bestAnswer!.user}"`, (err, row: User) => {
         if (err) {
           reject(err);
         } else {
@@ -158,12 +158,12 @@ module.exports = (
       });
     });
 
-    socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", { user: user.username, answer: bestAnswer.answer });
+    socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", { user: user.username, answer: bestAnswer!.answer });
 
-    updateUserScore(userId!, 70, socket);
+    updateUserScore(bestAnswer!.user, 70, socket);
 
     setTimeout(() => {
-      if(questionsArray.find((r) => r.room === roomCode)?.questions.length === 0){
+      if (questionsArray.find((r) => r.room === roomCode)?.questions.length === 0) {
         endGame(roomCode);
       } else {
         startNewRound(roomCode);
