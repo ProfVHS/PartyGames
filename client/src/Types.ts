@@ -43,3 +43,9 @@ export type MedalProps = {
 };
 
 export type MinigamesType = "SOLOINROOM" | "MINIGAMEEND" | "LEADERBOARD" | "LEADERBOARDGAME" | "TRICKYDIAMONDS" | "COLORSMEMORY" | "BUDDIES" | "CLICKTHEBOMB" | "CARDS" | "ENDGAME";
+
+export type LeaderboardGameUser = {
+  username: string;
+  scoreToAdd: number | null;
+  record: number;
+};
