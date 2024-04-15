@@ -22,7 +22,7 @@ module.exports = (
   updateUserAlive: (id: string, alive: boolean) => void,
   updateUsersAlive: (roomCode: string, alive: boolean) => void,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
-  usersResetData: (roomCode: string, socket: Socket) => void,
+  usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
   //#region ctb functions
   // set data bomb
@@ -79,6 +79,20 @@ module.exports = (
     });
   };
 
+  const getUsersMostClicks = async () => {
+    const userMostClicks = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM clickTheBombClicks ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(userMostClicks);
+  };
+
   // increment counter by 1
   const incrementCounter = async (roomCode: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -96,6 +110,7 @@ module.exports = (
   socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
     updateUsersMostClicks(roomCode, user_id, number).then(() => {
       console.log("Added click for user");
+      getUsersMostClicks();
     });
   });
 
@@ -221,7 +236,7 @@ module.exports = (
         }
       });
     });
-    if(isGameStarted){
+    if (isGameStarted) {
       const counter = await new Promise<number>((resolveBomb, rejectBomb) => {
         db.get(`SELECT * FROM bomb WHERE id = "${roomCode}"`, [], (err: Error, bomb_row: Bomb) => {
           if (err) {
@@ -251,10 +266,10 @@ module.exports = (
       });
       const username = users[turn].username;
       const id = users[turn].id;
-  
+
       socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
       socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
-    };
+    }
   });
   //#endregion
 };

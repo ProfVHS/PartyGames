@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 
 import "./style.scss";
 import { MedalSvg } from "./MedalSvg";
-import { LoseLineSvg, SkullSvg, TouchSvg } from "./Icons";
+import { ColorSvg, LoseLineSvg, SkullSvg, TouchSvg } from "./Icons";
 import { useAnimate, usePresence } from "framer-motion";
 import { MedalsType } from "../../Types";
 
@@ -39,7 +39,7 @@ export const Medal = ({ id, username, points, award }: MedalProps) => {
       <div className="medal__svg">
         <MedalSvg />
         {award === "MostBombClicks" && <TouchSvg className="medal__svg__icon" />}
-        {award === "BestRoundInColorsMemory" && <SkullSvg className="medal__svg__icon" />}
+        {award === "BestRoundInColorsMemory" && <ColorSvg className="medal__svg__icon" />}
         {award === "LowestBalanceAfterCardGame" && <LoseLineSvg className="medal__svg__icon" />}
       </div>
       <div className="medal__info">

@@ -11,17 +11,18 @@ export default function EndgamePage() {
   const [showMedals, setShowMedals] = useState<boolean>(true);
   const [showPodium, setShowPodium] = useState<boolean>(false);
 
-  const [users, setUsers] = useState<User[]>([]);
+  const [podium, setPodium] = useState<User[]>([]);
   const [medals, setMedals] = useState<MedalProps[]>([]);
 
   const onceDone = useRef<boolean>(false);
   const location = useLocation();
 
-  const roomCode: string = location.state?.code;
-
+  const roomCode: string = location.state?.roomCode;
+  const users: User[] = location.state?.users;
   useEffect(() => {
     if (onceDone.current) return;
-    socket.emit("getMedals", roomCode);
+    console.log("getMedals");
+    if (users[0].id === socket.id) socket.emit("getMedals", roomCode);
     onceDone.current = true;
   }, []);
 
@@ -36,15 +37,13 @@ export default function EndgamePage() {
     });
 
     socket.on("receivePodium", (users) => {
-      setUsers(users);
+      console.log(users);
+      setPodium(users);
       setTimeout(() => {
         setShowPodium(true);
       }, 2000);
     });
   }, [socket]);
-
-  console.log(users);
-  console.log(medals);
 
   return (
     <div className="endgame">
@@ -56,13 +55,13 @@ export default function EndgamePage() {
         {showPodium && (
           <>
             <div className="endgame__podium__top3">
-              {users.slice(0, 3).map((user, index) => (
-                <Podium position={index + 1} score={user.score} username={user.username} key={index} usersLength={users.length} />
+              {podium.slice(0, 3).map((user, index) => (
+                <Podium position={index + 1} score={user.score} username={user.username} key={index} usersLength={podium.length} />
               ))}
             </div>
             <div className="endgame__podium__lower">
-              {users.slice(3, 8).map((user, index) => (
-                <Podium position={index + 4} score={user.score} username={user.username} key={index} usersLength={users.length} />
+              {podium.slice(3, 8).map((user, index) => (
+                <Podium position={index + 4} score={user.score} username={user.username} key={index} usersLength={podium.length} />
               ))}
             </div>
           </>

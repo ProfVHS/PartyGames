@@ -68,7 +68,6 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
       socket.emit("startGameCards", roomCode);
       socket.emit("stopwatchTime", roomCode);
     }
-    
   };
 
   // make sure that the game starts only once by host
@@ -77,10 +76,11 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
 
     const host = users.find((user) => user.id == socket.id)?.is_host;
 
+    socket.emit("addUsersToLowestBalance", roomCode);
+
     if (host) {
       startGame();
     }
-    
 
     onceDone.current = true;
   }, []);
@@ -143,7 +143,7 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
           startGame();
         }
       }
-      
+
       // flip the cards and reset the time
       setFlipped("ALL");
       setTimeout(() => {

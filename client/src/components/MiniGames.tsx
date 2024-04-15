@@ -88,7 +88,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     }
 
     if (currentGame === "ENDGAME") {
-      navigate("/endgame", { state: { roomCode } });
+      navigate("/endgame", { state: { roomCode, users } });
     }
   }, [currentGame]);
 

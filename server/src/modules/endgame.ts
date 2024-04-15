@@ -13,29 +13,26 @@ type UserThatGotMedalType = {
   points: number;
   award: Medals;
 };
-
 module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id: string, score: number, socket: Socket) => void, getUsersData: (roomCode: string) => Promise<User[]>) => {
   const getMostBombClicks = async (roomCode: string) => {
     const usersmostclicks = await new Promise<User[]>((resolve, reject) => {
-      db.all(
-        `SELECT * FROM users user INNER JOIN (SELECT id_user, MAX(number) FROM clickTheBombClicks ) medal ON user.id = medal.id_user AND user.id_room = "${roomCode}"`,
-        [],
-        (err: Error, users: User[]) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(users);
-          }
+      db.all(`SELECT user.*, MAX(medal.number) FROM clickTheBombClicks medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`, [], (err: Error, users: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(users);
+          resolve(users);
         }
-      );
+      });
     });
+
     return usersmostclicks;
   };
 
   const getBestRoundInColorMemory = async (roomCode: string) => {
     const usersWithTheBestRound = await new Promise<User[]>((resolve, reject) => {
       db.all(
-        `SELECT * FROM users user INNER JOIN (SELECT id_user, MAX(number) FROM colorsMemoryRoundRecord ) medal ON user.id = medal.id_user AND user.id_room = "${roomCode}"`,
+        `SELECT user.*, MAX(medal.number) FROM colorsMemoryRoundRecord medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`,
         [],
         (err: Error, users: User[]) => {
           if (err) {
@@ -52,7 +49,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
   const getLowestBalanceAfterCardGame = async (roomCode: string) => {
     const usersWithLowestBalanceAfterCardGame = await new Promise<User[]>((resolve, reject) => {
       db.all(
-        `SELECT * FROM users user INNER JOIN (SELECT id_user, MIN(number) FROM colorsMemoryRoundRecord ) medal ON user.id = medal.id_user AND user.id_room = "${roomCode}"`,
+        `SELECT user.*, MAX(medal.number) FROM lowestBalanceAfterCards medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`,
         [],
         (err: Error, users: User[]) => {
           if (err) {
@@ -133,61 +130,17 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
     return usersThatGotMedal;
   };
 
-  const addExampleUser = async (socketId: string, roomCode: string) => {
-    console.log(socketId);
-    return await new Promise<void>((resolve, reject) => {
-      db.run(
-        `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socketId}", "ultra mango guy", 100, true, false, "${roomCode}", 0, 1, true)`,
-        (err) => {
-          if (err) {
-            reject(err);
-          }
-        }
-      );
-    });
-  };
-
-  const addUserstoMostClicks = async (socketID: string) => {
-    await new Promise<void>((resolve, reject) => {
-      db.run(`INSERT INTO clickTheBombClicks (id_user,number) VALUES ("${socketID}", 5)`, (err) => {
-        if (err) {
-          reject(err);
-        }
-      });
-      resolve();
-    });
-    await new Promise<void>((resolve, reject) => {
-      db.run(`INSERT INTO colorsMemoryRoundRecord (id_user,number) VALUES ("${socketID}", 2)`, (err) => {
-        if (err) {
-          reject(err);
-        }
-      });
-      resolve();
-    });
-    return await new Promise<void>((resolve, reject) => {
-      db.run(`INSERT INTO lowestBalanceAfterCards (id_user,number) VALUES ("${socketID}", -10)`, (err) => {
-        if (err) {
-          reject(err);
-        }
-      });
-      resolve();
-    });
-  };
-
-  socket.on("exampleUserAdd", async (roomCode: string) => {
-    await addExampleUser(socket.id, roomCode);
-  });
-
   socket.on("getMedals", async (roomCode: string) => {
-    await addUserstoMostClicks(socket.id); // temporary, to test the medal
+    console.log("getMedals");
     const medalsToCheck = randomizeMedalsCategories();
     const usersThatGotMedal = await handleMedals(roomCode, medalsToCheck);
 
-    socket.emit("receiveMedals", usersThatGotMedal);
+    socket.nsp.to(roomCode).emit("receiveMedals", usersThatGotMedal);
   });
 
   socket.on("getPodium", async (roomCode: string) => {
     const users = await getUsersData(roomCode);
-    socket.emit("receivePodium", users);
+    const usersSorted = users.sort((a, b) => b.score - a.score);
+    socket.nsp.to(roomCode).emit("receivePodium", usersSorted);
   });
 };
