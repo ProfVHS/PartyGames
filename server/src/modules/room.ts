@@ -184,7 +184,7 @@ module.exports = (
       await socket.join(data.roomCode);
 
       await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = true WHERE id = "${data.cookie_id}"`, [], (err: Error) => {
+        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.cookie_id}"`, [], (err: Error) => {
           if (err) {
             console.log("User come back error:");
             reject(err);

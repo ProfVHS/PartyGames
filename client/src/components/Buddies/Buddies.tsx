@@ -128,7 +128,7 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   return (
     <div className="buddies" ref={scope}>
       {endGame ? (
-        <h1>End Game</h1>
+        <></>
       ) : !writtenQuestion ? (
         <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
       ) : allUsersWrittenQuestion !== users.length ? (
