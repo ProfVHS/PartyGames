@@ -3,9 +3,9 @@ import { Database } from "sqlite3";
 import { User } from "..";
 
 //"MostBestAnswersInBuddies"
-const medalsCategoriesNames: Medals[] = ["MostBombClicks", "LowestBalanceAfterCardGame", "BestRoundInColorsMemory"];
 
-type Medals = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory";
+type Medals = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory" | "MostFiguredOutDiamonds" | "MostBestAnswersInBuddies";
+const medalsCategoriesNames: Medals[] = ["MostBombClicks", "LowestBalanceAfterCardGame", "BestRoundInColorsMemory", "MostFiguredOutDiamonds", "MostBestAnswersInBuddies"];
 
 type UserThatGotMedalType = {
   userID: string;
@@ -63,6 +63,32 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
     return usersWithLowestBalanceAfterCardGame;
   };
 
+  const getMostFiguredOutDiamonds = async (roomCode: string) => {
+    const userWithMostFiguredOutDiamonds = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT user.*, MAX(medal.number) FROM figuredOutDiamonds medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`, [], (err: Error, users: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(users);
+        }
+      });
+    });
+    return userWithMostFiguredOutDiamonds;
+  };
+
+  const getMostBestAnswersInBuddies = async (roomCode: string) => {
+    const userWithMostBestAnswers = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT user.*, MAX(medal.number) FROM bestBuddiesAnswers medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`, [], (err: Error, users: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(users);
+        }
+      });
+    });
+    return userWithMostBestAnswers;
+  };
+
   const randomizeMedalsCategories = () => {
     const medalsCategoriesSet = new Set<Medals>();
 
@@ -95,7 +121,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "MostBombClicks") {
           const usersMostClicks = await getMostBombClicks(roomCode);
           const user = usersMostClicks[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -106,7 +132,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "LowestBalanceAfterCardGame") {
           const userWithLowestBalance = await getLowestBalanceAfterCardGame(roomCode);
           const user = userWithLowestBalance[0];
-          if (user) {
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
@@ -117,7 +143,28 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (medal === "BestRoundInColorsMemory") {
           const userWithLowestBalance = await getBestRoundInColorMemory(roomCode);
           const user = userWithLowestBalance[0];
-          if (user) {
+          if (user.id !== null) {
+            console.log(medal, user);
+            const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
+            usersThatGotMedal.push(userThatGotMedal);
+          }
+          return;
+        }
+        if (medal === "MostFiguredOutDiamonds") {
+          const userWithMostFiguredOutDiamonds = await getMostFiguredOutDiamonds(roomCode);
+          const user = userWithMostFiguredOutDiamonds[0];
+          if (user.id !== null) {
+            console.log(medal, user);
+            const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
+            usersThatGotMedal.push(userThatGotMedal);
+          }
+          return;
+        }
+
+        if (medal === "MostBestAnswersInBuddies") {
+          const userWithMostBestAnswers = await getMostBestAnswersInBuddies(roomCode);
+          const user = userWithMostBestAnswers[0];
+          if (user.id !== null) {
             console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);

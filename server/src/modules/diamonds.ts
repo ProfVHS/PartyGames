@@ -13,14 +13,14 @@ module.exports = (
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   getUsersData: (roomCode: string) => Promise<User[]>,
-  usersResetData: (roomCode: string, socket: Socket) => void,
+  usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
-  // add users to the lowest balance after cards database - for medals
-  const addUsersToSamotnyWilkDB = async (roomCode: string) => {
+  // add users to database
+  const addUsersToFiguredOutDb = async (roomCode: string) => {
     const usersArray = await getUsersData(roomCode);
     return await new Promise<void>((resolve, reject) => {
       usersArray.forEach((user) => {
-        db.run(`INSERT INTO samotnyWilk (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+        db.run(`INSERT INTO figuredOutDiamonds (id_user,number) VALUES ("${user.id}",0)`, (err) => {
           if (err) {
             reject(err);
           }
@@ -29,9 +29,9 @@ module.exports = (
       resolve();
     });
   };
-  const updateUsersSamotnyWilk = async (user_id: string, number: number) => {
+  const updateUseriguredOut = async (user_id: string, number: number) => {
     return await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE samotnyWilk SET number = number + ${number} WHERE id_user = "${user_id}"`, (err) => {
+      db.run(`UPDATE figuredOutDiamonds SET number = number + ${number} WHERE id_user = "${user_id}"`, (err) => {
         if (err) {
           reject(err);
         } else {
@@ -40,9 +40,9 @@ module.exports = (
       });
     });
   };
-  const getSamotnyWilk = async () => {
+  const getFiguredOut = async () => {
     const users = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM samotnyWilk ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+      db.all(`SELECT * FROM figuredOutDiamonds ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
         if (err) {
           reject(err);
         } else {
@@ -54,8 +54,8 @@ module.exports = (
     console.log(users);
   };
 
-  socket.on("addUsersToLowestBalance", async (roomCode: string) => {
-    await addUsersToSamotnyWilkDB(roomCode);
+  socket.on("addUsersToFiguredOutDiamondsDb", async (roomCode: string) => {
+    await addUsersToFiguredOutDb(roomCode);
   });
 
   //#region diamonds functions
@@ -71,7 +71,7 @@ module.exports = (
         }
       });
     });
-    
+
     console.log(round);
     return await new Promise<number[]>((resolve, reject) => {
       switch (round) {
@@ -89,7 +89,6 @@ module.exports = (
           break;
       }
     });
-    
   };
 
   // find min value in array without 0
@@ -104,13 +103,7 @@ module.exports = (
       });
     }).then((rows) => {
       rows.forEach((row) => {
-        if (row.id_selected === 0) {
-          diamondArray[0] += 1;
-        } else if (row.id_selected === 1) {
-          diamondArray[1] += 1;
-        } else {
-          diamondArray[2] += 1;
-        }
+        diamondArray[row.id_selected] += 1;
       });
       return new Promise<number>((resolve, reject) => {
         console.log("diamondArray - ", diamondArray);
@@ -129,7 +122,10 @@ module.exports = (
               rows.forEach((row) => {
                 if (row.id_selected === diamondArray.indexOf(min)) {
                   updateUserScore(row.id, array[index], socket);
-                  updateUsersSamotnyWilk(row.id, 1);
+                  updateUseriguredOut(row.id, 1).then(() => {
+                    console.log("Samotny Wilk");
+                    getFiguredOut();
+                  });
                 }
               });
             });
@@ -158,7 +154,6 @@ module.exports = (
         // is minigame started
         roomData(roomCode, socket);
       });
-      addUsersToSamotnyWilkDB(roomCode);
     });
   });
 
