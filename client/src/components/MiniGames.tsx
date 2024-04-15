@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 
 import { Ctb } from "./ClickTheBomb/Ctb";
 import { Cards } from "./Cards";
-import { User, Room, MinigamesType } from "../Types";
+import { User, Room, MinigamesType, LeaderboardGameUser } from "../Types";
 import { TrickyDiamonds } from "./TrickyDiamonds/TrickyDiamonds";
 import { ColorsMemory } from "./ColorsMemory/ColorsMemory";
 import { Buddies } from "./Buddies/Buddies";
@@ -25,6 +25,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   const [currentGame, setCurrentGame] = useState<MinigamesType>("MINIGAMEEND");
   const [nextMinigame, setNextMinigame] = useState<MinigamesType>("MINIGAMEEND");
   const [minigameIndex, setMinigameIndex] = useState<number>(0);
+  const [leaderboardGameUsers, setLeaderboardGameUsers] = useState<LeaderboardGameUser[]>([]);
 
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
@@ -52,10 +53,15 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setCurrentGame("SOLOINROOM");
     });
 
+    socket.on("receiveLeaderboardGameUsers", (users) => {
+      setLeaderboardGameUsers(users);
+    });
+
     return () => {
       socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
       socket.off("receiveSoloInRoom");
+      socket.off("receiveLeaderboardGameUsers");
     };
   }, [socket]);
 
@@ -80,7 +86,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setUsersBeforeGame(users);
     }
 
-    if (currentGame === "LEADERBOARD") {
+    if (currentGame === "LEADERBOARD" || currentGame === "LEADERBOARDGAME") {
       const leaderboardTime = users.length * 500 + 3500;
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
@@ -107,7 +113,9 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   }, []);
 
   const handleMiniGameEnd = () => {
-    if (currentGame !== "SOLOINROOM") {
+    if (currentGame === "COLORSMEMORY") {
+      setCurrentGame("LEADERBOARDGAME");
+    } else if (currentGame !== "SOLOINROOM") {
       setCurrentGame("LEADERBOARD");
     }
 
@@ -130,7 +138,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       <AnimatePresence>
         {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
-        {/* {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={[]} onExit={() => setCurrentGame(nextMinigame)} />} */}
+        {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
