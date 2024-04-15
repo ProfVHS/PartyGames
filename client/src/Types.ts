@@ -33,7 +33,7 @@ export type TrickyDiamondType = {
 // Colors Memory
 export type ColorsMemory = "red" | "blue" | "green" | "yellow" | "purple" | "orange" | "pink" | "brown";
 
-export type MedalsType = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory";
+export type MedalsType = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory" | "MostFiguredOutDiamonds";
 
 export type MedalProps = {
   userID: string;
@@ -42,14 +42,4 @@ export type MedalProps = {
   award: MedalsType;
 };
 
-export type MinigamesType =
-  | "SOLOINROOM"
-  | "MINIGAMEEND"
-  | "LEADERBOARD"
-  | "LEADERBOARDGAME"
-  | "TRICKYDIAMONDS"
-  | "COLORSMEMORY"
-  | "BUDDIES"
-  | "CLICKTHEBOMB"
-  | "CARDS"
-  | "ENDGAME";
+export type MinigamesType = "SOLOINROOM" | "MINIGAMEEND" | "LEADERBOARD" | "LEADERBOARDGAME" | "TRICKYDIAMONDS" | "COLORSMEMORY" | "BUDDIES" | "CLICKTHEBOMB" | "CARDS" | "ENDGAME";

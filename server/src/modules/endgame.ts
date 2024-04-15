@@ -3,9 +3,9 @@ import { Database } from "sqlite3";
 import { User } from "..";
 
 //"MostBestAnswersInBuddies"
-const medalsCategoriesNames: Medals[] = ["MostBombClicks", "LowestBalanceAfterCardGame", "BestRoundInColorsMemory"];
 
-type Medals = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory";
+type Medals = "MostBombClicks" | "LowestBalanceAfterCardGame" | "BestRoundInColorsMemory" | "MostFiguredOutDiamonds";
+const medalsCategoriesNames: Medals[] = ["MostBombClicks", "LowestBalanceAfterCardGame", "BestRoundInColorsMemory", "MostFiguredOutDiamonds"];
 
 type UserThatGotMedalType = {
   userID: string;
@@ -61,6 +61,19 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
       );
     });
     return usersWithLowestBalanceAfterCardGame;
+  };
+
+  const getMostFiguredOutDiamonds = async (roomCode: string) => {
+    const userWithMostFiguredOutDiamonds = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT user.*, MAX(medal.number) FROM figuredOutDiamonds medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`, [], (err: Error, users: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(users);
+        }
+      });
+    });
+    return userWithMostFiguredOutDiamonds;
   };
 
   const randomizeMedalsCategories = () => {
