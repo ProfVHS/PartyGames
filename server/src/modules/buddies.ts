@@ -1,6 +1,7 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
 import { Room, User } from "../index";
+import { get } from "http";
 
 type Question = {
   user: string;
@@ -33,14 +34,58 @@ module.exports = (
   changeRoomRound: (roomCode: string, socket: Socket) => Promise<void>,
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   usersResetData: (roomCode: string, socket: Socket) => void,
+  getUsersData: (roomCode: string) => Promise<User[]>
 ) => {
+  const addUsersToBestBuddiesAnswersDb = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return await new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO bestBuddiesAnswers (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+
+  const updateBestBuddiesAnswers = async (roomCode: string, user_id: string, number: number) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE bestBuddiesAnswers SET number = ${number} WHERE id_user = "${user_id}" AND number < ${number}`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
+  const getUsersBestBuddiesAnswers = async () => {
+    const userMostClicks = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM bestBuddiesAnswers ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(userMostClicks);
+  };
+
+  socket.on("initBestBuddiesAnswers", async (roomCode: string) => {
+    console.log("test");
+    await addUsersToBestBuddiesAnswersDb(roomCode);
+  });
+
   //#region buddies functions
   const startNewRound = async (roomCode: string) => {
     await changeRoomRound(roomCode, socket);
 
-    const questionIndex = Math.floor(
-      Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length! - 1)
-    );
+    const questionIndex = Math.floor(Math.random() * (questionsArray.find((r) => r.room === roomCode)?.questions.length! - 1));
     const question = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].question;
     const user = questionsArray.find((r) => r.room === roomCode)?.questions[questionIndex].user;
 
@@ -48,9 +93,7 @@ module.exports = (
 
     questionsArray.find((r) => r.room === roomCode)?.questions.splice(questionIndex, 1);
 
-    answersArray
-      .find((r) => r.room === roomCode)
-      ?.answers.splice(0, answersArray.find((r) => r.room === roomCode)?.answers.length!);
+    answersArray.find((r) => r.room === roomCode)?.answers.splice(0, answersArray.find((r) => r.room === roomCode)?.answers.length!);
 
     socket.nsp.to(roomCode).emit("newRoundBuddies");
   };
@@ -100,12 +143,12 @@ module.exports = (
     socket.nsp.to(roomCode).emit("receiveAnswersBuddies", answers);
   });
 
-  socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswer: number) => {
+  socket.on("sendTheBestAnswerBuddies", async (roomCode: string, bestAnswerIndex: number) => {
+    const bestAnswer = answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex];
+    bestAnswer && updateBestBuddiesAnswers(roomCode, bestAnswer.user, 1).then(() => getUsersBestBuddiesAnswers());
     if (questionsArray.find((r) => r.room === roomCode)?.questions.length === 0) {
       endGame(roomCode);
-      socket.nsp
-        .to(roomCode)
-        .emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswer].answer);
+      socket.nsp.to(roomCode).emit("receiveTheBestAnswerBuddies", answersArray.find((r) => r.room === roomCode)?.answers[bestAnswerIndex].answer);
       return;
     }
     startNewRound(roomCode);

@@ -1,7 +1,7 @@
 import { Question } from "./Question";
 import { Answer } from "./Answer";
 import { User } from "../../Types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { socket } from "../../socket";
 import { AnswersSelect } from "./AnswersSelect";
 
@@ -20,16 +20,15 @@ interface BuddiesProps {
 export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [allUsersWrittenQuestion, setAllUsersWrittenQuestion] = useState<number>(0);
   const [allUsersWrittenAnswer, setAllUsersWrittenAnswer] = useState<number>(0);
-
   const [writtenQuestion, setWrittenQuestion] = useState<boolean>(false);
   const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
-
   const [question, setQuestion] = useState<QuestionType>({ author: "", question: "" });
-
   const [endGame, setEndGame] = useState<boolean>(false);
 
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
+
+  const onceDone = useRef(false);
 
   useEffect(() => {
     if (isPresence) {
@@ -117,6 +116,14 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
       }
     }
   }, [allUsersWrittenQuestion, allUsersWrittenAnswer]);
+
+  useEffect(() => {
+    if (onceDone.current) return;
+    console.log("test");
+    const host = users.find((user) => user.id === socket.id)?.is_host;
+    if (host) socket.emit("initBestBuddiesAnswers", roomCode);
+    onceDone.current = true;
+  }, []);
 
   return (
     <div className="buddies" ref={scope}>

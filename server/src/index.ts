@@ -64,10 +64,11 @@ server.listen(3000, async () => {
     db.run(
       'CREATE TABLE lowestBalanceAfterCards ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));'
     );
-    db.run('CREATE TABLE samotnyWilk ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));');
+    db.run('CREATE TABLE figuredOutDiamonds ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));');
     db.run(
       'CREATE TABLE colorsMemoryRoundRecord ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));'
     );
+    db.run(`CREATE TABLE BestBuddiesAnswers ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));`);
   });
 
   const io = new Server(server, {
@@ -147,11 +148,11 @@ server.listen(3000, async () => {
 
     const updateTurn = new Promise<void>((resolve, reject) => {
       db.run(`UPDATE rooms SET turn = ${turn} WHERE id = "${roomCode}"`, (err) => {
-        if(err){
-            console.log("Update Room Turn error");
-            reject(err);
+        if (err) {
+          console.log("Update Room Turn error");
+          reject(err);
         } else {
-            resolve();
+          resolve();
         }
       });
     });
@@ -395,7 +396,7 @@ server.listen(3000, async () => {
     cardsModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     colorsMemoryModule(io, socket, db, usersData, updateRoomRound, changeRoomRound, updateUserAlive, updateUsersAlive, getUsersData, usersResetData);
-    buddiesModule(io, socket, db, changeRoomRound, updateRoomRound, usersResetData);
+    buddiesModule(io, socket, db, changeRoomRound, updateRoomRound, usersResetData, getUsersData);
     endgameModule(io, socket, db, updateUserScore, getUsersData);
   };
 
