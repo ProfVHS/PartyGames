@@ -118,7 +118,7 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   useEffect(() => {
     const host = users.find((user) => user.id === socket.id)?.is_host;
 
-    const activeUsers = users.filter((user) => user.alive && !user.is_disconnect);
+    const activeUsers = users.filter((user) => !user.is_disconnect);
 
     if (allUsersWrittenQuestion === activeUsers.length) {
       if (host) {
@@ -142,29 +142,34 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
     onceDone.current = true;
   }, []);
 
+  useEffect(() => {
+    if(allUsersWrittenQuestion === users.filter((user) => !user.is_disconnect).length-1) {
+      setWrittenQuestion(true);
+    }
+  }, []);
+
   return (
     <div className="buddies" ref={scope}>
-      {endGame ? (
-        <></>
-      ) : !writtenQuestion ? (
-        <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
-      ) : allUsersWrittenQuestion !== users.filter((user) => user.alive && !user.is_disconnect).length ? (
-        <>
-          <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
-          <Hourglass />
-        </>
-      ) : writtenAnswer || socket.id === question.author ? (
-        allUsersWrittenAnswer !== users.filter((user) => user.alive && !user.is_disconnect).length - 1 ? (
-          <>
-            <h3 className="buddies__waiting">Waiting for all players to answer</h3>
-            <Hourglass />
-          </>
-        ) : bestAnswer.answer !== "" ? 
-        <BestAnswer bestAnswer={bestAnswer} />
-        : <AnswersSelect roomCode={roomCode} users={users} question={question} />
-      ) : (
-        <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
-      )}
+      {endGame 
+      ? (<></>) 
+      : !writtenQuestion 
+        ? <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
+        : allUsersWrittenQuestion !== users.filter((user) => !user.is_disconnect).length 
+          ? (<>
+              <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
+              <Hourglass />
+            </>) 
+          : writtenAnswer || socket.id === question.author 
+            ? allUsersWrittenAnswer !== users.filter((user) => !user.is_disconnect).length - 1
+              ? (<>
+                  <h3 className="buddies__waiting">Waiting for all players to answer</h3>
+                  <Hourglass />
+                </>) 
+              : bestAnswer.answer !== "" 
+                ? <BestAnswer bestAnswer={bestAnswer} />
+                : <AnswersSelect roomCode={roomCode} users={users} question={question} />
+            : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
+      }
     </div>
   );
 }

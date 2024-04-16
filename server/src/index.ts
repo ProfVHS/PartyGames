@@ -244,11 +244,8 @@ server.listen(3000, async () => {
       });
     });
 
-    // Promise.all([users, room]).then(() => {
-
     const skipTurn = async (turn: number) => {
       if (turn >= users.length - 1) {
-        //db.run(`UPDATE rooms SET turn = -1 WHERE id = "${roomCode}"`);
         skipTurn(-1);
       } else {
         if (users[turn + 1].alive == false || users[turn + 1].is_disconnect === true) {
