@@ -129,6 +129,15 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     setNextMinigame(newNextGame);
   };
 
+  const handleSoloInRoomExit = () => {
+    const newMinigameIndex = minigameIndex + 1;
+    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
+
+    socket.emit("updateCurrentGameIndex", roomCode, newMinigameIndex);
+
+    setCurrentGame(newNextGame);
+  };
+
   useEffect(() => {
     console.log(currentGame);
   }, [currentGame]);
@@ -136,7 +145,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   return (
     <>
       <AnimatePresence>
-        {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={handleSoloInRoomExit} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
