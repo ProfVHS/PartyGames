@@ -280,7 +280,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["CLICKTHEBOMB"]; //, "TRICKYDIAMONDS", "CLICKTHEBOMB", "CARDS", "COLORSMEMORY"
+      const gamesIDarray: string[] = ["BUDDIES"]; //, "TRICKYDIAMONDS", "CLICKTHEBOMB", "CARDS", "COLORSMEMORY"
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
