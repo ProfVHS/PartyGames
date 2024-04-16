@@ -166,6 +166,9 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
       if (user.id == socket.id) {
         if (user.alive == false) {
           setIsDead(true);
+        } else {
+          setIsDead(false);
+          setIsInGame(true);
         }
       }
     });
