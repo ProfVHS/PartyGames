@@ -23,7 +23,8 @@ module.exports = (
   updateUserSelected: (id: string, selected: number) => void,
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   changeRoomTurn: (roomCode: string, socket: Socket) => void,
-  updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => void
+  updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => void,
+  usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
   //#region functions
   const InfoAboutRoom = async () => {
@@ -194,6 +195,19 @@ module.exports = (
         });
       });
       socket.nsp.to(socket.id).emit("joiningRoom");
+      const usersInRoom = await new Promise<User[]>((resolve, reject) => {
+        db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND is_disconnect = false`, [], (err: Error, rows: User[]) => {
+          if (err) {
+            console.log(`Users data error:`);
+            reject(err);
+          } else {
+            resolve(rows);
+            console.log("Users in room: ", rows);
+          }
+        });
+      });
+      usersResetData(data.roomCode, socket);
+      if (usersInRoom.length <= 2) socket.to(data.roomCode).emit("receiveNextGame");
       usersData(data.roomCode, socket);
       roomData(data.roomCode, socket);
     } else {
@@ -280,7 +294,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["CLICKTHEBOMB"]; //, "TRICKYDIAMONDS", "CLICKTHEBOMB", "CARDS", "COLORSMEMORY"
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "CARDS", "COLORSMEMORY", "BUDDIES"];
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
@@ -316,10 +330,13 @@ module.exports = (
     socket.nsp.to(roomCode).emit("receiveNextGame");
   });
   // update current index games
-  socket.on("updateCurrentGameIndex", async (roomCode: string) => {
+  socket.on("updateCurrentGameIndex", async (roomCode: string, currentGameIndex: number) => {
+    console.log("===============> Update Current Game Index <===============");
     const index = gamesArray.findIndex((roomCode) => roomCode === roomCode);
 
-    gamesArray[index].currentGame += 1;
+    gamesArray[index].currentGame = currentGameIndex;
+    console.log(gamesArray[index].currentGame);
+    console.log(gamesArray[index].games);
 
     socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray[index].games, gamesArray[index].currentGame);
   });
