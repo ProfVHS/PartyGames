@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 interface BestAnswerProps {
   bestAnswer: { user: string; answer: string };
 }
