@@ -38,6 +38,9 @@
     font-weight: 500;
     font-family: "Poppins";
     text-transform: capitalize;
+    width: 75%;
+    overflow-wrap: break-word;
+    hyphens: auto;
 
     margin: 0;
   }
