@@ -73,7 +73,7 @@ server.listen(3000, async () => {
 
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: "https://partygames-1.onrender.com",
       methods: ["GET", "POST"],
     },
   });
