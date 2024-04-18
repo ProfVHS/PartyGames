@@ -27,7 +27,9 @@ export function Answer({ roomCode, onClick, question }: AnswerProps) {
       <h1 className="buddies__header">Answer</h1>
       <h2 className="buddies__question">
         {question.question}
-        {question.question.charAt(question.question.length - 1) === "?" ? "" : "?"}
+        {question.question.charAt(question.question.length - 1) === "?"
+          ? ""
+          : "?"}
       </h2>
       <input
         className="buddies__input"
