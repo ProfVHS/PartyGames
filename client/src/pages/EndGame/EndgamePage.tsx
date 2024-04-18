@@ -23,9 +23,12 @@ export default function EndgamePage() {
   const location = useLocation();
 
   const roomCode: string = location.state?.roomCode;
+  const users: User[] = location.state?.users;
 
   useEffect(() => {
     if (onceDone.current) return;
+    const host = users.find((user) => user.id == socket.id)?.is_host;
+    if (!host) return;
     console.log("getMedals");
     socket.emit("getMedals", roomCode);
     onceDone.current = true;

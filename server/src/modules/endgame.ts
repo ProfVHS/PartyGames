@@ -182,7 +182,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
     const medalsToCheck = randomizeMedalsCategories();
     const usersThatGotMedal = await handleMedals(roomCode, medalsToCheck);
 
-    socket.nsp.to(socket.id).emit("receiveMedals", usersThatGotMedal);
+    socket.nsp.to(roomCode).emit("receiveMedals", usersThatGotMedal);
   });
 
   socket.on("getPodium", async (roomCode: string) => {
