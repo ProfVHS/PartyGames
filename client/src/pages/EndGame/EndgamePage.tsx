@@ -6,34 +6,49 @@ import { Podium } from "../../components/Podium";
 import { MedalProps, User } from "../../Types";
 import { socket } from "../../socket";
 import { useLocation } from "react-router-dom";
+import { ProgressBar } from "../../components/ProgressBar";
+
+const waitTimeMs = 15000;
 
 export default function EndgamePage() {
   const [showMedals, setShowMedals] = useState<boolean>(true);
   const [showPodium, setShowPodium] = useState<boolean>(false);
-
   const [podium, setPodium] = useState<User[]>([]);
   const [medals, setMedals] = useState<MedalProps[]>([]);
+
+  const [time, setTime] = useState<number>(0);
+  let timeInterval: NodeJS.Timeout;
 
   const onceDone = useRef<boolean>(false);
   const location = useLocation();
 
   const roomCode: string = location.state?.roomCode;
-  const users: User[] = location.state?.users;
+
   useEffect(() => {
     if (onceDone.current) return;
     console.log("getMedals");
-    if (users[0].id === socket.id) socket.emit("getMedals", roomCode);
+    socket.emit("getMedals", roomCode);
     onceDone.current = true;
   }, []);
 
   useEffect(() => {
-    socket.on("receiveMedals", (medals) => {
-      console.log(medals);
-      setMedals(medals);
-      setTimeout(() => {
+    timeInterval = setInterval(async () => {
+      if (time < waitTimeMs) {
+        const newTime = time + 10;
+        setTime(newTime);
+      } else {
+        console.log("time is up");
         setShowMedals(false);
         socket.emit("getPodium", roomCode);
-      }, 5000);
+        clearInterval(timeInterval);
+      }
+    }, 10);
+    return () => clearInterval(timeInterval);
+  }, [time]);
+
+  useEffect(() => {
+    socket.on("receiveMedals", (medals) => {
+      setMedals(medals);
     });
 
     socket.on("receivePodium", (users) => {
@@ -67,6 +82,7 @@ export default function EndgamePage() {
         {!showPodium ? "Rewards" : "Podium"}
         <div className="endgame__partygames">Party Games</div>
       </div>
+      {showMedals && <ProgressBar width="600px" max={waitTimeMs} progress={time} />}
       <div className="endgame__content" style={!showPodium ? { flexDirection: "row" } : { flexDirection: "column" }}>
         {showPodium && (
           <>
