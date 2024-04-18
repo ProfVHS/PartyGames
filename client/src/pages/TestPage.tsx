@@ -1,9 +1,11 @@
-import { Medal } from "../components/Medal/Medal";
+import { BestAnswer } from "../components/Buddies/BestAnswer";
 
 export default function TestPage() {
   return (
     <>
-      <Medal award="MostFiguredOutDiamonds" id={0} points={200} username="ultra mango guy mango guy" key={0} />
+      <div className="buddies">
+        <BestAnswer bestAnswer={{ answer: "bardzo dluga odpowiedz zeby rozjebac design XDD", user: "xXusernameXxPL" }} />
+      </div>
     </>
   );
 }

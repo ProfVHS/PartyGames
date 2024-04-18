@@ -25,7 +25,15 @@ export function Question({ roomCode, onClick }: QuestionProps) {
       <motion.h1 className="buddies__header" initial={{ opacity: 0, scale: 0 }}>
         Question
       </motion.h1>
-      <motion.input className="buddies__input" placeholder="Make a question" type="text" value={question} onChange={(e) => setQuestion(e.target.value)} initial={{ opacity: 0, scale: 0 }} />
+      <motion.input
+        className="buddies__input"
+        placeholder="Make a question"
+        maxLength={64}
+        type="text"
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+        initial={{ opacity: 0, scale: 0 }}
+      />
       <motion.button className="buddies__button" onClick={sendQuestion} initial={{ opacity: 0, scale: 0 }}>
         Ask
       </motion.button>

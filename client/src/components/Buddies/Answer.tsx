@@ -33,7 +33,7 @@ export function Answer({ roomCode, onClick, question }: AnswerProps) {
             {question.question}
             {question.question.charAt(question.question.length - 1) === "?" ? "" : "?"}
           </h2>
-          <input className="buddies__input" placeholder="Your answer" type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+          <input className="buddies__input" placeholder="Your answer" maxLength={32} type="text" value={answer} onChange={(e) => setAnswer(e.target.value)} />
           <button className="buddies__button" onClick={sendAnswer}>
             Answer
           </button>

@@ -155,7 +155,7 @@ export default function HomePage() {
         <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
           Join
         </button>
-        <input className="input" placeholder="Room Code" style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
+        <input className="input" placeholder="Room Code" maxLength={16} style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
         <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
           Create Room
         </button>
