@@ -14,7 +14,7 @@ interface AnswersSelectProps {
   question: QuestionType;
 }
 
-export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps) {
+export function AnswersSelect({ roomCode, question }: AnswersSelectProps) {
   const [answers, setAnswers] = useState<AnswersArray[]>([]);
   const [bestAnswerIndex, setBestAnswerIndex] = useState<number>(0);
   const [canChooseAnswer, setCanChooseAnswer] = useState<boolean>(false);
@@ -46,20 +46,14 @@ export function AnswersSelect({ roomCode, users, question }: AnswersSelectProps)
 
   return (
     <>
-      <h1 className="buddies__header">
-        {socket.id === question.author ? "Select the best answer" : "Author is choosing the best answer"}
-      </h1>
+      <h1 className="buddies__header">{socket.id === question.author ? "Select the best answer" : "Author is choosing the best answer"}</h1>
       <h4 className="buddies__question">
         {question.question}
         {question.question.at(question.question.length - 1) !== "?" && "?"}
       </h4>
       <div className="buddies__answers">
         {answers.map((answer, index) => (
-          <button
-            className={`buddies__answers__item ${index === bestAnswerIndex ? "selected" : ""}`}
-            key={index}
-            onClick={() => selectTheBestAnswer(index)}
-            disabled={!canChooseAnswer}>
+          <button className={`buddies__answers__item ${index === bestAnswerIndex ? "selected" : ""}`} key={index} onClick={() => selectTheBestAnswer(index)} disabled={!canChooseAnswer}>
             {answer.answer}
           </button>
         ))}

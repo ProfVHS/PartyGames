@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import "./style.scss";
 
-import c4 from "../../assets/svgs/C4.svg";
-
 import ClickSound from "../../assets/audio/click.mp3";
 import { socket } from "../../socket";
 import Explosion from "../Explosion";
@@ -114,7 +112,7 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
 
   // make sure that the game starts only once by host
   useEffect(() => {
-    if(onceDone.current) return;
+    if (onceDone.current) return;
 
     const host = users.find((user) => user.id === socket.id)?.is_host;
 
@@ -122,12 +120,12 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
       const usersLength = users.length;
       socket.emit("startGameCtb", { roomCode, usersLength });
     }
-    
+
     onceDone.current = true;
   }, []);
 
   useEffect(() => {
-    if(roomData?.in_game && turn === "") {
+    if (roomData?.in_game && turn === "") {
       socket.emit("getBombData", roomCode);
     }
   }, []);

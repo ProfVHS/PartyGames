@@ -1,12 +1,6 @@
 import "./style.scss";
 import { useEffect, useState } from "react";
-import {
-  FieldType,
-  ShootsType,
-  ShipType,
-  turnType,
-  PredictionType,
-} from "./Types";
+import { FieldType, ShootsType, ShipType, turnType, PredictionType } from "./Types";
 
 import { BattlefieldBoard } from "./BattlefieldBoard";
 import { Marks } from "./Marks";
@@ -22,14 +16,10 @@ export function Battleships() {
   const [ships, setShips] = useState<ShipType[]>([]);
   const [yourShoots, setYourShoots] = useState<ShootsType[]>([]);
 
-  const [yourTeamPredictions, setYourTeamPredictions] = useState<
-    PredictionType[]
-  >([]);
+  const [yourTeamPredictions, setYourTeamPredictions] = useState<PredictionType[]>([]);
 
-  const [enemyTeamPrediction, setEnemyTeamPrediction] = useState<FieldType[]>(
-    []
-  );
-  const [enemyTeamShoots, setEnemyTeamShoots] = useState<ShootsType[]>([]);
+  //const [enemyTeamPrediction, setEnemyTeamPrediction] = useState<FieldType[]>([]);
+  //const [enemyTeamShoots, setEnemyTeamShoots] = useState<ShootsType[]>([]);
 
   const turnMessage = {
     YOUR: "Your team's turn. Make your move!",
@@ -112,14 +102,7 @@ export function Battleships() {
             setEnemyTeamShoots={setYourShoots}
           />
         )}
-        {turn === "PLACING" && (
-          <PlacingBoard
-            fields={fields}
-            setFields={setFields}
-            ships={ships}
-            setShips={setShips}
-          />
-        )}
+        {turn === "PLACING" && <PlacingBoard fields={fields} setFields={setFields} ships={ships} setShips={setShips} />}
       </div>
       {/* Temporary button for testing purposes, delete it after making a socket to operate turns */}
       <button onClick={turnHandler} className="battleships__turnButton">

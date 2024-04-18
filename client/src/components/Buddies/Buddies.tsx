@@ -8,8 +8,7 @@ import { AnswersSelect } from "./AnswersSelect";
 import "./style.scss";
 import { QuestionType } from "./Types";
 import { Hourglass } from "../Hourglass";
-import { useAnimate, usePresence, motion } from "framer-motion";
-import { on } from "events";
+import { useAnimate, usePresence } from "framer-motion";
 import { BestAnswer } from "./BestAnswer";
 
 interface BuddiesProps {
@@ -25,7 +24,7 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [writtenAnswer, setWrittenAnswer] = useState<boolean>(false);
   const [question, setQuestion] = useState<QuestionType>({ author: "", question: "" });
 
-  const [bestAnswer, setBestAnswer] = useState<{user: string, answer: string}>({user: "", answer: ""});
+  const [bestAnswer, setBestAnswer] = useState<{ user: string; answer: string }>({ user: "", answer: "" });
   const [endGame, setEndGame] = useState<boolean>(false);
 
   const [scope, animate] = useAnimate();
@@ -77,11 +76,11 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
       setQuestion({ author: user, question: question });
     };
 
-    const receiveTheBestAnswer = (data: {user: string, answer: string}) => {
+    const receiveTheBestAnswer = (data: { user: string; answer: string }) => {
       setBestAnswer(data);
 
       setTimeout(() => {
-        setBestAnswer({user: "", answer: ""});
+        setBestAnswer({ user: "", answer: "" });
       }, 5000);
     };
 
@@ -134,7 +133,7 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
 
   useEffect(() => {
     if (onceDone.current) return;
-    
+
     const host = users.find((user) => user.id === socket.id)?.is_host;
 
     if (host) socket.emit("initBestBuddiesAnswers", roomCode);
@@ -143,33 +142,36 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   }, []);
 
   useEffect(() => {
-    if(allUsersWrittenQuestion === users.filter((user) => !user.is_disconnect).length-1) {
+    if (allUsersWrittenQuestion === users.filter((user) => !user.is_disconnect).length - 1) {
       setWrittenQuestion(true);
     }
   }, []);
 
   return (
     <div className="buddies" ref={scope}>
-      {endGame 
-      ? (<></>) 
-      : !writtenQuestion 
-        ? <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
-        : allUsersWrittenQuestion !== users.filter((user) => !user.is_disconnect).length 
-          ? (<>
-              <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
-              <Hourglass />
-            </>) 
-          : writtenAnswer || socket.id === question.author 
-            ? allUsersWrittenAnswer !== users.filter((user) => !user.is_disconnect).length - 1
-              ? (<>
-                  <h3 className="buddies__waiting">Waiting for all players to answer</h3>
-                  <Hourglass />
-                </>) 
-              : bestAnswer.answer !== "" 
-                ? <BestAnswer bestAnswer={bestAnswer} />
-                : <AnswersSelect roomCode={roomCode} users={users} question={question} />
-            : <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
-      }
+      {endGame ? (
+        <></>
+      ) : !writtenQuestion ? (
+        <Question roomCode={roomCode} users={users} onClick={isQuestionWritten} />
+      ) : allUsersWrittenQuestion !== users.filter((user) => !user.is_disconnect).length ? (
+        <>
+          <h3 className="buddies__waiting">Waiting for all players to ask the questions</h3>
+          <Hourglass />
+        </>
+      ) : writtenAnswer || socket.id === question.author ? (
+        allUsersWrittenAnswer !== users.filter((user) => !user.is_disconnect).length - 1 ? (
+          <>
+            <h3 className="buddies__waiting">Waiting for all players to answer</h3>
+            <Hourglass />
+          </>
+        ) : bestAnswer.answer !== "" ? (
+          <BestAnswer bestAnswer={bestAnswer} />
+        ) : (
+          <AnswersSelect roomCode={roomCode} users={users} question={question} />
+        )
+      ) : (
+        <Answer roomCode={roomCode} users={users} onClick={isAnswerWritten} question={question} />
+      )}
     </div>
   );
 }

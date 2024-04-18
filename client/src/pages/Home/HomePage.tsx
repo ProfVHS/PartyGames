@@ -72,7 +72,6 @@ const nouns = [
 ];
 
 export default function HomePage() {
-  const location = useLocation();
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
