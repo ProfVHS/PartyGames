@@ -1,0 +1,19 @@
+.error404 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  gap: 16px;
+  &__h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.7);
+    text-align: center;
+  }
+  &__p {
+    font-size: 1.75rem;
+    color: rgba(0, 0, 0, 0.7);
+    text-align: center;
+  }
+}

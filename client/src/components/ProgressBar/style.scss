@@ -1,0 +1,12 @@
+.progressbar {
+  height: 6px;
+  background-color: rgba(171, 85, 240, 0.2);
+  border-radius: 10px;
+  &__bar {
+    width: 50%;
+    height: 100%;
+    background-color: #ab55f0;
+    border-radius: 10px;
+    transition: 0.1s ease;
+  }
+}

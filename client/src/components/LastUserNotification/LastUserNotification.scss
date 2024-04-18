@@ -1,0 +1,51 @@
+.lastUser {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  background-color: #fff;
+  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.1);
+  padding: 30px;
+
+  border-radius: 4px;
+  gap: 16px;
+  &__roomcode {
+    font-size: 16px;
+    font-family: "Poppins";
+    font-weight: 600;
+    color: #9d4edd;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-family: "Poppins";
+    font-weight: 200;
+  }
+
+  button {
+    width: 50%;
+    height: 40px;
+
+    border-radius: 5px;
+    border: none;
+
+    background-color: #b87de8;
+    box-shadow: 0px 4px 0px 0px #5a189a;
+
+    cursor: pointer;
+
+    //Text Style
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+
+    &:active {
+      box-shadow: 0px 2px 0px 0px #5a189a;
+      transition: 0.1s ease;
+      transform: translateY(2px);
+    }
+  }
+}

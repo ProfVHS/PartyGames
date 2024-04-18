@@ -1,0 +1,250 @@
+.cards {
+  position: relative;
+  background-color: #fff;
+  width: 575px;
+  height: 100%;
+  border-radius: 5px;
+  font-family: "Poppins";
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  box-shadow: 0px 4px 0px 0px rgba($color: #000000, $alpha: 0.25);
+  padding: 15px;
+  box-sizing: border-box;
+
+  &__title {
+    font-size: 32px;
+    font-family: "Spicy Rice";
+    color: #5a189a;
+  }
+  &__stopwatch {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+  }
+}
+
+.cardsWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+
+  animation: showUpElements 0.75s ease-in-out;
+}
+
+@mixin cardTextStyle {
+  color: white;
+  font-weight: 700;
+  text-shadow: 0px 4px rgba($color: #000000, $alpha: 0.25);
+}
+
+.card {
+  position: relative;
+
+  height: 140px;
+  width: 95px;
+
+  box-sizing: border-box;
+  border-radius: 5px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  user-select: none;
+  box-shadow: 0px 4px 0px 0px rgba($color: #000000, $alpha: 0.25);
+
+  &__back {
+    @extend .card;
+    background-image: url("../../assets/svgs/card-bg.svg");
+
+    background-color: #f1eaf7;
+    border: 4px #9d4edd solid;
+
+    & img {
+      width: 75px;
+    }
+  }
+
+  &__front {
+    @extend .card;
+    background-image: url("../../assets/svgs/card-front-bg.svg");
+    &__mid {
+      @include cardTextStyle;
+      font-size: 32px;
+    }
+
+    &__corner {
+      @include cardTextStyle;
+      font-size: 14px;
+      position: absolute;
+
+      &.left {
+        top: 0;
+        left: 2px;
+      }
+      &.right {
+        bottom: 0;
+        right: 2px;
+        transform: scale(-1);
+      }
+    }
+    &.positive {
+      background-color: #b87de8;
+      border: 4px #5a189a solid;
+    }
+    &.negative {
+      background-color: #9d1133;
+      border: 4px #000000 solid;
+    }
+  }
+}
+
+.cardBox {
+  height: 150px;
+  width: 100px;
+  transform: rotateY(0deg);
+  transition: 0.3s ease;
+  cursor: pointer;
+
+  &.flip {
+    transform: rotateY(90deg);
+  }
+
+  &:hover {
+    scale: 1.05;
+  }
+
+  &.selected {
+    scale: 1.1;
+  }
+}
+
+@media only screen and (max-width: 1055px), (min-height: 1000px) {
+  .cards {
+    height: 500px;
+    width: 500px;
+  }
+  .card {
+    height: 110px;
+    width: 80px;
+
+    &__back {
+      & img {
+        width: 55px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 110px;
+    width: 80px;
+  }
+}
+
+@media only screen and (max-width: 800px), (min-height: 1000px) {
+  .cards {
+    height: 450px;
+  }
+}
+
+@media only screen and (max-width: 900px), (min-height: 1000px) {
+  .cards {
+    height: 375px;
+    width: 500px;
+  }
+
+  .card {
+    height: 110px;
+    width: 80px;
+
+    &__back {
+      & img {
+        width: 55px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 110px;
+    width: 80px;
+  }
+}
+
+@media only screen and (max-height: 900px) {
+  .cards {
+    height: 375px;
+  }
+
+  .card {
+    height: 120px;
+    width: 90px;
+
+    &__back {
+      & img {
+        width: 65px;
+      }
+    }
+  }
+
+  .cardBox {
+    height: 120px;
+    width: 90px;
+  }
+}
+
+@media only screen and (max-height: 700px) {
+  .cards {
+    height: 250px;
+  }
+
+  .card {
+    height: 75px;
+    width: 50px;
+
+    &__back {
+      & img {
+        width: 25px;
+      }
+    }
+  }
+
+  .cardsWrapper {
+    gap: 5px;
+  }
+
+  .cardBox {
+    height: 75px;
+    width: 50px;
+  }
+}
+
+@media only screen and (max-height: 600px) {
+  .cards {
+    height: 450px;
+  }
+
+  .card {
+    height: 140px;
+    width: 95px;
+
+    &__back {
+      & img {
+        width: 75px;
+      }
+    }
+  }
+
+  .cardsWrapper {
+    gap: 10px;
+  }
+
+  .cardBox {
+    height: 140px;
+    width: 95px;
+  }
+}

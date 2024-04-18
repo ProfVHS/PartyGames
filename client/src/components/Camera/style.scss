@@ -1,0 +1,69 @@
+.camera {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  max-width: 200px;
+  max-height: 180px;
+  min-width: 100px;
+  min-height: 140px;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 2px 0;
+
+  background-color: #fff;
+  box-sizing: border-box;
+  box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.25);
+
+  border-radius: 5px;
+
+  &.disconnected {
+    opacity: 0.7;
+  }
+
+  &__username {
+    color: #9d4edd;
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+  }
+  &__video {
+    background-color: #000;
+    max-height: 125px;
+    max-width: 175px;
+
+    height: 100%;
+    width: 90%;
+  }
+  &__icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  &__score {
+    color: #5a189a;
+
+    font-family: "Poppins";
+    font-weight: 700;
+    font-size: 20px;
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  .camera {
+    width: 125px;
+    max-height: 125px;
+    &__username {
+      font-size: 12px;
+    }
+    &__score {
+      font-size: 16px;
+    }
+  }
+}

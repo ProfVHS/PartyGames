@@ -1,0 +1,30 @@
+.stopwatch {
+  position: relative;
+
+  height: 100%;
+  width: 100%;
+
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &__value {
+    font-family: "Poppins";
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: 2px;
+    margin-top: 2px;
+    transform: translate(-50%, -50%);
+  }
+
+  &__circle {
+    transition: 0.1s ease;
+  }
+}
