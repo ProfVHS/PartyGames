@@ -8,7 +8,7 @@ import { socket } from "../../socket";
 import { useLocation } from "react-router-dom";
 import { ProgressBar } from "../../components/ProgressBar";
 
-const waitTimeMs = 15000;
+const waitTimeMs = 10000;
 
 export default function EndgamePage() {
   const [showMedals, setShowMedals] = useState<boolean>(true);

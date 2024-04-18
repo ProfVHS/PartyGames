@@ -1,5 +1,7 @@
 .buddies {
   min-height: 200px;
+  max-height: 100%;
+  padding: 16px;
   width: 420px;
 
   background-color: #fff;
@@ -26,7 +28,7 @@
     margin: 0;
 
     font-size: 1.8rem;
-    font-weight: 600;
+    font-weight: 500;
     font-family: "Spicy Rice";
 
     color: #5a189a;
@@ -38,6 +40,7 @@
     font-weight: 500;
     font-family: "Poppins";
     text-transform: capitalize;
+    text-align: center;
     width: 75%;
     overflow-wrap: break-word;
     hyphens: auto;
@@ -139,6 +142,45 @@
       box-shadow: 0px 2px 0px 0px #5a189a;
       transition: 0.1s ease;
       transform: translateY(2px);
+    }
+  }
+
+  &__bestAnswer {
+    &-username {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-family: "Poppins";
+      font-weight: 200;
+      font-size: 20px;
+      text-align: center;
+      overflow-wrap: break-word;
+      width: 75%;
+    }
+    &-answer {
+      width: 75%;
+
+      border-radius: 6px;
+      border: 2px solid #9d4edd;
+      box-shadow: 0px 4px 0px 0px #a950f1;
+      background: rgba(172, 103, 228, 0.08);
+      padding: 4px;
+
+      //Text Style
+      color: #a151e2;
+      font-family: "Poppins", sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      text-align: center;
+      overflow-wrap: break-word;
+    }
+    &-points {
+      color: #a151e2;
+      font-family: "Spicy Rice";
+      font-weight: 200;
+      font-size: 24px;
+      text-align: center;
     }
   }
 }

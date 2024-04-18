@@ -10,12 +10,15 @@ import { QuestionType } from "./Types";
 import { Hourglass } from "../Hourglass";
 import { useAnimate, usePresence } from "framer-motion";
 import { BestAnswer } from "./BestAnswer";
+import { ProgressBar } from "../ProgressBar";
 
 interface BuddiesProps {
   roomCode: string;
   users: User[];
   onExit?: () => void;
 }
+
+const bestAnswerTimeMs = 5000;
 
 export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [allUsersWrittenQuestion, setAllUsersWrittenQuestion] = useState<number>(0);
@@ -31,6 +34,9 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [isPresence, safeToRemove] = usePresence();
 
   const onceDone = useRef(false);
+
+  const [time, setTime] = useState<"STOP" | number>("STOP");
+  let timeInterval: NodeJS.Timeout;
 
   useEffect(() => {
     if (isPresence) {
@@ -78,10 +84,7 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
 
     const receiveTheBestAnswer = (data: { user: string; answer: string }) => {
       setBestAnswer(data);
-
-      setTimeout(() => {
-        setBestAnswer({ user: "", answer: "" });
-      }, 5000);
+      setTime(0);
     };
 
     const newRound = () => {
@@ -113,6 +116,23 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
       socket.off("endGameBuddies", endGameFunction);
     };
   }, [socket]);
+
+  /* =========== Timer =========== */
+  useEffect(() => {
+    if (time === "STOP") return;
+    timeInterval = setInterval(() => {
+      if (time <= bestAnswerTimeMs) {
+        const newTime = time + 10;
+        setTime(newTime);
+      } else {
+        clearInterval(timeInterval);
+        setBestAnswer({ user: "", answer: "" });
+        setTime("STOP");
+      }
+    }, 10);
+
+    return () => clearInterval(timeInterval);
+  }, [time]);
 
   useEffect(() => {
     const host = users.find((user) => user.id === socket.id)?.is_host;
@@ -165,7 +185,10 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
             <Hourglass />
           </>
         ) : bestAnswer.answer !== "" ? (
-          <BestAnswer bestAnswer={bestAnswer} />
+          <>
+            <BestAnswer bestAnswer={bestAnswer} />
+            <ProgressBar width="75%" max={bestAnswerTimeMs} progress={typeof time === "number" ? time : 0} />
+          </>
         ) : (
           <AnswersSelect roomCode={roomCode} users={users} question={question} />
         )
