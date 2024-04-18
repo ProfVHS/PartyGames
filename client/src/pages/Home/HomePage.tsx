@@ -4,7 +4,7 @@ import Logo from "../../assets/svgs/logo.svg";
 
 import ClickSound from "../../assets/audio/click.mp3";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { socket } from "../../socket";
