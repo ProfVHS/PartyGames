@@ -22,6 +22,8 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   const [endRound, setEndRound] = useState<boolean>(false);
   const [isDead, setIsDead] = useState<boolean>(false);
 
+  const [realDiamondIndex, setRealDiamondIndex] = useState<number>(-1);
+
   const onceDone = useRef<boolean>(false);
 
   // Enter and exit Animations
@@ -73,7 +75,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   }, [isPresence]);
 
   const handleClick = (color: number) => {
-    if(isDead) return;
+    if (isDead) return;
     const newColor = color;
     setSelectedDiamond(newColor);
   };
@@ -92,7 +94,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
 
   useEffect(() => {
     if (onceDone.current) return;
-    
+
     setTimeout(() => {
       startGameDiamonds();
     }, 2500);
@@ -106,27 +108,47 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
   }, []);
 
   useEffect(() => {
-    if(isDead) return;
+    if (isDead) return;
     socket.emit("selectedObject", selectedDiamond);
   }, [selectedDiamond]);
 
+  const stopwatchTime = (data: number) => {
+    setTime(data);
+  };
+
+  const diamondScore = (array: number[]) => {
+    const newArray = [array[0], array[1], array[2]];
+    setScore(newArray);
+  };
+
+  const handleRealDiamond = (index: number) => {
+    console.log("real diamond index", index);
+    setRealDiamondIndex(index);
+    setEndRound(true);
+  };
+
+  const handleNextRound = () => {
+    setTimeout(() => {
+      console.log("next round");
+      setRealDiamondIndex(-1);
+      startGameDiamonds();
+    }, 3000);
+  };
+
   useEffect(() => {
-    const stopwatchTime = (data: number) => {
-      setTime(data);
-    };
-
-    const diamondScore = (array: number[]) => {
-      const newArray = [array[0], array[1], array[2]];
-      setScore(newArray);
-    };
-
     socket.on("receiveStopwatchTime", stopwatchTime);
 
     socket.on("receiveDiamondsScore", diamondScore);
 
+    socket.on("receiveRealDiamond", handleRealDiamond);
+
+    socket.on("receiveNextRoundDiamonds", handleNextRound);
+
     return () => {
       socket.off("receiveStopwatchTime", stopwatchTime);
       socket.off("receiveDiamondsScore", diamondScore);
+      socket.off("receiveRealDiamond", handleRealDiamond);
+      socket.off("receiveNextRoundDiamonds", handleNextRound);
     };
   }, [socket]);
 
@@ -137,11 +159,6 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
       if (host) {
         socket.emit("endRoundDiamonds", roomCode);
       }
-
-      setEndRound(true);
-      setTimeout(() => {
-        startGameDiamonds();
-      }, 3000);
     }
   }, [time]);
 
@@ -153,7 +170,7 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
 
     const user = users.find((user) => user.id == socket.id);
 
-    if(socket.id === user?.id && !user?.alive) {
+    if (socket.id === user?.id && !user?.alive) {
       setSelectedDiamond(-1);
       setIsDead(true);
     }
@@ -166,13 +183,13 @@ export function TrickyDiamonds({ roomData, roomCode, users, onExit }: TrickyDiam
           <Stopwatch maxTime={10} timeLeft={time} size={50} />
         </motion.div>
         <motion.span className="tricky__header__text" initial={{ scale: 0 }}>
-          Round - {roomData?.round ? roomData.round+1 : 1}
+          Round - {roomData?.round ? roomData.round + 1 : 1}
         </motion.span>
       </div>
       <div className="tricky__cards">
-        <TrickyCard id={0} points={score[0]} color={"BLUE"} selectedColor={selectedDiamond} handleClick={handleClick} turnEnded={endRound} />
-        <TrickyCard id={1} points={score[1]} color={"PURPLE"} selectedColor={selectedDiamond} handleClick={handleClick} turnEnded={endRound} />
-        <TrickyCard id={2} points={score[2]} color={"RED"} selectedColor={selectedDiamond} handleClick={handleClick} turnEnded={endRound} />
+        <TrickyCard id={0} points={score[0]} color={"BLUE"} selectedColor={selectedDiamond} realDiamondIndex={realDiamondIndex} handleClick={handleClick} turnEnded={endRound} />
+        <TrickyCard id={1} points={score[1]} color={"PURPLE"} selectedColor={selectedDiamond} realDiamondIndex={realDiamondIndex} handleClick={handleClick} turnEnded={endRound} />
+        <TrickyCard id={2} points={score[2]} color={"RED"} selectedColor={selectedDiamond} realDiamondIndex={realDiamondIndex} handleClick={handleClick} turnEnded={endRound} />
       </div>
     </div>
   );

@@ -93,7 +93,7 @@ module.exports = (
 
   // find min value in array without 0
   const findWinners = async (roomCode: string, diamondArray: number[]) => {
-    return new Promise<User[]>((resolveUsers, rejectUsers) => {
+    return await new Promise<User[]>((resolveUsers, rejectUsers) => {
       db.all(`SELECT * FROM users WHERE id_room = "${roomCode}" AND is_disconnect = false AND alive = true`, [], (err: Error, rows: User[]) => {
         if (err) {
           rejectUsers(err);
@@ -118,6 +118,7 @@ module.exports = (
 
         if (nonZeroDiamondArray.length > 1) {
           if (isUnique) {
+            socket.nsp.to(roomCode).emit("receiveRealDiamond", index);
             scoreArrays(roomCode).then((array) => {
               rows.forEach((row) => {
                 if (row.id_selected === diamondArray.indexOf(min)) {
@@ -131,6 +132,9 @@ module.exports = (
             });
           }
         }
+        socket.nsp.to(roomCode).emit("receiveNextRoundDiamonds");
+        changeRoomRound(roomCode, socket);
+        return;
       });
     });
   };
@@ -138,21 +142,20 @@ module.exports = (
   const endGameDiamonds = async (roomCode: string) => {
     await updateRoomRound(roomCode, 0, socket);
     usersResetData(roomCode, socket);
-    socket.nsp.to(roomCode).emit("receiveNextGame");
-    console.log("endGameDiamonds");
+    setTimeout(() => socket.nsp.to(roomCode).emit("receiveNextGame"), 3000);
   };
   //#endregion
 
   //#region diamonds sockets
   // start game tricky diamonds
   socket.on("startGameDiamonds", async (roomCode: string) => {
-      await scoreArrays(roomCode).then((array) => {
-        console.log(array);
-        socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
-        updateRoomTime(roomCode, 10, 10);
-        // is minigame started
-        roomData(roomCode, socket);
-      });
+    await scoreArrays(roomCode).then((array) => {
+      console.log(array);
+      socket.nsp.to(roomCode).emit("receiveDiamondsScore", array);
+      updateRoomTime(roomCode, 10, 10);
+      // is minigame started
+      roomData(roomCode, socket);
+    });
   });
 
   socket.on("getDiamondsScore", async (roomCode: string) => {
@@ -165,8 +168,7 @@ module.exports = (
   // end round tricky diamonds
   socket.on("endRoundDiamonds", async (roomCode: string) => {
     console.log("endRoundDiamonds");
-    await changeRoomRound(roomCode, socket);
-    findWinners(roomCode, [0, 0, 0]);
+    await findWinners(roomCode, [0, 0, 0]);
   });
   //#endregion
 };
