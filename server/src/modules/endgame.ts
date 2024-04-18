@@ -49,7 +49,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
   const getLowestBalanceAfterCardGame = async (roomCode: string) => {
     const usersWithLowestBalanceAfterCardGame = await new Promise<User[]>((resolve, reject) => {
       db.all(
-        `SELECT user.*, MAX(medal.number) FROM lowestBalanceAfterCards medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`,
+        `SELECT user.*, MIN(medal.number) FROM lowestBalanceAfterCards medal INNER JOIN users user ON medal.id_user = user.id WHERE user.id_room = "${roomCode}"`,
         [],
         (err: Error, users: User[]) => {
           if (err) {
@@ -182,7 +182,7 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
     const medalsToCheck = randomizeMedalsCategories();
     const usersThatGotMedal = await handleMedals(roomCode, medalsToCheck);
 
-    socket.nsp.to(roomCode).emit("receiveMedals", usersThatGotMedal);
+    socket.nsp.to(socket.id).emit("receiveMedals", usersThatGotMedal);
   });
 
   socket.on("getPodium", async (roomCode: string) => {

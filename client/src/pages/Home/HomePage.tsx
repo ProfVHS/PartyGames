@@ -4,7 +4,7 @@ import Logo from "../../assets/svgs/logo.svg";
 
 import ClickSound from "../../assets/audio/click.mp3";
 
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { socket } from "../../socket";
@@ -72,7 +72,6 @@ const nouns = [
 ];
 
 export default function HomePage() {
-  const location = useLocation();
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [randomRoomCode, setRandomRoomCode] = useState("");
@@ -156,7 +155,7 @@ export default function HomePage() {
         <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
           Join
         </button>
-        <input className="input" placeholder="Room Code" style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
+        <input className="input" placeholder="Room Code" maxLength={16} style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
         <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
           Create Room
         </button>

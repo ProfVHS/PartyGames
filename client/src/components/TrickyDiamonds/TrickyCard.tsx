@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BlueDiamond, PurpleDiamond, RedDiamond } from "./Diamonds";
 import { Shiny } from "./Shiny";
 import { TrickyCardColor } from "../../Types";
@@ -16,10 +15,7 @@ interface TrickyCard {
 
 export const TrickyCard = ({ id, points, color, selectedColor, handleClick, turnEnded }: TrickyCard) => {
   return (
-    <motion.div
-      className={`tricky__cards__item ${id === selectedColor ? "selected" : ""}`}
-      onClick={() => handleClick(id)}
-      initial={{ height: 0 }}>
+    <motion.div className={`tricky__cards__item ${id === selectedColor ? "selected" : ""}`} onClick={() => handleClick(id)} initial={{ height: 0 }}>
       <motion.div className="tricky__cards__item__diamond" initial={{ scale: 0 }}>
         {color === "BLUE" && <BlueDiamond isCracked={turnEnded} isFake={false} />}
         {color === "PURPLE" && <PurpleDiamond isCracked={turnEnded} isFake={false} />}

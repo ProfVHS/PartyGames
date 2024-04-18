@@ -3,8 +3,6 @@ import { socket } from "../../socket";
 import { User } from "../../Types";
 import { QuestionType } from "./Types";
 
-import { motion } from "framer-motion";
-
 interface AnswerProps {
   roomCode: string;
   users: User[];
@@ -12,11 +10,11 @@ interface AnswerProps {
   question: QuestionType;
 }
 
-export function Answer({ roomCode, users, onClick, question }: AnswerProps) {
+export function Answer({ roomCode, onClick, question }: AnswerProps) {
   const [answer, setAnswer] = useState<string>("");
 
   const sendAnswer = () => {
-    if(answer.trim() !== ""){
+    if (answer.trim() !== "") {
       socket.emit("sendAnswerBuddies", roomCode, answer);
       onClick();
     }

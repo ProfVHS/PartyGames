@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
 import { FieldType, PredictionType, ShipType, ShootsType } from "./Types";
 import { Field } from "./Field";
-import { Ship } from "./Ship";
 import { ShipHologram } from "./ShipHologram";
 
 interface PlacingBoardProps {

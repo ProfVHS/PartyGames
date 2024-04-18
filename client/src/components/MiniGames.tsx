@@ -100,7 +100,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   }, [currentGame]);
 
   useEffect(() => {
-    localStorage.setItem("socketId", socket.id);
+    localStorage.setItem("socketId", socket.id!);
 
     const connectedUsers = users.filter((user) => !user.is_disconnect);
 

@@ -10,11 +10,11 @@ interface QuestionProps {
   onClick: () => void;
 }
 
-export function Question({ roomCode, users, onClick }: QuestionProps) {
+export function Question({ roomCode, onClick }: QuestionProps) {
   const [question, setQuestion] = useState<string>("");
 
   const sendQuestion = () => {
-    if(question.trim() !== ""){
+    if (question.trim() !== "") {
       socket.emit("sendQuestionBuddies", roomCode, question);
       onClick();
     }
@@ -28,6 +28,7 @@ export function Question({ roomCode, users, onClick }: QuestionProps) {
       <motion.input
         className="buddies__input"
         placeholder="Make a question"
+        maxLength={64}
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}

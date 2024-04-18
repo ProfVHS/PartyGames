@@ -8,8 +8,7 @@ import { AnswersSelect } from "./AnswersSelect";
 import "./style.scss";
 import { QuestionType } from "./Types";
 import { Hourglass } from "../Hourglass";
-import { useAnimate, usePresence, motion } from "framer-motion";
-import { on } from "events";
+import { useAnimate, usePresence } from "framer-motion";
 import { BestAnswer } from "./BestAnswer";
 import { ProgressBar } from "../ProgressBar";
 
@@ -52,6 +51,9 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
   const [isPresence, safeToRemove] = usePresence();
 
   const onceDone = useRef(false);
+
+  const [time, setTime] = useState<"STOP" | number>("STOP");
+  let timeInterval: NodeJS.Timeout;
 
   useEffect(() => {
     if (isPresence) {
@@ -165,6 +167,23 @@ export function Buddies({ roomCode, users, onExit }: BuddiesProps) {
       socket.off("newRoundBuddies", newRound);
     };
   }, [socket]);
+
+  /* =========== Timer =========== */
+  useEffect(() => {
+    if (time === "STOP") return;
+    timeInterval = setInterval(() => {
+      if (time <= bestAnswerTimeMs) {
+        const newTime = time + 10;
+        setTime(newTime);
+      } else {
+        clearInterval(timeInterval);
+        setBestAnswer({ user: "", answer: "" });
+        setTime("STOP");
+      }
+    }, 10);
+
+    return () => clearInterval(timeInterval);
+  }, [time]);
 
   useEffect(() => {
     if (onceDone.current) return;
