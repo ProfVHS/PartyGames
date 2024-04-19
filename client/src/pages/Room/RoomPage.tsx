@@ -89,6 +89,10 @@ export default function RoomPage() {
     });
     //
 
+    socket.on("hostDisconnected", () => {
+      navigate("/");
+    });
+
     return () => {
       socket.off("receiveUsersData");
       socket.off("receiveRoomData");

@@ -83,19 +83,52 @@ module.exports = (
     });
 
     if (user.is_host) {
-      if (isRoomInGame) {
-      } else {
-      }
+      socket.nsp.to(roomCode).emit("hostDisconnected");
+
+      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
     } else {
       if (isRoomInGame) {
+        const turn = await new Promise<number>((resolve, reject) => {
+          db.get(`SELECT turn FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+            if (err) {
+              console.log(`Check Whats To Do With Room (turn) error:`);
+              reject(err);
+            } else {
+              resolve(row.turn);
+            }
+          });
+        });
+        const users = await new Promise<User[]>((resolve, reject) => {
+          db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, rows: User[]) => {
+            if (err) {
+              console.log(`Check Whats To Do With Room (users) error:`);
+              reject(err);
+            } else {
+              resolve(rows);
+            }
+          });
+        });
         await updateUserAlive(socket.id, false);
-        db.run(`UPDATE users SET is_disconnect = true WHERE id = "${socket.id}"`);
+        new Promise<void>((resolve, reject) => {
+          db.run(`UPDATE users SET is_disconnect = true WHERE id = "${socket.id}"`, [], (err: Error) => {
+            if (err) {
+              console.log(`Check Whats To Do With Room (updateUserAlive) error:`);
+              reject(err);
+            } else {
+              console.log("Zrobiuło");
+              resolve();
+            }
+          });
+        });
+        if (users[turn].id === socket.id) {
+          changeRoomTurn(roomCode, socket);
+        }
       } else {
         db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
       }
-
-      socket.leave(roomCode);
     }
+    socket.leave(roomCode);
   };
 
   const StopwatchTime = async (roomCode: string) => {
@@ -267,7 +300,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["TRICKYDIAMONDS"]; // "CLICKTHEBOMB", "BUDDIES" , "CARDS", "COLORSMEMORY",
+      const gamesIDarray: string[] = ["CLICKTHEBOMB"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
