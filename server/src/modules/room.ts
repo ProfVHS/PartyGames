@@ -116,7 +116,6 @@ module.exports = (
               console.log(`Check Whats To Do With Room (updateUserAlive) error:`);
               reject(err);
             } else {
-              console.log("Zrobiuło");
               resolve();
             }
           });
@@ -212,8 +211,11 @@ module.exports = (
           }
         });
       });
-      usersResetData(data.roomCode, socket);
-      if (usersInRoom.length <= 2) socket.to(data.roomCode).emit("receiveNextGame");
+      if (usersInRoom.length <= 2) {
+        //usersResetData(data.roomCode, socket);
+        socket.to(data.roomCode).emit("receiveNextGame");
+      }
+
       usersData(data.roomCode, socket);
       roomData(data.roomCode, socket);
     } else {

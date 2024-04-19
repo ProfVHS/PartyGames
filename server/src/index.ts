@@ -229,7 +229,7 @@ server.listen(3000, async () => {
         console.log("Skip turn - ", -1);
         skipTurn(-1);
       } else {
-        if (users[turn + 1].alive === false || users[turn + 1].is_disconnect === true) {
+        if (users[turn + 1].alive == false || users[turn + 1].is_disconnect == true) {
           console.log("Skip turn - ", turn + 1);
           skipTurn(turn + 1);
         } else {

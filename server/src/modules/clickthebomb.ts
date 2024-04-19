@@ -109,7 +109,7 @@ module.exports = (
 
   socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
     updateUsersMostClicks(roomCode, user_id, number).then(() => {
-      console.log("Added click for user");
+      //console.log("Added click for user");
       getUsersMostClicks();
     });
   });

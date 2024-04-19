@@ -10,6 +10,7 @@ import ClickSound from "../../assets/audio/click.mp3";
 import { User, Room } from "../../Types";
 import MiniGames from "../../components/MiniGames";
 import { socket } from "../../socket";
+import Notification from "../../components/Notification/Notification";
 
 export default function RoomPage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function RoomPage() {
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
   const [startGame, setStartGame] = useState(false);
+  const [hostLeft, setHostLeft] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [windowSizeX, setWindowSizeX] = useState<number>(0);
@@ -70,12 +72,15 @@ export default function RoomPage() {
     socket.on("receiveUsersData", (data) => {
       setUsers(data);
       usersLength.current = data.length;
+      console.log(data);
     });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
-      setRoomData(data);
-      setUsersReady(data.ready);
-      readyLength.current = data.ready;
+      if (data) {
+        setRoomData(data);
+        setUsersReady(data.ready);
+        readyLength.current = data.ready;
+      }
     });
     //
     socket.on("receiveUserIsInRoom", (data) => {
@@ -87,10 +92,9 @@ export default function RoomPage() {
     socket.on("userDisconnectedRoom", (data) => {
       console.log(data + " has left the room");
     });
-    //
 
     socket.on("hostDisconnected", () => {
-      navigate("/");
+      setHostLeft(true);
     });
 
     return () => {
@@ -125,8 +129,14 @@ export default function RoomPage() {
             return <Camera key={user.id} username={user.username} score={user.score} isDisconnected={user.is_disconnect} />;
           })}
         <div className="roomContent">
-          {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}
-          {!startGame && <Lobby roomCode={roomCode} onClick={handleReadyClick} players={usersReady} isReady={ready} />}
+          {hostLeft ? (
+            <Notification textContent="Host left the room" />
+          ) : (
+            <>
+              {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}
+              {!startGame && <Lobby roomCode={roomCode} onClick={handleReadyClick} players={usersReady} isReady={ready} />}
+            </>
+          )}
         </div>
       </div>
 
