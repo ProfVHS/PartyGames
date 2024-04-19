@@ -67,62 +67,35 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
-    console.log("Check Whats To Do With Room :");
-    console.log("-------------------->  Room code - ", roomCode);
-    console.log("--------------------> Is room in game - ", isRoomInGame);
-    console.log("--------------------> Users length - ", usersLength);
-    // last user - delete room
-    if (usersLength == 1) {
-      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
-      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-    }
-    // its lobby - delete user
-    else if (!isRoomInGame) {
-      db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-    }
-    // its game - set user as disconnected
-    else {
-      await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`, [], (err: Error) => {
-          if (err) {
-            console.log(`Check Whats To Do With Room (Update) error:`);
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
+    // jezeli user to host - delete room
+    // jezeli in gama - to ustawia cie na nie zywego i discconnected
+    // jezel w lobby - to usuwa cie z lobby
+
+    const user = await new Promise<User>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+        if (err) {
+          console.log(`Check Whats To Do With Room (user) error:`);
+          reject(err);
+        } else {
+          resolve(row);
+        }
       });
+    });
 
-      const users = await new Promise<User[]>((resolve, reject) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if (err) {
-            console.log(`Check Whats To Do With Room (users) error:`);
-            reject(err);
-          } else {
-            resolve(users_rows);
-          }
-        });
-      });
-
-      const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
-      const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
-
-      if (usersLength === 2) {
-        console.log("Samotny Wilk");
-        clearInterval(cardsTimeInterval);
-
-        socket.nsp.to(roomCode).emit("receiveSoloInRoom");
-
-        updateUserAlive(users[lastUserIndex].id, true);
-        updateRoomTurn(roomCode, lastUserIndex, socket);
+    if (user.is_host) {
+      if (isRoomInGame) {
       } else {
-        changeRoomTurn(roomCode, socket);
+      }
+    } else {
+      if (isRoomInGame) {
+        await updateUserAlive(socket.id, false);
+        db.run(`UPDATE users SET is_disconnect = true WHERE id = "${socket.id}"`);
+      } else {
+        db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
       }
 
-      socket.nsp.to(roomCode).emit("userDisconnectedRoom", users[disconnectedUserIndex].username);
-      usersData(roomCode, socket);
+      socket.leave(roomCode);
     }
-    socket.leave(roomCode);
   };
 
   const StopwatchTime = async (roomCode: string) => {

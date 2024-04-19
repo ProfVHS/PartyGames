@@ -193,26 +193,6 @@ server.listen(3000, async () => {
           const username = users[room.turn].username;
           const id = users[room.turn].id;
           socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
-
-          await new Promise<void>((resolve, reject) => {
-            db.run(`UPDATE users SET is_host = false WHERE id_room = "${roomCode}"`, (err) => {
-              if (err) {
-                console.log("Update host error");
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-            db.run(`UPDATE users SET is_host = true WHERE id = "${id}"`, (err) => {
-              if (err) {
-                console.log("Update host 2 error");
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-
           usersData(roomCode, socket);
         });
       })
