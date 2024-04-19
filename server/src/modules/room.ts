@@ -67,10 +67,6 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
-    // jezeli user to host - delete room
-    // jezeli in gama - to ustawia cie na nie zywego i discconnected
-    // jezel w lobby - to usuwa cie z lobby
-
     const user = await new Promise<User>((resolve, reject) => {
       db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
         if (err) {

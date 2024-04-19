@@ -128,6 +128,12 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
     if (roomData?.in_game && turn === "") {
       socket.emit("getBombData", roomCode);
     }
+
+    const userAlive = users.find((user) => user.id === socket.id)?.alive;
+
+    if (!userAlive) {
+      setIsDead(true);
+    }
   }, []);
 
   return (
