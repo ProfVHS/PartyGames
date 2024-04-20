@@ -71,9 +71,11 @@ server.listen(3000, async () => {
     db.run(`CREATE TABLE BestBuddiesAnswers ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));`);
   });
 
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: clientUrl,
       methods: ["GET", "POST"],
     },
   });
