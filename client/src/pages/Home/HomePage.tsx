@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { socket } from "../../socket";
+import { version } from "../../../package.json";
 
 const adjective = [
   "Ultra",
@@ -160,6 +161,7 @@ export default function HomePage() {
           Create Room
         </button>
       </div>
+      <span className="home__version">v{version}</span>
       {isLoading && <div className="home__loadingScreen">Party Games</div>}
     </div>
   );

@@ -71,6 +71,17 @@ body {
     justify-content: center;
     align-items: center;
   }
+
+  &__version {
+    font-family: "Poppins", sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.25);
+
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+  }
 }
 
 .input {
