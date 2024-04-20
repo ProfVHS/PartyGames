@@ -102,11 +102,11 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   useEffect(() => {
     localStorage.setItem("socketId", socket.id!);
 
-    const connectedUsers = users.filter((user) => !user.is_disconnect);
+    // const connectedUsers = users.filter((user) => !user.is_disconnect);
 
-    if (connectedUsers.length < 2) {
-      socket.emit("startNextGame", roomCode);
-    }
+    // if (connectedUsers.length < 2) {
+    //   socket.emit("startNextGame", roomCode);
+    // }
     if (gamesArray.length === 0) {
       socket.emit("gamesArray", roomCode);
     }
@@ -139,8 +139,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   };
 
   useEffect(() => {
-    console.log(currentGame);
-  }, [currentGame]);
+    console.log(minigameIndex);
+  }, [minigameIndex]);
 
   return (
     <>

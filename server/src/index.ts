@@ -226,14 +226,11 @@ server.listen(3000, async () => {
 
     const skipTurn = async (turn: number) => {
       if (turn >= users.length - 1) {
-        console.log("Skip turn - ", -1);
         skipTurn(-1);
       } else {
         if (users[turn + 1].alive == false || users[turn + 1].is_disconnect == true) {
-          console.log("Skip turn - ", turn + 1);
           skipTurn(turn + 1);
         } else {
-          console.log("Change turn - ", turn + 1);
           updateRoomTurn(roomCode, turn + 1, socket);
         }
       }

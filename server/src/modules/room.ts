@@ -119,6 +119,18 @@ module.exports = (
         if (users[turn].id === socket.id) {
           changeRoomTurn(roomCode, socket);
         }
+        if (usersLength <= 2) {
+          clearInterval(cardsTimeInterval);
+
+          const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
+          const gamesLength = gamesArray.find((roomCode) => roomCode === roomCode)?.games.length;
+
+          if (current == gamesLength! - 1) {
+            socket.nsp.to(roomCode).emit("receiveNextGame");
+          } else {
+            socket.nsp.to(roomCode).emit("receiveSoloInRoom");
+          }
+        }
       } else {
         db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
       }
@@ -208,8 +220,15 @@ module.exports = (
         });
       });
       if (usersInRoom.length <= 2) {
-        //usersResetData(data.roomCode, socket);
-        socket.to(data.roomCode).emit("receiveNextGame");
+        usersResetData(data.roomCode, socket);
+        const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
+        const gamesLength = gamesArray.find((roomCode) => roomCode === roomCode)?.games.length;
+
+        if (current == gamesLength! - 1) {
+          // display end game (medals and podium)
+        } else {
+          socket.to(data.roomCode).emit("receiveNextGame");
+        }
       }
 
       usersData(data.roomCode, socket);
@@ -298,7 +317,8 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["CLICKTHEBOMB"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "BUDDIES"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
+      //const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "BUDDIES", "CARDS", "COLORSMEMORY"];
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
