@@ -1,11 +1,9 @@
-import { BestAnswer } from "../components/Buddies/BestAnswer";
+import { UserBadge } from "../components/UserBadge/UserBadge";
 
 export default function TestPage() {
   return (
     <>
-      <div className="buddies">
-        <BestAnswer bestAnswer={{ answer: "bardzo dluga odpowiedz zeby rozjebac design XDD", user: "xXusernameXxPL" }} />
-      </div>
+      <UserBadge />
     </>
   );
 }
