@@ -118,7 +118,7 @@ export default function RoomPage() {
           windowSizeY > 600 &&
           users &&
           users.map((user) => {
-            return <Camera key={user.id} username={user.username} score={user.score} isDisconnected={user.is_disconnect} />;
+            return <Camera key={user.id} username={user.username} score={user.score} isDisconnected={user.is_disconnect} isAlive={user.alive} />;
           })}
         <div className="roomContent">
           {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}
