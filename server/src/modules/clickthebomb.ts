@@ -183,13 +183,10 @@ module.exports = (
               updateUserScore(user.id, 50, socket);
             }
           });
-          // update alive users to true
-          updateUsersAlive(roomCode, true);
-          // send data to the client
-          usersData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveEndCtb");
           await updateRoomRound(roomCode, 0, socket);
           usersResetData(roomCode, socket);
+          usersData(roomCode, socket);
           socket.nsp.to(roomCode).emit("receiveNextGame");
         } else {
           // user explode

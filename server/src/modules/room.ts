@@ -24,6 +24,7 @@ module.exports = (
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   changeRoomTurn: (roomCode: string, socket: Socket) => void,
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => void,
+  updateRoomRound: (roomCode: string, round: number, socket: Socket) => void,
   usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
   //#region functions
@@ -78,11 +79,17 @@ module.exports = (
       });
     });
 
+    if (!user) return;
     if (user.is_host) {
       socket.nsp.to(roomCode).emit("hostDisconnected");
 
       db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
       db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+
+      gamesArray.splice(
+        gamesArray.findIndex((roomCode) => roomCode === roomCode),
+        1
+      );
     } else {
       if (isRoomInGame) {
         const turn = await new Promise<number>((resolve, reject) => {
@@ -122,10 +129,13 @@ module.exports = (
         if (usersLength <= 2) {
           clearInterval(cardsTimeInterval);
 
-          const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
-          const gamesLength = gamesArray.find((roomCode) => roomCode === roomCode)?.games.length;
+          console.log(gamesArray);
 
-          if (current == gamesLength! - 1) {
+          const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
+          const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
+
+          // if it's the last game, show end game screen, instead of notification
+          if (current == games!.length - 1) {
             socket.nsp.to(roomCode).emit("receiveNextGame");
           } else {
             socket.nsp.to(roomCode).emit("receiveSoloInRoom");
@@ -195,40 +205,39 @@ module.exports = (
     });
 
     if (ifUserExist.count == 1) {
-      await socket.join(data.roomCode);
+      const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
+      const gamesLength = gamesArray.find((roomCode) => roomCode === roomCode)?.games.length;
 
-      await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.socket_id}"`, [], (err: Error) => {
-          if (err) {
-            console.log("User come back error:");
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-      socket.nsp.to(socket.id).emit("joiningRoom");
-      const usersInRoom = await new Promise<User[]>((resolve, reject) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND is_disconnect = false`, [], (err: Error, rows: User[]) => {
-          if (err) {
-            console.log(`Users data error:`);
-            reject(err);
-          } else {
-            resolve(rows);
-            console.log("Users in room: ", rows);
-          }
-        });
-      });
-      if (usersInRoom.length <= 2) {
-        usersResetData(data.roomCode, socket);
-        const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
-        const gamesLength = gamesArray.find((roomCode) => roomCode === roomCode)?.games.length;
+      if (current !== gamesLength! - 1) {
+        await socket.join(data.roomCode);
 
-        if (current == gamesLength! - 1) {
-          // display end game (medals and podium)
-        } else {
+        await new Promise<void>((resolve, reject) => {
+          db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.socket_id}"`, [], (err: Error) => {
+            if (err) {
+              console.log("User come back error:");
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        socket.nsp.to(socket.id).emit("joiningRoom", data.roomCode);
+        const usersInRoom = await new Promise<User[]>((resolve, reject) => {
+          db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND is_disconnect = false`, [], (err: Error, rows: User[]) => {
+            if (err) {
+              console.log(`Users data error:`);
+              reject(err);
+            } else {
+              resolve(rows);
+            }
+          });
+        });
+        if (usersInRoom.length <= 2) {
+          usersResetData(data.roomCode, socket);
           socket.to(data.roomCode).emit("receiveNextGame");
         }
+      } else {
+        socket.nsp.to(socket.id).emit("roomJoinMessage", "Game is over");
       }
 
       usersData(data.roomCode, socket);
@@ -275,11 +284,11 @@ module.exports = (
       if (users.length < 8) {
         // check if room is in game (if it is, don't let user join)
         if (room.in_game) {
-          socket.nsp.to(socket.id).emit("roomInGame");
+          socket.nsp.to(socket.id).emit("roomJoinMessage", "Room is in game");
         } else {
           // else let user join (also check if user with the same name is already in room, if so, add (1) to his name, etc.
           socket.join(data.roomCode);
-          socket.nsp.to(socket.id).emit("joiningRoom");
+          socket.nsp.to(socket.id).emit("joiningRoom", data.roomCode);
 
           if (count[0].count == 0) {
             db.run(
@@ -292,7 +301,7 @@ module.exports = (
           }
         }
       } else {
-        socket.nsp.to(socket.id).emit("roomFull");
+        socket.nsp.to(socket.id).emit("roomJoinMessage", "Room is full");
       }
     }
   });
@@ -326,17 +335,18 @@ module.exports = (
       }
 
       gamesArray.push({ roomCode: roomCode, games: Array.from(gamesSet), currentGame: 0 });
-    }
-    await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
-        if (err) {
-          console.log("Games Array in game error:");
-          reject(err);
-        } else {
-          resolve();
-        }
+
+      await new Promise<void>((resolve, reject) => {
+        db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
+          if (err) {
+            console.log("Games Array in game error:");
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
       });
-    });
+    }
 
     const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
     const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
@@ -344,6 +354,16 @@ module.exports = (
     console.log("Games - ", games);
 
     socket.nsp.to(roomCode).emit("receiveGamesArray", games, current);
+  });
+
+  // get games array
+  socket.on("getGamesArray", async () => {
+    if (gamesArray.find((roomCode) => roomCode === roomCode)) {
+      const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
+      const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
+
+      socket.nsp.to(socket.id).emit("receiveGamesArray", games, current);
+    }
   });
   //#endregion
 

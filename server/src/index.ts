@@ -376,7 +376,7 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn, usersResetData);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn, updateRoomRound, usersResetData);
     bombModule(io, socket, db, usersData, getUsersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomRound, usersResetData);
     cardsModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);

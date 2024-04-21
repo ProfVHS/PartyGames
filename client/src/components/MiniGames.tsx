@@ -57,11 +57,17 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setLeaderboardGameUsers(users);
     });
 
+    socket.on("receiveEndMiniGames", () => {
+      console.log("receiveEndMiniGames");
+      setCurrentGame("ENDGAME");
+    });
+
     return () => {
       socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
       socket.off("receiveSoloInRoom");
       socket.off("receiveLeaderboardGameUsers");
+      socket.off("receiveEndMiniGames");
     };
   }, [socket]);
 
@@ -94,7 +100,12 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       }, leaderboardTime);
     }
 
+    console.log("Current game: ", currentGame);
+
     if (currentGame === "ENDGAME") {
+      console.log("Endgame");
+      console.log(users);
+      console.log(roomCode);
       navigate("/endgame", { state: { roomCode, users } });
     }
   }, [currentGame]);
@@ -108,7 +119,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     //   socket.emit("startNextGame", roomCode);
     // }
     if (gamesArray.length === 0) {
-      socket.emit("gamesArray", roomCode);
+      socket.emit("getGamesArray", roomCode);
     }
   }, []);
 
@@ -139,8 +150,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   };
 
   useEffect(() => {
-    console.log(minigameIndex);
-  }, [minigameIndex]);
+    console.log(currentGame);
+  }, [currentGame]);
 
   return (
     <>
