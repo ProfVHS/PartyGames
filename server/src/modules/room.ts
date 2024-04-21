@@ -234,7 +234,9 @@ module.exports = (
         });
         if (usersInRoom.length <= 2) {
           usersResetData(data.roomCode, socket);
-          socket.to(data.roomCode).emit("receiveNextGame");
+          setTimeout(() => {
+            socket.to(data.roomCode).emit("receiveNextGame");
+          }, 100);
         }
       } else {
         socket.nsp.to(socket.id).emit("roomJoinMessage", "Game is over");
@@ -326,7 +328,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["CLICKTHEBOMB", "BUDDIES"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "COLORSMEMORY"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
       //const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "BUDDIES", "CARDS", "COLORSMEMORY"];
 
       while (gamesSet.size < gamesIDarray.length) {
