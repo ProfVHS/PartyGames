@@ -12,29 +12,6 @@ export const FirstPlaceCrown = (props: SVGProps<SVGSVGElement>) => (
         fill="white"
       />
     </g>
-    <defs>
-      <filter
-        id="filter0_d_1320_627"
-        x={17.7812}
-        y={16.289}
-        width={12.7969}
-        height={24.125}
-        filterUnits="userSpaceOnUse"
-        colorInterpolationFilters="sRGB">
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
-        <feColorMatrix
-          in="SourceAlpha"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
-        />
-        <feOffset dy={1} />
-        <feComposite in2="hardAlpha" operator="out" />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1320_627" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1320_627" result="shape" />
-      </filter>
-    </defs>
   </svg>
 );
 
@@ -52,50 +29,6 @@ export const SecondPlaceCrown = (props: SVGProps<SVGSVGElement>) => (
         fill="white"
       />
     </g>
-    <defs>
-      <filter
-        id="filter0_d_1279_186"
-        x={0}
-        y={0}
-        width={50}
-        height={46.4444}
-        filterUnits="userSpaceOnUse"
-        colorInterpolationFilters="sRGB">
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
-        <feColorMatrix
-          in="SourceAlpha"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
-        />
-        <feOffset dy={2} />
-        <feComposite in2="hardAlpha" operator="out" />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1279_186" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1279_186" result="shape" />
-      </filter>
-      <filter
-        id="filter1_d_1279_186"
-        x={18.6719}
-        y={15.8671}
-        width={17.0312}
-        height={24.5469}
-        filterUnits="userSpaceOnUse"
-        colorInterpolationFilters="sRGB">
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
-        <feColorMatrix
-          in="SourceAlpha"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
-        />
-        <feOffset dy={1} />
-        <feComposite in2="hardAlpha" operator="out" />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1279_186" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1279_186" result="shape" />
-      </filter>
-    </defs>
   </svg>
 );
 
@@ -113,49 +46,5 @@ export const ThirdPlaceCrown = (props: SVGProps<SVGSVGElement>) => (
         fill="white"
       />
     </g>
-    <defs>
-      <filter
-        id="filter0_d_1279_189"
-        x={0}
-        y={0}
-        width={50}
-        height={46.4444}
-        filterUnits="userSpaceOnUse"
-        colorInterpolationFilters="sRGB">
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
-        <feColorMatrix
-          in="SourceAlpha"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
-        />
-        <feOffset dy={2} />
-        <feComposite in2="hardAlpha" operator="out" />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1279_189" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1279_189" result="shape" />
-      </filter>
-      <filter
-        id="filter1_d_1279_189"
-        x={18.7344}
-        y={15.8671}
-        width={17.0312}
-        height={25.2656}
-        filterUnits="userSpaceOnUse"
-        colorInterpolationFilters="sRGB">
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
-        <feColorMatrix
-          in="SourceAlpha"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
-        />
-        <feOffset dy={1} />
-        <feComposite in2="hardAlpha" operator="out" />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1279_189" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1279_189" result="shape" />
-      </filter>
-    </defs>
   </svg>
 );

@@ -26,6 +26,25 @@ module.exports = (
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => void,
   usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
+  const updateCrowns = async (roomCode: string) => {
+    const users = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
+        if (err) {
+          console.log("Update Crowns (users) error:");
+          reject(err);
+        } else {
+          resolve(users_rows);
+        }
+      });
+    });
+
+    const sortedUsers = users.sort((a, b) => b.score - a.score);
+
+    const top3 = sortedUsers.slice(0, 3).map((user) => user.id);
+
+    socket.nsp.to(roomCode).emit("receiveTop3", top3);
+  };
+
   //#region functions
   const InfoAboutRoom = async () => {
     const roomCode = await new Promise<string>((resolve, reject) => {
@@ -394,6 +413,10 @@ module.exports = (
     CheckWhatsToDoWithRoom(roomCode, isRoomInGame, usersLength);
 
     usersData(roomCode, socket);
+  });
+
+  socket.on("updateCrowns", async (roomCode: string) => {
+    updateCrowns(roomCode);
   });
   //#endregion
 };

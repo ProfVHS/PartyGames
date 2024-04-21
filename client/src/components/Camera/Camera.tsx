@@ -1,19 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./style.scss";
 
 import { AnimatePresence, motion, useAnimate, usePresence } from "framer-motion";
 import { NoSignalIcon, SkullIcon } from "./IconsForCamera";
 import { useCountUp } from "react-countup";
+import { FirstPlaceCrown, SecondPlaceCrown, ThirdPlaceCrown } from "../../Crowns";
+import { socket } from "../../socket";
 
 interface CameraProps {
+  userId: string;
   username: string;
   score: number;
   isDisconnected: boolean;
   isAlive: boolean;
 }
 
-export default function Camera({ username, score, isDisconnected, isAlive }: CameraProps) {
+export default function Camera({ username, score, isDisconnected, isAlive, userId }: CameraProps) {
   const countUpRef = useRef(null);
+  const [isTop3, setIsTop3] = useState<number>(-1);
 
   const { update } = useCountUp({
     ref: countUpRef,
@@ -26,11 +30,19 @@ export default function Camera({ username, score, isDisconnected, isAlive }: Cam
     update(score);
   }, [score]);
 
+  useEffect(() => {
+    socket.on("receiveTop3", (users: string[]) => {
+      const index = users.findIndex((user) => user === userId);
+      setIsTop3(index);
+    });
+  }, [socket]);
+
   return (
     <motion.div className={`camera ${isDisconnected ? "disconnected" : ""}`} initial={{ scale: 0.0 }} animate={{ scale: [0.0, 1.0] }} transition={{ duration: 1, type: "spring" }}>
       <span className="camera__username">{username}</span>
       <video className="camera__video" autoPlay={true} />
       <CameraIcon isDisconnected={isDisconnected} isAlive={isAlive} />
+      <AnimatePresence>{isTop3 !== -1 ? <CrownCamera position={isTop3} /> : null}</AnimatePresence>
       <span className="camera__score">
         Score: <span ref={countUpRef} />
       </span>
@@ -48,5 +60,31 @@ const CameraIcon = ({ isDisconnected, isAlive }: CameraIconProps) => {
       {isDisconnected ? <NoSignalIcon className="camera__icon" /> : null}
       {!isAlive && !isDisconnected ? <SkullIcon className="camera__icon" /> : null}
     </AnimatePresence>
+  );
+};
+
+const CrownCamera = ({ position }: { position: number }) => {
+  const [scope, animate] = useAnimate();
+  const [isPresence, safeToRemove] = usePresence();
+  useEffect(() => {
+    if (isPresence) {
+      const enterAnimation = async () => {
+        await animate(scope.current, { scale: [0, 1] }, { duration: 0.5, type: "spring" });
+      };
+      enterAnimation();
+    } else {
+      const exitAnimation = async () => {
+        await animate(scope.current, { scale: [1, 0] }, { duration: 0.5, type: "spring" });
+        safeToRemove();
+      };
+      exitAnimation();
+    }
+  }, [isPresence]);
+  return (
+    <motion.div ref={scope} initial={{ scale: 0, x: "25%", y: "-75%" }} className="camera__crown">
+      {position === 0 && <FirstPlaceCrown />}
+      {position === 1 && <SecondPlaceCrown />}
+      {position === 2 && <ThirdPlaceCrown />}
+    </motion.div>
   );
 };
