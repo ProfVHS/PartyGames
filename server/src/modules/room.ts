@@ -313,7 +313,7 @@ module.exports = (
   socket.on("gamesArray", async (roomCode: string) => {
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
-      const gamesIDarray: string[] = ["TRICKYDIAMONDS", "CLICKTHEBOMB", "BUDDIES", "CARDS", "COLORSMEMORY"]; // ,
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "COLORSMEMORY"]; //"TRICKYDIAMONDS", "BUDDIES", "CARDS",
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
@@ -416,7 +416,8 @@ module.exports = (
   });
 
   socket.on("updateCrowns", async (roomCode: string) => {
-    updateCrowns(roomCode);
+    console.log("Update Crowns :");
+    await updateCrowns(roomCode);
   });
   //#endregion
 };

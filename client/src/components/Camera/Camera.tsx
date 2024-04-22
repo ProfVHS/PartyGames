@@ -35,7 +35,9 @@ export default function Camera({ username, score, isDisconnected, isAlive, userI
       <span className="camera__username">{username}</span>
       <video className="camera__video" autoPlay={true} />
       <CameraIcon isDisconnected={isDisconnected} isAlive={isAlive} />
-      <AnimatePresence>{isTop3 !== -1 ? <CrownCamera position={isTop3} /> : null}</AnimatePresence>
+      {isTop3 === 0 ? <CrownCamera position={0} /> : null}
+      {isTop3 === 1 ? <CrownCamera position={1} /> : null}
+      {isTop3 === 2 ? <CrownCamera position={2} /> : null}
       <span className="camera__score">
         Score: <span ref={countUpRef} />
       </span>
@@ -56,25 +58,13 @@ const CameraIcon = ({ isDisconnected, isAlive }: CameraIconProps) => {
   );
 };
 
-const CrownCamera = ({ position }: { position: number }) => {
-  const [scope, animate] = useAnimate();
-  const [isPresence, safeToRemove] = usePresence();
-  useEffect(() => {
-    if (isPresence) {
-      const enterAnimation = async () => {
-        await animate(scope.current, { scale: [0, 1] }, { duration: 0.5, type: "spring" });
-      };
-      enterAnimation();
-    } else {
-      const exitAnimation = async () => {
-        await animate(scope.current, { scale: [1, 0] }, { duration: 0.5, type: "spring" });
-        safeToRemove();
-      };
-      exitAnimation();
-    }
-  }, [isPresence]);
+interface CrownCameraProps {
+  position: number;
+}
+
+const CrownCamera = ({ position }: CrownCameraProps) => {
   return (
-    <motion.div ref={scope} initial={{ scale: 0, x: "25%", y: "-75%" }} className="camera__crown">
+    <motion.div animate={{ scale: [0, 1] }} initial={{ scale: 0, x: "25%", y: "-75%" }} className="camera__crown">
       {position === 0 && <FirstPlaceCrown />}
       {position === 1 && <SecondPlaceCrown />}
       {position === 2 && <ThirdPlaceCrown />}

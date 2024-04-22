@@ -73,6 +73,7 @@ export default function RoomPage() {
       usersLength.current = data.length;
     });
     socket.on("receiveTop3", (users: string[]) => {
+      console.log(users);
       setTop3Users(users);
     });
     // Room data (players ready)
@@ -115,8 +116,6 @@ export default function RoomPage() {
       window.location.href = "/";
     });
   });
-
-  console.log(users);
 
   return (
     <>
