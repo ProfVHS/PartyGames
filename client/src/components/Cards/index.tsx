@@ -27,6 +27,8 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   const [selectedCard, setSelectedCard] = useState<number>(0);
   const [flipped, setFlipped] = useState<"FLIP" | "ALL" | "NONE">("NONE");
 
+  const host = users.find((user) => user.id == socket.id)?.is_host;
+
   // Enter and exit animations
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -65,8 +67,6 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   const onceDone = useRef<boolean>(false);
 
   const startGame = async () => {
-    const host = users.find((user) => user.id == socket.id)?.is_host;
-
     if (host) {
       socket.emit("startGameCards", roomCode);
       socket.emit("stopwatchTime", roomCode);
@@ -76,8 +76,6 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
   // make sure that the game starts only once by host
   useEffect(() => {
     if (onceDone.current) return;
-
-    const host = users.find((user) => user.id == socket.id)?.is_host;
 
     socket.emit("addUsersToLowestBalance", roomCode);
 
@@ -168,14 +166,14 @@ export function Cards({ roomCode, users, onExit }: CardsProps) {
 
     const user = users.find((user) => user.id == socket.id);
 
-    if(socket.id === user?.id && !user?.alive) {
+    if (socket.id === user?.id && !user?.alive) {
       setIsDead(true);
       setSelectedCard(-1);
     }
   }, []);
 
   const handleCardSelect = (id: number) => {
-    if(isDead) return;
+    if (isDead) return;
     setSelectedCard(id);
   };
 

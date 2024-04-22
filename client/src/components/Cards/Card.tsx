@@ -60,15 +60,7 @@ export default function Card({ id, isPositive, flip, score, onSelect, selected, 
 
   return (
     <div className={`cardBox ${isFlipped ? "flip" : ""} ${selected ? "cardBox selected" : ""}`} onClick={handleClick}>
-      {frontShow ? (
-        isPositive ? (
-          <CardFrontPositive score={score} />
-        ) : (
-          <CardFrontNegative score={score} />
-        )
-      ) : (
-        <CardBack />
-      )}
+      {frontShow ? isPositive ? <CardFrontPositive score={score} /> : <CardFrontNegative score={score} /> : <CardBack />}
     </div>
   );
 }

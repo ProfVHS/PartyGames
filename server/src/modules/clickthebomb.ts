@@ -24,6 +24,54 @@ module.exports = (
   updateRoomRound: (roomCode: string, round: number, socket: Socket) => Promise<void>,
   usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
+  //#region ctb medals
+  // add users to the most clicks database - for medals
+  const addUserstoMostClicks = async (roomCode: string) => {
+    const usersArray = await getUsersData(roomCode);
+    return new Promise<void>((resolve, reject) => {
+      usersArray.forEach((user) => {
+        db.run(`INSERT INTO clickTheBombClicks (id_user,number) VALUES ("${user.id}",0)`, (err) => {
+          if (err) {
+            reject(err);
+          }
+        });
+      });
+      resolve();
+    });
+  };
+  const updateUsersMostClicks = async (roomCode: string, user_id: string, number: number) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE clickTheBombClicks SET number = ${number} WHERE id_user = "${user_id}" AND number < ${number}`, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  const getUsersMostClicks = async () => {
+    const userMostClicks = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM clickTheBombClicks ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    console.log(userMostClicks);
+  };
+
+  socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
+    updateUsersMostClicks(roomCode, user_id, number).then(() => {
+      //console.log("Added click for user");
+      getUsersMostClicks();
+    });
+  });
+  //#endregion
+
   //#region ctb functions
   // set data bomb
   const setDataBomb = async (max: number, counter: number, roomCode: string) => {
@@ -52,47 +100,6 @@ module.exports = (
       });
     });
   };
-
-  // add users to the most clicks database - for medals
-  const addUserstoMostClicks = async (roomCode: string) => {
-    const usersArray = await getUsersData(roomCode);
-    return new Promise<void>((resolve, reject) => {
-      usersArray.forEach((user) => {
-        db.run(`INSERT INTO clickTheBombClicks (id_user,number) VALUES ("${user.id}",0)`, (err) => {
-          if (err) {
-            reject(err);
-          }
-        });
-      });
-      resolve();
-    });
-  };
-  const updateUsersMostClicks = async (roomCode: string, user_id: string, number: number) => {
-    return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE clickTheBombClicks SET number = ${number} WHERE id_user = "${user_id}" AND number < ${number}`, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
-
-  const getUsersMostClicks = async () => {
-    const userMostClicks = await new Promise<User[]>((resolve, reject) => {
-      db.all(`SELECT * FROM clickTheBombClicks ORDER BY number DESC`, [], (err: Error, rows: User[]) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
-
-    console.log(userMostClicks);
-  };
-
   // increment counter by 1
   const incrementCounter = async (roomCode: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -106,14 +113,18 @@ module.exports = (
       });
     });
   };
-
-  socket.on("addClickForUser", (roomCode: string, user_id: string, number: number) => {
-    updateUsersMostClicks(roomCode, user_id, number).then(() => {
-      //console.log("Added click for user");
-      getUsersMostClicks();
+  const endGameCTB = async (roomCode: string) => {
+    console.log("End CTB");
+    socket.nsp.to(roomCode).emit("receiveEndCtb");
+    db.run(`DELETE FROM bomb WHERE id = "${roomCode}"`, (err) => {
+      if (err) {
+        console.log("End CTB error");
+      }
     });
-  });
-
+    await updateRoomRound(roomCode, 0, socket);
+    usersResetData(roomCode, socket);
+    socket.nsp.to(roomCode).emit("receiveNextGame");
+  };
   //#endregion
 
   //#region ctb sockets
@@ -135,7 +146,6 @@ module.exports = (
       const max = Math.round(Math.random() * (data.usersLength * 5 - 1)) + 1;
       // (generate turn) min - 0, max - users.lenght - 1
       const turn = Math.round(Math.random() * (data.usersLength * 1 - 1));
-      console.log("Turn - ", turn);
       updateRoomTurn(data.roomCode, turn, socket);
       addUserstoMostClicks(data.roomCode);
       setDataBomb(max, 0, `${data.roomCode}`);
@@ -143,8 +153,8 @@ module.exports = (
   });
 
   // send turn to the next player
-  socket.on("changeTurnCtb", (roomCode: string) => {
-    changeRoomTurn(roomCode, socket);
+  socket.on("changeTurnCtb", async (roomCode: string) => {
+    await changeRoomTurn(roomCode, socket);
   });
 
   // counter + 1 and check whtat's happen
@@ -183,11 +193,7 @@ module.exports = (
               updateUserScore(user.id, 50, socket);
             }
           });
-          socket.nsp.to(roomCode).emit("receiveEndCtb");
-          await updateRoomRound(roomCode, 0, socket);
-          usersResetData(roomCode, socket);
-          usersData(roomCode, socket);
-          socket.nsp.to(roomCode).emit("receiveNextGame");
+          socket.nsp.to(roomCode).emit("endGameCLICKTHEBOMB");
         } else {
           // user explode
           // update new max number of clicks and reset counter
@@ -207,7 +213,6 @@ module.exports = (
             })
             .then(() => {
               // send data to the client
-              usersData(roomCode, socket);
               socket.nsp.to(roomCode).emit("receiveCounterCtb", 0);
               socket.nsp.to(roomCode).emit("receiveExplosionCtb", socket.id);
             });
@@ -216,7 +221,6 @@ module.exports = (
         // continue the game, +10 points to the user
         socket.nsp.to(roomCode).emit("receiveCounterCtb", bombData.counter);
         updateUserScore(socket.id, 10, socket);
-        usersData(roomCode, socket);
       }
     });
   });
@@ -267,6 +271,10 @@ module.exports = (
       socket.nsp.to(roomCode).emit("receiveCounterCtb", counter);
       socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
     }
+  });
+
+  socket.on("endGameCtb", async (roomCode: string) => {
+    endGameCTB(roomCode);
   });
   //#endregion
 };

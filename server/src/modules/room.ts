@@ -136,7 +136,6 @@ module.exports = (
 
           // if it's the last game, show end game screen, instead of notification
           if (current == games!.length - 1) {
-            socket.nsp.to(roomCode).emit("receiveNextGame");
           } else {
             socket.nsp.to(roomCode).emit("receiveSoloInRoom");
           }
@@ -348,6 +347,8 @@ module.exports = (
           }
         });
       });
+
+      gamesSet.clear();
     }
 
     const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
