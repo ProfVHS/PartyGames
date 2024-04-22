@@ -64,7 +64,7 @@ interface CrownCameraProps {
 
 const CrownCamera = ({ position }: CrownCameraProps) => {
   return (
-    <motion.div animate={{ scale: [0, 1] }} initial={{ scale: 0, x: "25%", y: "-75%" }} className="camera__crown">
+    <motion.div animate={{ scale: [0, 1] }} initial={{ scale: 0, x: "25%", y: "-60%" }} className="camera__crown">
       {position === 0 && <FirstPlaceCrown />}
       {position === 1 && <SecondPlaceCrown />}
       {position === 2 && <ThirdPlaceCrown />}
