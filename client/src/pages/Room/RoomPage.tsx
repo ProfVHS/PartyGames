@@ -16,6 +16,7 @@ export default function RoomPage() {
   const location = useLocation();
   const [usersReady, setUsersReady] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
+  const [top3Users, setTop3Users] = useState<string[]>([]); // [id, id, id]
   const [roomData, setRoomData] = useState<Room | null>();
   const [ready, setReady] = useState(false);
 
@@ -71,6 +72,9 @@ export default function RoomPage() {
       setUsers(data);
       usersLength.current = data.length;
     });
+    socket.on("receiveTop3", (users: string[]) => {
+      setTop3Users(users);
+    });
     // Room data (players ready)
     socket.on("receiveRoomData", (data) => {
       setRoomData(data);
@@ -91,6 +95,7 @@ export default function RoomPage() {
 
     return () => {
       socket.off("receiveUsersData");
+      socket.off("receiveTop3");
       socket.off("receiveRoomData");
       socket.off("userDisconnectedRoom");
       socket.off("receiveUserIsInRoom");
@@ -111,6 +116,8 @@ export default function RoomPage() {
     });
   });
 
+  console.log(users);
+
   return (
     <>
       <div className="roomGrid">
@@ -118,7 +125,17 @@ export default function RoomPage() {
           windowSizeY > 600 &&
           users &&
           users.map((user) => {
-            return <Camera key={user.id} userId={user.id} username={user.username} score={user.score} isDisconnected={user.is_disconnect} isAlive={user.alive} />;
+            return (
+              <Camera
+                key={user.id}
+                userId={user.id}
+                username={user.username}
+                score={user.score}
+                isDisconnected={user.is_disconnect}
+                isAlive={user.alive}
+                isTop3={top3Users.findIndex((topuser) => topuser === user.id)}
+              />
+            );
           })}
         <div className="roomContent">
           {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}

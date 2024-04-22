@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./style.scss";
 
-import { AnimatePresence, motion, useAnimate, usePresence } from "framer-motion";
+import { animate, AnimatePresence, motion, useAnimate, usePresence } from "framer-motion";
 import { NoSignalIcon, SkullIcon } from "./IconsForCamera";
 import { useCountUp } from "react-countup";
 import { FirstPlaceCrown, SecondPlaceCrown, ThirdPlaceCrown } from "../../Crowns";
@@ -13,11 +13,11 @@ interface CameraProps {
   score: number;
   isDisconnected: boolean;
   isAlive: boolean;
+  isTop3: number;
 }
 
-export default function Camera({ username, score, isDisconnected, isAlive, userId }: CameraProps) {
+export default function Camera({ username, score, isDisconnected, isAlive, userId, isTop3 }: CameraProps) {
   const countUpRef = useRef(null);
-  const [isTop3, setIsTop3] = useState<number>(-1);
 
   const { update } = useCountUp({
     ref: countUpRef,
@@ -29,13 +29,6 @@ export default function Camera({ username, score, isDisconnected, isAlive, userI
   useEffect(() => {
     update(score);
   }, [score]);
-
-  useEffect(() => {
-    socket.on("receiveTop3", (users: string[]) => {
-      const index = users.findIndex((user) => user === userId);
-      setIsTop3(index);
-    });
-  }, [socket]);
 
   return (
     <motion.div className={`camera ${isDisconnected ? "disconnected" : ""}`} initial={{ scale: 0.0 }} animate={{ scale: [0.0, 1.0] }} transition={{ duration: 1, type: "spring" }}>

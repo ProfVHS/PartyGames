@@ -11,8 +11,8 @@ interface LeaderboardProps {
 }
 export default function Leaderboard({ roomCode, oldUsers, newUsers, onExit }: LeaderboardProps) {
   // sort users by score
-  const sortedOldUsers = oldUsers.sort((a, b) => b.score - a.score);
-  const sortedNewUsers = newUsers.sort((a, b) => b.score - a.score);
+  const sortedOldUsers = [...oldUsers].sort((a, b) => b.score - a.score);
+  const sortedNewUsers = [...newUsers].sort((a, b) => b.score - a.score);
 
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -23,6 +23,7 @@ export default function Leaderboard({ roomCode, oldUsers, newUsers, onExit }: Le
         await animate(scope.current, { opacity: [0, 1], x: [400, 0] }, { duration: 1, type: "spring" });
         setTimeout(() => {
           socket.emit("updateCrowns", roomCode);
+          console.log("updateCrowns");
         }, 500 * sortedOldUsers.length + 500);
       };
       enterAnimation();
