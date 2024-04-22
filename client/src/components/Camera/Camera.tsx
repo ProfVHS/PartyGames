@@ -1,18 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./style.scss";
 
-import { AnimatePresence, motion, useAnimate, usePresence } from "framer-motion";
+import { animate, AnimatePresence, motion, useAnimate, usePresence } from "framer-motion";
 import { NoSignalIcon, SkullIcon } from "./IconsForCamera";
 import { useCountUp } from "react-countup";
+import { FirstPlaceCrown, SecondPlaceCrown, ThirdPlaceCrown } from "../../Crowns";
+import { socket } from "../../socket";
 
 interface CameraProps {
+  userId: string;
   username: string;
   score: number;
   isDisconnected: boolean;
   isAlive: boolean;
+  isTop3: number;
 }
 
-export default function Camera({ username, score, isDisconnected, isAlive }: CameraProps) {
+export default function Camera({ username, score, isDisconnected, isAlive, userId, isTop3 }: CameraProps) {
   const countUpRef = useRef(null);
 
   const { update } = useCountUp({
@@ -31,6 +35,9 @@ export default function Camera({ username, score, isDisconnected, isAlive }: Cam
       <span className="camera__username">{username}</span>
       <video className="camera__video" autoPlay={true} />
       <CameraIcon isDisconnected={isDisconnected} isAlive={isAlive} />
+      {isTop3 === 0 ? <CrownCamera position={0} /> : null}
+      {isTop3 === 1 ? <CrownCamera position={1} /> : null}
+      {isTop3 === 2 ? <CrownCamera position={2} /> : null}
       <span className="camera__score">
         Score: <span ref={countUpRef} />
       </span>
@@ -48,5 +55,19 @@ const CameraIcon = ({ isDisconnected, isAlive }: CameraIconProps) => {
       {isDisconnected ? <NoSignalIcon className="camera__icon" /> : null}
       {!isAlive && !isDisconnected ? <SkullIcon className="camera__icon" /> : null}
     </AnimatePresence>
+  );
+};
+
+interface CrownCameraProps {
+  position: number;
+}
+
+const CrownCamera = ({ position }: CrownCameraProps) => {
+  return (
+    <motion.div animate={{ scale: [0, 1] }} initial={{ scale: 0, x: "25%", y: "-75%" }} className="camera__crown">
+      {position === 0 && <FirstPlaceCrown />}
+      {position === 1 && <SecondPlaceCrown />}
+      {position === 2 && <ThirdPlaceCrown />}
+    </motion.div>
   );
 };

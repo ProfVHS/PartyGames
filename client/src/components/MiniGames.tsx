@@ -41,7 +41,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setMinigameIndex(current);
 
       const game = games[current];
-      setCurrentGame("CARDS");
+      setCurrentGame(game);
     });
 
     socket.on("receiveNextGame", () => {
@@ -129,6 +129,10 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     setNextMinigame(newNextGame);
   };
 
+  const handleLeaderboardGameEnd = () => {
+    setCurrentGame("LEADERBOARD");
+  };
+
   const handleSoloInRoomExit = () => {
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
@@ -146,8 +150,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     <>
       <AnimatePresence>
         {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={handleSoloInRoomExit} />}
-        {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
-        {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "LEADERBOARD" && <Leaderboard roomCode={roomCode} oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={handleLeaderboardGameEnd} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
