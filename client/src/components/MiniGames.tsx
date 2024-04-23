@@ -29,6 +29,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
+  const host = users.find((user) => user.id == socket.id)?.is_host;
+
   const onceDone = useRef<boolean>(false);
   const navigate = useNavigate();
 
@@ -40,8 +42,13 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
       setMinigameIndex(current);
 
+      console.log("Current game: ", games);
       const game = games[current];
       setCurrentGame(game);
+    });
+
+    socket.on("receiveCurrentGameIndex", (currentIndex: number) => {
+      setMinigameIndex(currentIndex);
     });
 
     socket.on("receiveNextGame", () => {
@@ -77,8 +84,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     if (onceDone.current) return;
 
-    const host = users.find((user) => user.id == socket.id)?.is_host;
-
     if (host) {
       socket.emit("gamesArray", roomCode);
     }
@@ -97,6 +102,9 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
         console.log("Leaderboard time is over");
+        if (host) {
+          socket.emit("updateCurrentGameIndex", roomCode);
+        }
       }, leaderboardTime);
     }
 
@@ -118,7 +126,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     // if (connectedUsers.length < 2) {
     //   socket.emit("startNextGame", roomCode);
     // }
-    if (gamesArray.length === 0) {
+    if (gamesArray.length == 0 && roomData?.in_game) {
       socket.emit("getGamesArray", roomCode);
     }
   }, []);
@@ -133,8 +141,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
-    console.log(newNextGame);
-    console.log("Minigame +1");
+    console.log("Next game: ");
 
     setMinigameIndex(newMinigameIndex);
     setNextMinigame(newNextGame);

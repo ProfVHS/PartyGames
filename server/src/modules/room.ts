@@ -402,7 +402,7 @@ module.exports = (
     }
 
     const games = await new Promise<MiniGames[]>((resolve, reject) => {
-      db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}"`, [], (err: Error, row: MiniGames[]) => {
+      db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
         if (err) {
           console.log("Games Array game error:");
           reject(err);
@@ -411,7 +411,14 @@ module.exports = (
         }
       });
     });
-    console.log("Games Array :", games);
+    const gamesArray: string[] = [];
+
+    games.forEach((game) => {
+      gamesArray.push(game.name);
+    });
+
+    console.log("Games Array :", gamesArray);
+
     const current = await new Promise<number>((resolve, reject) => {
       db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
         if (err) {
@@ -422,9 +429,10 @@ module.exports = (
         }
       });
     });
+
     console.log("Current Game Index :", current);
 
-    socket.nsp.to(roomCode).emit("receiveGamesArray", Array.from(gamesSet), current);
+    socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray, current);
   });
 
   // get games array
@@ -441,7 +449,7 @@ module.exports = (
     });
     if (gamesArrayExist) {
       const games = await new Promise<MiniGames[]>((resolve, reject) => {
-        db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}"`, [], (err: Error, row: MiniGames[]) => {
+        db.all(`SELECT name FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
           if (err) {
             console.log("Games Array game error:");
             reject(err);
@@ -460,7 +468,14 @@ module.exports = (
           }
         });
       });
-      socket.nsp.to(socket.id).emit("receiveGamesArray", games, current);
+
+      const gamesArray: string[] = [];
+
+      games.forEach((game) => {
+        gamesArray.push(game.name);
+      });
+
+      socket.nsp.to(socket.id).emit("receiveGamesArray", gamesArray, current);
     }
   });
   //#endregion
@@ -474,7 +489,7 @@ module.exports = (
   // update current index games
   socket.on("updateCurrentGameIndex", async (roomCode: string) => {
     await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE minigames SET current_game = current_game + 1 WHERE id_room = "${roomCode}"`, [], (err: Error) => {
+      db.run(`UPDATE rooms SET current_game = current_game + 1 WHERE id = "${roomCode}"`, [], (err: Error) => {
         if (err) {
           console.log("Update Current Game Index error:");
           reject(err);
@@ -482,29 +497,30 @@ module.exports = (
           resolve();
         }
       });
-    });
-    const current = await new Promise<number>((resolve, reject) => {
-      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-        if (err) {
-          console.log("Current Game Index error:");
-          reject(err);
-        } else {
-          resolve(row.current_game);
-        }
+    }).then(async () => {
+      const room = await new Promise<Room>((resolve, reject) => {
+        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+          if (err) {
+            console.log("Current Game Index error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
       });
-    });
-    const game = await new Promise<MiniGames[]>((resolve, reject) => {
-      db.get(`SELECT * FROM minigames WHERE id_room = "${roomCode}" AND game_index = ${current}`, [], (err: Error, row: MiniGames[]) => {
-        if (err) {
-          console.log("Games Array game error:");
-          reject(err);
-        } else {
-          resolve(row);
-        }
+      const games = await new Promise<MiniGames[]>((resolve, reject) => {
+        db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
+          if (err) {
+            console.log("Games Array game error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
       });
-    });
 
-    socket.nsp.to(roomCode).emit("receiveGamesArray", game, current);
+      //socket.nsp.to(roomCode).emit("receiveGamesArray", games, room.current_game);
+    });
   });
   // users data
   socket.on("usersData", async (roomCode: string) => {
