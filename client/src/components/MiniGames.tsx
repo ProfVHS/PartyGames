@@ -144,7 +144,7 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
-    socket.emit("updateCurrentGameIndex", roomCode, newMinigameIndex);
+    socket.emit("updateCurrentGameIndex", roomCode);
 
     setCurrentGame(newNextGame);
   };

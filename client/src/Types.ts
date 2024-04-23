@@ -19,6 +19,14 @@ export type Room = {
   time_max: number;
   in_game: boolean;
   round: number;
+  current_game: number;
+};
+
+export type MiniGames = {
+  id: number;
+  id_room: string;
+  name: string;
+  game_index: number;
 };
 
 // Tricky Diamonds

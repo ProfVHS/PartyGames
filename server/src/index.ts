@@ -25,6 +25,14 @@ export interface Room {
   time_max: number;
   in_game: boolean;
   round: number;
+  current_game: number;
+}
+
+export interface MiniGames {
+  id: number;
+  id_room: string;
+  name: string;
+  game_index: number;
 }
 
 const roomModule = require("./modules/room");
@@ -52,7 +60,7 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL, "current_game" INTEGER NOT NULL);'
     );
     db.run(
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "game_position" INTEGER NOT NULL, "is_host" BOOLEAN NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
@@ -60,6 +68,10 @@ server.listen(3000, async () => {
     // games tables
     // click the bomb
     db.run('CREATE TABLE bomb ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);');
+    db.run(
+      'CREATE TABLE minigames ("id" INTEGER NOT NULL PRIMARY KEY, "id_room" VARCHAR(5) NOT NULL, "name" VARCHAR(32) NOT NULL, "game_index" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+    );
+
     db.run('CREATE TABLE clickTheBombClicks ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));');
     db.run(
       'CREATE TABLE lowestBalanceAfterCards ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));'
