@@ -368,7 +368,7 @@ module.exports = (
 
     if (!gamesArrayExist) {
       //const gamesIDarray: string[] = ["CLICKTHEBOMB", "COLORSMEMORY"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
-      const gamesIDarray: string[] = ["CLICKTHEBOMB", "TRICKYDIAMONDS", "BUDDIES", "CARDS", "COLORSMEMORY"];
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "BUDDIES", "COLORSMEMORY"];
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
@@ -430,9 +430,46 @@ module.exports = (
       });
     });
 
-    console.log("Current Game Index :", current);
-
     socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray, current);
+  });
+
+  // update current index games
+  socket.on("updateCurrentGameIndex", async (roomCode: string) => {
+    await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET current_game = current_game + 1 WHERE id = "${roomCode}"`, [], (err: Error) => {
+        if (err) {
+          console.log("Update Current Game Index error:");
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }).then(async () => {
+      const room = await new Promise<Room>((resolve, reject) => {
+        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+          if (err) {
+            console.log("Current Game Index error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
+      });
+      const sortedGames = await new Promise<MiniGames[]>((resolve, reject) => {
+        db.all(`SELECT name FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
+          if (err) {
+            console.log("Games Array game error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
+      });
+
+      const gamesArray: string[] = sortedGames.map((game) => game.name);
+
+      socket.nsp.to(roomCode).emit("updateCurrentGame", gamesArray, room.current_game);
+    });
   });
 
   // get games array
@@ -475,9 +512,13 @@ module.exports = (
         gamesArray.push(game.name);
       });
 
+      console.log("Games Array :", gamesArray);
+      console.log("Current Game Index :", current);
+
       socket.nsp.to(socket.id).emit("receiveGamesArray", gamesArray, current);
     }
   });
+
   //#endregion
 
   //#region room events (data, time, etc) needed during the game
@@ -485,42 +526,6 @@ module.exports = (
   socket.on("startNextGame", async (roomCode: string) => {
     console.log("Start Next Game :");
     socket.nsp.to(roomCode).emit("receiveNextGame");
-  });
-  // update current index games
-  socket.on("updateCurrentGameIndex", async (roomCode: string) => {
-    await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET current_game = current_game + 1 WHERE id = "${roomCode}"`, [], (err: Error) => {
-        if (err) {
-          console.log("Update Current Game Index error:");
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }).then(async () => {
-      const room = await new Promise<Room>((resolve, reject) => {
-        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-          if (err) {
-            console.log("Current Game Index error:");
-            reject(err);
-          } else {
-            resolve(row);
-          }
-        });
-      });
-      const games = await new Promise<MiniGames[]>((resolve, reject) => {
-        db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
-          if (err) {
-            console.log("Games Array game error:");
-            reject(err);
-          } else {
-            resolve(row);
-          }
-        });
-      });
-
-      //socket.nsp.to(roomCode).emit("receiveGamesArray", games, room.current_game);
-    });
   });
   // users data
   socket.on("usersData", async (roomCode: string) => {

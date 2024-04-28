@@ -42,13 +42,17 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
       setMinigameIndex(current);
 
-      console.log("Current game: ", games);
       const game = games[current];
+      console.log("Current game: ", game);
       setCurrentGame(game);
     });
 
-    socket.on("receiveCurrentGameIndex", (currentIndex: number) => {
+    socket.on("updateCurrentGame", (games, currentIndex) => {
+      console.log("updateCurrentGame", currentIndex, games);
       setMinigameIndex(currentIndex);
+      const nextGame = games[currentIndex] || "ENDGAME";
+      setNextMinigame(nextGame);
+      console.log("Next game: ", nextGame, games);
     });
 
     socket.on("receiveNextGame", () => {
@@ -70,8 +74,9 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     });
 
     return () => {
-      socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
+      socket.off("updateCurrentGame");
+      socket.off("receiveNextGame");
       socket.off("receiveSoloInRoom");
       socket.off("receiveLeaderboardGameUsers");
       socket.off("receiveEndMiniGames");
@@ -99,12 +104,15 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     if (currentGame === "LEADERBOARD" || currentGame === "LEADERBOARDGAME") {
       const leaderboardTime = users.length * 500 + 3500;
+
+      if (host) {
+        console.log("Update current game index");
+        socket.emit("updateCurrentGameIndex", roomCode);
+      }
+
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
         console.log("Leaderboard time is over");
-        if (host) {
-          socket.emit("updateCurrentGameIndex", roomCode);
-        }
       }, leaderboardTime);
     }
 
@@ -121,11 +129,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   useEffect(() => {
     localStorage.setItem("socketId", socket.id!);
 
-    // const connectedUsers = users.filter((user) => !user.is_disconnect);
-
-    // if (connectedUsers.length < 2) {
-    //   socket.emit("startNextGame", roomCode);
-    // }
     if (gamesArray.length == 0 && roomData?.in_game) {
       socket.emit("getGamesArray", roomCode);
     }
@@ -137,28 +140,18 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     } else if (currentGame !== "SOLOINROOM") {
       setCurrentGame("LEADERBOARD");
     }
-
-    const newMinigameIndex = minigameIndex + 1;
-    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
-
-    console.log("Next game: ");
-
-    setMinigameIndex(newMinigameIndex);
-    setNextMinigame(newNextGame);
   };
 
   const handleSoloInRoomExit = () => {
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
-    socket.emit("updateCurrentGameIndex", roomCode);
-
     setCurrentGame(newNextGame);
   };
 
   useEffect(() => {
-    console.log(currentGame);
-  }, [currentGame]);
+    console.log(gamesArray);
+  }, [gamesArray]);
 
   return (
     <>
