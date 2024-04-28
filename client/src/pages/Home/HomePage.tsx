@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import { socket } from "../../socket";
 import { version } from "../../../package.json";
+import { ServerError } from "../ServerError/ServerError";
 
 const adjective = [
   "Ultra",
@@ -78,6 +79,7 @@ export default function HomePage() {
   const [randomRoomCode, setRandomRoomCode] = useState("");
   const [roomExistence, setRoomExistence] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [socketConnected, setSocketConnected] = useState<boolean>(true);
   const socket_id = localStorage.getItem("socketId");
 
   const navigate = useNavigate();
@@ -147,22 +149,40 @@ export default function HomePage() {
     socket.emit("disconnectUser");
   }, []);
 
+  useEffect(() => {
+    socket.on("connect", () => {
+      setSocketConnected(true);
+    });
+    socket.on("disconnect", () => {
+      setSocketConnected(false);
+    });
+    socket.on("connect_error", () => {
+      setSocketConnected(false);
+    });
+  }, [socket]);
+
   return (
-    <div className="home">
-      <img src={Logo} className="home__logo" />
-      <span className="home__name">Party Games</span>
-      <div className="home__formWrapper">
-        <input className="input" placeholder="Username" style={{ marginBottom: "60px", marginTop: "40px" }} value={username} onChange={(e) => setUsername(e.target.value)} />
-        <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
-          Join
-        </button>
-        <input className="input" placeholder="Room Code" maxLength={16} style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
-        <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
-          Create Room
-        </button>
-      </div>
-      <span className="home__version">v{version}</span>
-      {isLoading && <div className="home__loadingScreen">Party Games</div>}
-    </div>
+    <>
+      {socketConnected ? (
+        <div className="home">
+          <img src={Logo} className="home__logo" />
+          <span className="home__name">Party Games</span>
+          <div className="home__formWrapper">
+            <input className="input" placeholder="Username" style={{ marginBottom: "60px", marginTop: "40px" }} value={username} onChange={(e) => setUsername(e.target.value)} />
+            <button className="button" style={{ width: "50%" }} onClick={JoinHandleClick}>
+              Join
+            </button>
+            <input className="input" placeholder="Room Code" maxLength={16} style={{ width: "48%" }} value={roomCode} onChange={(e) => inputHandler(e.target.value.toLocaleUpperCase())} />
+            <button className="button" style={{ marginTop: "40px" }} onClick={CreateHandleClick}>
+              Create Room
+            </button>
+          </div>
+          <span className="home__version">v{version}</span>
+          {isLoading && <div className="home__loadingScreen">Party Games</div>}
+        </div>
+      ) : (
+        <ServerError />
+      )}
+    </>
   );
 }
