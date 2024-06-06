@@ -19,8 +19,6 @@ export default function LastUserNotification({ roomCode, onExit }: LastUserNotif
   useEffect(() => {
     if (isPresence) {
     } else {
-      console.log("emit updateCurrentGameIndex");
-
       safeToRemove();
       onExit && onExit();
     }

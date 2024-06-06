@@ -20,7 +20,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
         if (err) {
           reject(err);
         } else {
-          console.log(users);
           resolve(users);
         }
       });
@@ -122,7 +121,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
           const usersMostClicks = await getMostBombClicks(roomCode);
           const user = usersMostClicks[0];
           if (user.id !== null) {
-            console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
           }
@@ -133,7 +131,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
           const userWithLowestBalance = await getLowestBalanceAfterCardGame(roomCode);
           const user = userWithLowestBalance[0];
           if (user.id !== null) {
-            console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
           }
@@ -144,7 +141,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
           const userWithLowestBalance = await getBestRoundInColorMemory(roomCode);
           const user = userWithLowestBalance[0];
           if (user.id !== null) {
-            console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
           }
@@ -154,7 +150,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
           const userWithMostFiguredOutDiamonds = await getMostFiguredOutDiamonds(roomCode);
           const user = userWithMostFiguredOutDiamonds[0];
           if (user.id !== null) {
-            console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
           }
@@ -165,7 +160,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
           const userWithMostBestAnswers = await getMostBestAnswersInBuddies(roomCode);
           const user = userWithMostBestAnswers[0];
           if (user.id !== null) {
-            console.log(medal, user);
             const userThatGotMedal = handleUpdateUserScore(user, medal, usersThatGotMedal);
             usersThatGotMedal.push(userThatGotMedal);
           }
@@ -178,7 +172,6 @@ module.exports = (io: Server, socket: Socket, db: Database, updateUserScore: (id
   };
 
   socket.on("getMedals", async (roomCode: string) => {
-    console.log("getMedals");
     const medalsToCheck = randomizeMedalsCategories();
     const usersThatGotMedal = await handleMedals(roomCode, medalsToCheck);
 

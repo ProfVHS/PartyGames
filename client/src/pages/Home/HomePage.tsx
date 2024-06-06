@@ -84,10 +84,6 @@ export default function HomePage() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    handleRandomRoomCode();
-  }, []);
-
   const handleRandomRoomCode = () => {
     setRandomRoomCode((Math.random() + 1).toString(36).substring(7).toUpperCase());
   };
@@ -95,9 +91,6 @@ export default function HomePage() {
   const inputHandler = (roomCode: string) => {
     setRoomCode(roomCode);
     socket.emit("checkRoomExistence", roomCode);
-    socket.on("roomExistenceResponse", (exists) => {
-      setRoomExistence(exists);
-    });
   };
 
   const startLoadingAnimation = (code: string) => {
@@ -115,15 +108,6 @@ export default function HomePage() {
       const name = username ? username : randomUsername;
       new Audio(ClickSound).play();
       socket.emit("joinRoom", { roomCode, name, socket_id });
-      socket.on("joiningRoom", () => {
-        startLoadingAnimation(roomCode);
-      });
-      socket.on("roomFull", () => {
-        alert("Room is full");
-      });
-      socket.on("roomInGame", () => {
-        alert("Room is in game");
-      });
     } else {
       alert("Room doesn't exist");
     }
@@ -146,6 +130,26 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    socket.on("roomJoinMessage", (data: string) => {
+      alert(data);
+    });
+    socket.on("joiningRoom", (code: string) => {
+      console.log("Joining room", code);
+      startLoadingAnimation(code);
+    });
+    socket.on("roomExistenceResponse", (exists) => {
+      setRoomExistence(exists);
+    });
+
+    return () => {
+      socket.off("roomJoinMessage");
+      socket.off("joiningRoom");
+      socket.off("roomExistenceResponse");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    handleRandomRoomCode();
     socket.emit("disconnectUser");
   }, []);
 

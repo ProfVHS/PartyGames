@@ -25,6 +25,14 @@ export interface Room {
   time_max: number;
   in_game: boolean;
   round: number;
+  current_game: number;
+}
+
+export interface MiniGames {
+  id: number;
+  id_room: string;
+  name: string;
+  game_index: number;
 }
 
 const roomModule = require("./modules/room");
@@ -52,7 +60,7 @@ server.listen(3000, async () => {
   db.serialize(() => {
     // users and rooms table
     db.run(
-      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL);'
+      'CREATE TABLE rooms ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "turn" INTEGER NOT NULL, "ready" INTEGER NOT NULL, "time_left" INTEGER NOT NULL, "time_max" INTEGER NOT NULL, "in_game" BOOLEAN NOT NULL, "round" INTEGER NOT NULL, "current_game" INTEGER NOT NULL);'
     );
     db.run(
       'CREATE TABLE users ("id" VARCHAR(255) NOT NULL PRIMARY KEY, "username" VARCHAR(255), "score" INTEGER NOT NULL, "alive" BOOLEAN NOT NULL, "is_disconnect" BOOLEAN NOT NULL, "id_room" VARCHAR(5) NOT NULL, "id_selected" INTEGER NOT NULL, "game_position" INTEGER NOT NULL, "is_host" BOOLEAN NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
@@ -60,6 +68,10 @@ server.listen(3000, async () => {
     // games tables
     // click the bomb
     db.run('CREATE TABLE bomb ("id" VARCHAR(5) NOT NULL PRIMARY KEY, "counter" INTEGER NOT NULL, "max" INTEGER NOT NULL);');
+    db.run(
+      'CREATE TABLE minigames ("id" INTEGER NOT NULL PRIMARY KEY, "id_room" VARCHAR(5) NOT NULL, "name" VARCHAR(32) NOT NULL, "game_index" INTEGER NOT NULL, FOREIGN KEY ("id_room") REFERENCES rooms ("id"));'
+    );
+
     db.run('CREATE TABLE clickTheBombClicks ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));');
     db.run(
       'CREATE TABLE lowestBalanceAfterCards ("id" INTEGER NOT NULL, "id_user" VARCHAR(255) NOT NULL , "number" INTEGER NOT NULL, PRIMARY KEY("id"), FOREIGN KEY ("id_user") REFERENCES users ("id"));'
@@ -195,26 +207,6 @@ server.listen(3000, async () => {
           const username = users[room.turn].username;
           const id = users[room.turn].id;
           socket.nsp.to(roomCode).emit("receiveTurnCtb", { username, id });
-
-          await new Promise<void>((resolve, reject) => {
-            db.run(`UPDATE users SET is_host = false WHERE id_room = "${roomCode}"`, (err) => {
-              if (err) {
-                console.log("Update host error");
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-            db.run(`UPDATE users SET is_host = true WHERE id = "${id}"`, (err) => {
-              if (err) {
-                console.log("Update host 2 error");
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-
           usersData(roomCode, socket);
         });
       })
@@ -250,7 +242,7 @@ server.listen(3000, async () => {
       if (turn >= users.length - 1) {
         skipTurn(-1);
       } else {
-        if (users[turn + 1].alive == false || users[turn + 1].is_disconnect === true) {
+        if (users[turn + 1].alive == false || users[turn + 1].is_disconnect == true) {
           skipTurn(turn + 1);
         } else {
           updateRoomTurn(roomCode, turn + 1, socket);
@@ -398,7 +390,7 @@ server.listen(3000, async () => {
 
   const handleModulesOnConnection = (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
-    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn, usersResetData);
+    roomModule(io, socket, db, usersData, roomData, updateUserSelected, updateUserAlive, changeRoomTurn, updateRoomTurn, updateRoomRound, usersResetData);
     bombModule(io, socket, db, usersData, getUsersData, updateRoomTurn, changeRoomTurn, updateUserScore, updateUserScoreMultiply, updateUserAlive, updateUsersAlive, updateRoomRound, usersResetData);
     cardsModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);
     diamondModule(io, socket, db, roomData, updateUserScore, updateRoomTime, updateRoomRound, changeRoomRound, getUsersData, usersResetData);

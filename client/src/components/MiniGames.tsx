@@ -29,6 +29,8 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   const [usersBeforeGame, setUsersBeforeGame] = useState<User[]>([]); // users before game starts for leaderboard
 
+  const host = users.find((user) => user.id == socket.id)?.is_host;
+
   const onceDone = useRef<boolean>(false);
   const navigate = useNavigate();
 
@@ -41,7 +43,16 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setMinigameIndex(current);
 
       const game = games[current];
+      console.log("Current game: ", game);
       setCurrentGame(game);
+    });
+
+    socket.on("updateCurrentGame", (games, currentIndex) => {
+      console.log("updateCurrentGame", currentIndex, games);
+      setMinigameIndex(currentIndex);
+      const nextGame = games[currentIndex] || "ENDGAME";
+      setNextMinigame(nextGame);
+      console.log("Next game: ", nextGame, games);
     });
 
     socket.on("receiveNextGame", () => {
@@ -49,19 +60,21 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setCurrentGame("MINIGAMEEND");
     });
 
-    socket.on("receiveSoloInRoom", () => {
-      setCurrentGame("SOLOINROOM");
-    });
-
     socket.on("receiveLeaderboardGameUsers", (users) => {
       setLeaderboardGameUsers(users);
     });
 
+    socket.on("receiveEndMiniGames", () => {
+      console.log("receiveEndMiniGames");
+      setCurrentGame("ENDGAME");
+    });
+
     return () => {
-      socket.off("receiveNextGame");
       socket.off("receiveGamesArray");
-      socket.off("receiveSoloInRoom");
+      socket.off("updateCurrentGame");
+      socket.off("receiveNextGame");
       socket.off("receiveLeaderboardGameUsers");
+      socket.off("receiveEndMiniGames");
     };
   }, [socket]);
 
@@ -70,8 +83,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     setUsersBeforeGame(users);
 
     if (onceDone.current) return;
-
-    const host = users.find((user) => user.id == socket.id)?.is_host;
 
     if (host) {
       socket.emit("gamesArray", roomCode);
@@ -88,37 +99,38 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
     if (currentGame === "LEADERBOARD" || currentGame === "LEADERBOARDGAME") {
       const leaderboardTime = users.length * 500 + 3500;
+
+      if (host) {
+        console.log("Update current game index");
+        socket.emit("updateCurrentGameIndex", roomCode);
+      }
+
       setTimeout(() => {
         setCurrentGame("MINIGAMEEND");
         console.log("Leaderboard time is over");
       }, leaderboardTime);
     }
 
+    console.log("Current game: ", currentGame);
+
     if (currentGame === "ENDGAME") {
+      console.log("Endgame");
+      console.log(users);
+      console.log(roomCode);
       navigate("/endgame", { state: { roomCode, users } });
     }
   }, [currentGame]);
 
   useEffect(() => {
     localStorage.setItem("socketId", socket.id!);
-
-    const connectedUsers = users.filter((user) => !user.is_disconnect);
-
-    if (connectedUsers.length < 2) {
-      socket.emit("startNextGame", roomCode);
-    }
-    if (gamesArray.length === 0) {
-      socket.emit("gamesArray", roomCode);
-    }
   }, []);
 
   const handleMiniGameEnd = () => {
     if (currentGame === "COLORSMEMORY") {
       setCurrentGame("LEADERBOARDGAME");
-    } else if (currentGame !== "SOLOINROOM") {
+    } else {
       setCurrentGame("LEADERBOARD");
     }
-
     const newMinigameIndex = minigameIndex + 1;
     const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
 
@@ -140,18 +152,18 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     socket.emit("updateCurrentGameIndex", roomCode, newMinigameIndex);
 
     setCurrentGame(newNextGame);
+
   };
 
   useEffect(() => {
-    console.log(currentGame);
-  }, [currentGame]);
+    console.log(gamesArray);
+  }, [gamesArray]);
 
   return (
     <>
       <AnimatePresence>
-        {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={handleSoloInRoomExit} />}
-        {currentGame === "LEADERBOARD" && <Leaderboard roomCode={roomCode} oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
-        {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={handleLeaderboardGameEnd} />}
+        {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
+        {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "CARDS" && <Cards roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}
         {currentGame === "TRICKYDIAMONDS" && <TrickyDiamonds roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}

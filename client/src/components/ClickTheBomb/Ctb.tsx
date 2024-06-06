@@ -25,6 +25,8 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
   const [isDead, setIsDead] = useState<boolean>(false);
   const [isExploded, setIsExploded] = useState<boolean>(false);
 
+  const host = users.find((user) => user.id === socket.id)?.is_host;
+
   // Enter and exit animations
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -92,6 +94,10 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
       setIsExploded(true);
 
       setTimeout(() => setIsExploded(false), 1250);
+
+      if (host) {
+        socket.emit("endGameCtb", roomCode);
+      }
     };
 
     socket.on("receiveTurnCtb", turnCtb);
@@ -100,21 +106,19 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
 
     socket.on("receiveExplosionCtb", explosionCtb);
 
-    socket.on("receiveEndCtb", endCtb);
+    socket.on("endGameCLICKTHEBOMB", endCtb);
 
     return () => {
       socket.off("receiveTurnCtb", turnCtb);
       socket.off("receiveCounterCtb", counterCtb);
       socket.off("receiveExplosionCtb", explosionCtb);
-      socket.off("receiveEndCtb", endCtb);
+      socket.off("endGameCLICKTHEBOMB", endCtb);
     };
   }, [socket]);
 
   // make sure that the game starts only once by host
   useEffect(() => {
     if (onceDone.current) return;
-
-    const host = users.find((user) => user.id === socket.id)?.is_host;
 
     if (host) {
       const usersLength = users.length;
@@ -127,6 +131,12 @@ export function Ctb({ roomCode, users, roomData, onExit }: CtbProps) {
   useEffect(() => {
     if (roomData?.in_game && turn === "") {
       socket.emit("getBombData", roomCode);
+    }
+
+    const userAlive = users.find((user) => user.id === socket.id)?.alive;
+
+    if (!userAlive) {
+      setIsDead(true);
     }
   }, []);
 

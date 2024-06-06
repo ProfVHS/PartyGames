@@ -80,7 +80,6 @@ module.exports = (
   };
 
   const endGame = async (roomCode: string) => {
-    console.log("End Game Colors Memory");
     type UserPosition = { username: string; scoreToAdd: number | null; record: number };
 
     const usersPosition = await new Promise<UserPosition[]>((resolve, reject) => {

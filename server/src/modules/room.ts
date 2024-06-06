@@ -1,6 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { Database } from "sqlite3";
-import { User, Room } from "../index";
+import { User, Room, MiniGames } from "../index";
 interface Count {
   count: number;
 }
@@ -9,8 +9,6 @@ interface GamesArray {
   games: string[];
   currentGame: number;
 }
-
-const gamesArray: GamesArray[] = [];
 
 let cardsTimeInterval: NodeJS.Timeout;
 
@@ -24,6 +22,7 @@ module.exports = (
   updateUserAlive: (id: string, alive: boolean) => Promise<void>,
   changeRoomTurn: (roomCode: string, socket: Socket) => void,
   updateRoomTurn: (roomCode: string, turn: number, socket: Socket) => void,
+  updateRoomRound: (roomCode: string, round: number, socket: Socket) => void,
   usersResetData: (roomCode: string, socket: Socket) => void
 ) => {
   const updateCrowns = async (roomCode: string) => {
@@ -86,60 +85,30 @@ module.exports = (
   };
 
   const CheckWhatsToDoWithRoom = async (roomCode: string, isRoomInGame: boolean, usersLength: number) => {
-    console.log("Check Whats To Do With Room :");
-    console.log("-------------------->  Room code - ", roomCode);
-    console.log("--------------------> Is room in game - ", isRoomInGame);
-    console.log("--------------------> Users length - ", usersLength);
-    // last user - delete room
-    if (usersLength == 1) {
-      db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
-      db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
-    }
-    // its lobby - delete user
-    else if (!isRoomInGame) {
-      db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
-    }
-    // its game - set user as disconnected
-    else {
-      await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET alive = false, is_disconnect = true WHERE id = "${socket.id}"`, [], (err: Error) => {
-          if (err) {
-            console.log(`Check Whats To Do With Room (Update) error:`);
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
+    const user = await new Promise<User>((resolve, reject) => {
+      db.get(`SELECT * FROM users WHERE id = "${socket.id}"`, [], (err: Error, row: User) => {
+        if (err) {
+          console.log(`Check Whats To Do With Room (user) error:`);
+          reject(err);
+        } else {
+          resolve(row);
+        }
       });
+    });
 
-      const users = await new Promise<User[]>((resolve, reject) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if (err) {
-            console.log(`Check Whats To Do With Room (users) error:`);
-            reject(err);
-          } else {
-            resolve(users_rows);
-          }
-        });
-      });
+    if (!user) return;
+    if (user.is_host) {
+      socket.nsp.to(roomCode).emit("endRoomGame", "Host has left the room");
+    } else {
+      if (usersLength <= 2) {
+        db.run(`DELETE FROM users WHERE id_room = "${roomCode}"`);
+        db.run(`DELETE FROM rooms WHERE id = "${roomCode}"`);
+        db.run(`DELETE FROM minigames WHERE id_room = "${roomCode}"`);
 
-      const lastUserIndex = users.findIndex((user) => user.is_disconnect == false);
-      const disconnectedUserIndex = users.findIndex((user) => user.id == socket.id);
-
-      if (usersLength === 2) {
-        console.log("Samotny Wilk");
-        clearInterval(cardsTimeInterval);
-
-        socket.nsp.to(roomCode).emit("receiveSoloInRoom");
-
-        updateUserAlive(users[lastUserIndex].id, true);
-        updateRoomTurn(roomCode, lastUserIndex, socket);
+        socket.nsp.to(roomCode).emit("endRoomGame", "Not enough players to continue the game");
       } else {
-        changeRoomTurn(roomCode, socket);
+        db.run(`DELETE FROM users WHERE id = "${socket.id}"`);
       }
-
-      socket.nsp.to(roomCode).emit("userDisconnectedRoom", users[disconnectedUserIndex].username);
-      usersData(roomCode, socket);
     }
     socket.leave(roomCode);
   };
@@ -184,112 +153,70 @@ module.exports = (
       }
     });
 
-    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0)`);
+    db.run(`INSERT INTO rooms (id,turn,ready,time_left,time_max,in_game,round,current_game) VALUES ("${randomRoomCode}", 0, 0, 0, 0, false, 0, 0)`);
     db.run(`INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${name}", 100, true, false, "${randomRoomCode}", 0, 1, true)`);
   });
   // join room
   socket.on("joinRoom", async (data: { roomCode: string; name: string; socket_id: string }) => {
-    const ifUserExist = await new Promise<Count>((resolve, reject) => {
-      db.get(`SELECT COUNT(id) AS 'count' FROM users WHERE id = "${data.socket_id}" AND is_disconnect = true`, [], (err: Error, exist: Count) => {
+    const users: User[] = await new Promise<User[]>((resolve, reject) => {
+      db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
         if (err) {
-          console.log("Join Room error:");
+          console.log("Join Room (users) error:");
           reject(err);
         } else {
-          resolve(exist);
+          resolve(users_rows);
         }
       });
     });
 
-    if (ifUserExist.count == 1) {
-      await socket.join(data.roomCode);
-
-      await new Promise<void>((resolve, reject) => {
-        db.run(`UPDATE users SET id = "${socket.id}", is_disconnect = false WHERE id = "${data.socket_id}"`, [], (err: Error) => {
+    const count: Count[] = await new Promise<Count[]>((resolve, reject) => {
+      db.all(
+        `SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`,
+        [],
+        (err: Error, count_row: Count[]) => {
           if (err) {
-            console.log("User come back error:");
+            console.log("Join Room (count) error:");
             reject(err);
           } else {
-            resolve();
-          }
-        });
-      });
-      socket.nsp.to(socket.id).emit("joiningRoom");
-      const usersInRoom = await new Promise<User[]>((resolve, reject) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}" AND is_disconnect = false`, [], (err: Error, rows: User[]) => {
-          if (err) {
-            console.log(`Users data error:`);
-            reject(err);
-          } else {
-            resolve(rows);
-            console.log("Users in room: ", rows);
-          }
-        });
-      });
-      usersResetData(data.roomCode, socket);
-      if (usersInRoom.length <= 2) socket.to(data.roomCode).emit("receiveNextGame");
-      usersData(data.roomCode, socket);
-      roomData(data.roomCode, socket);
-    } else {
-      const users: User[] = await new Promise<User[]>((resolve, reject) => {
-        db.all(`SELECT * FROM users WHERE id_room = "${data.roomCode}"`, [], (err: Error, users_rows: User[]) => {
-          if (err) {
-            console.log("Join Room (users) error:");
-            reject(err);
-          } else {
-            resolve(users_rows);
-          }
-        });
-      });
-
-      const count: Count[] = await new Promise<Count[]>((resolve, reject) => {
-        db.all(
-          `SELECT COUNT(*) AS "count" FROM users WHERE id_room = "${data.roomCode}" AND username IN ( "${data.name}", "${data.name} (1)", "${data.name} (2)", "${data.name} (3)", "${data.name} (4)", "${data.name} (5)", "${data.name} (6)" )`,
-          [],
-          (err: Error, count_row: Count[]) => {
-            if (err) {
-              console.log("Join Room (count) error:");
-              reject(err);
-            } else {
-              resolve(count_row);
-            }
-          }
-        );
-      });
-
-      const room: Room = await new Promise<Room>((resolve, reject) => {
-        db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
-          if (err) {
-            console.log("Join Room (room) error:");
-            reject(err);
-          } else {
-            resolve(room_row);
-          }
-        });
-      });
-
-      // check if room is full (max 8 users)
-      if (users.length < 8) {
-        // check if room is in game (if it is, don't let user join)
-        if (room.in_game) {
-          socket.nsp.to(socket.id).emit("roomInGame");
-        } else {
-          // else let user join (also check if user with the same name is already in room, if so, add (1) to his name, etc.
-          socket.join(data.roomCode);
-          socket.nsp.to(socket.id).emit("joiningRoom");
-
-          if (count[0].count == 0) {
-            db.run(
-              `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}", 0, 1, false)`
-            );
-          } else {
-            db.run(
-              `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1, false)`
-            );
+            resolve(count_row);
           }
         }
+      );
+    });
+
+    const room: Room = await new Promise<Room>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${data.roomCode}"`, [], (err: Error, room_row: Room) => {
+        if (err) {
+          console.log("Join Room (room) error:");
+          reject(err);
+        } else {
+          resolve(room_row);
+        }
+      });
+    });
+
+    // check if room is full (max 8 users)
+    if (users.length < 8) {
+      // check if room is in game (if it is, don't let user join)
+      if (room.in_game) {
+        socket.nsp.to(socket.id).emit("roomJoinMessage", "Room is in game");
       } else {
-        socket.nsp.to(socket.id).emit("roomFull");
+        // else let user join (also check if user with the same name is already in room, if so, add (1) to his name, etc.
+        socket.join(data.roomCode);
+        socket.nsp.to(socket.id).emit("joiningRoom", data.roomCode);
+
+        if (count[0].count == 0) {
+          db.run(
+            `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name}", 100, true, false, "${data.roomCode}", 0, 1, false)`
+          );
+        } else {
+          db.run(
+            `INSERT INTO users (id,username,score,alive,is_disconnect,id_room,id_selected,game_position,is_host) VALUES ("${socket.id}", "${data.name} (${count[0].count})", 100, true, false, "${data.roomCode}", 0, 1, false)`
+          );
+        }
       }
+    } else {
+      socket.nsp.to(socket.id).emit("roomJoinMessage", "Room is full");
     }
   });
   // check room existence
@@ -311,35 +238,131 @@ module.exports = (
 
   // generate random games array
   socket.on("gamesArray", async (roomCode: string) => {
+
+    const gamesArrayExist = await new Promise<MiniGames>((resolve, reject) => {
+      db.get(`SELECT * FROM minigames WHERE id_room = "${roomCode}"`, [], (err: Error, row: MiniGames) => {
+        if (err) {
+          console.log("Games Array exist error:");
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+
+    const gamesSet: Set<string> = new Set();
+
+    if (!gamesArrayExist) {
+      //const gamesIDarray: string[] = ["CLICKTHEBOMB", "COLORSMEMORY"]; // "TRICKYDIAMONDS", "BUDDIES" , "CARDS", "COLORSMEMORY",
+      const gamesIDarray: string[] = ["CLICKTHEBOMB", "BUDDIES", "COLORSMEMORY"];
+
     if (!gamesArray.find((roomCode) => roomCode === roomCode)) {
       const gamesSet: Set<string> = new Set();
       const gamesIDarray: string[] = ["CLICKTHEBOMB", "COLORSMEMORY"]; //"TRICKYDIAMONDS", "BUDDIES", "CARDS",
+
 
       while (gamesSet.size < gamesIDarray.length) {
         const randomIndex = Math.floor(Math.random() * gamesIDarray.length);
         gamesSet.add(gamesIDarray[randomIndex]);
       }
 
-      gamesArray.push({ roomCode: roomCode, games: Array.from(gamesSet), currentGame: 0 });
+      Array.from(gamesSet).forEach(async (game, index) => {
+        await new Promise<void>((resolve, reject) => {
+          db.run(`INSERT INTO minigames (id_room,name,game_index) VALUES ("${roomCode}", "${game}", ${index})`, [], (err: Error) => {
+            if (err) {
+              console.log("Games Array insert error:");
+              reject(err);
+            } else {
+              console.log("Games Array insert success");
+              resolve();
+            }
+          });
+        });
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
+          if (err) {
+            console.log("Games Array in game error:");
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
     }
-    await new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE rooms SET in_game = true WHERE id = "${roomCode}"`, [], (err: Error) => {
+
+    const games = await new Promise<MiniGames[]>((resolve, reject) => {
+      db.all(`SELECT * FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
         if (err) {
-          console.log("Games Array in game error:");
+          console.log("Games Array game error:");
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+    const gamesArray: string[] = [];
+
+    games.forEach((game) => {
+      gamesArray.push(game.name);
+    });
+
+    console.log("Games Array :", gamesArray);
+
+    const current = await new Promise<number>((resolve, reject) => {
+      db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+        if (err) {
+          console.log("Current Game Index error:");
+          reject(err);
+        } else {
+          resolve(row.current_game);
+        }
+      });
+    });
+
+    socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray, current);
+  });
+
+  // update current index games
+  socket.on("updateCurrentGameIndex", async (roomCode: string) => {
+    await new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE rooms SET current_game = current_game + 1 WHERE id = "${roomCode}"`, [], (err: Error) => {
+        if (err) {
+          console.log("Update Current Game Index error:");
           reject(err);
         } else {
           resolve();
         }
       });
+    }).then(async () => {
+      const room = await new Promise<Room>((resolve, reject) => {
+        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
+          if (err) {
+            console.log("Current Game Index error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
+      });
+      const sortedGames = await new Promise<MiniGames[]>((resolve, reject) => {
+        db.all(`SELECT name FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
+          if (err) {
+            console.log("Games Array game error:");
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        });
+      });
+
+      const gamesArray: string[] = sortedGames.map((game) => game.name);
+
+      socket.nsp.to(roomCode).emit("updateCurrentGame", gamesArray, room.current_game);
     });
-
-    const games = gamesArray.find((roomCode) => roomCode === roomCode)?.games;
-    const current = gamesArray.find((roomCode) => roomCode === roomCode)?.currentGame;
-
-    console.log("Games - ", games);
-
-    socket.nsp.to(roomCode).emit("receiveGamesArray", games, current);
   });
+
   //#endregion
 
   //#region room events (data, time, etc) needed during the game
@@ -347,17 +370,6 @@ module.exports = (
   socket.on("startNextGame", async (roomCode: string) => {
     console.log("Start Next Game :");
     socket.nsp.to(roomCode).emit("receiveNextGame");
-  });
-  // update current index games
-  socket.on("updateCurrentGameIndex", async (roomCode: string, currentGameIndex: number) => {
-    console.log("===============> Update Current Game Index <===============");
-    const index = gamesArray.findIndex((roomCode) => roomCode === roomCode);
-
-    gamesArray[index].currentGame = currentGameIndex;
-    console.log(gamesArray[index].currentGame);
-    console.log(gamesArray[index].games);
-
-    socket.nsp.to(roomCode).emit("receiveGamesArray", gamesArray[index].games, gamesArray[index].currentGame);
   });
   // users data
   socket.on("usersData", async (roomCode: string) => {

@@ -192,7 +192,7 @@ export function ColorsMemory({ users, roomCode, onExit }: ColorsMemoryProps) {
         <>
           <motion.div className="colormemory__buttons" transition={{ delayChildren: 0.05, staggerChildren: 0.1 }}>
             {ButtonsColors.map((color, index) => (
-              <AnimatePresence>
+              <AnimatePresence key={index}>
                 <Button
                   key={index}
                   id={index}
