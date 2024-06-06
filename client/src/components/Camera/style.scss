@@ -53,6 +53,13 @@
     font-weight: 700;
     font-size: 20px;
   }
+  &__crown {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -75%);
+    rotate: 20deg;
+  }
 }
 
 @media only screen and (max-width: 900px) {

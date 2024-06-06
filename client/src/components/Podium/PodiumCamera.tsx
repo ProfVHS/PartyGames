@@ -1,6 +1,6 @@
 import { motion, useAnimate, usePresence } from "framer-motion";
 import { useEffect } from "react";
-import { FirstPlaceCrown, SecondPlaceCrown, ThirdPlaceCrown } from "./Crowns";
+import { FirstPlaceCrown, SecondPlaceCrown, ThirdPlaceCrown } from "../../Crowns";
 
 interface CameraProps {
   position: number;

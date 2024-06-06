@@ -131,6 +131,28 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
     } else {
       setCurrentGame("LEADERBOARD");
     }
+    const newMinigameIndex = minigameIndex + 1;
+    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
+
+    console.log(newNextGame);
+    console.log("Minigame +1");
+
+    setMinigameIndex(newMinigameIndex);
+    setNextMinigame(newNextGame);
+  };
+
+  const handleLeaderboardGameEnd = () => {
+    setCurrentGame("LEADERBOARD");
+  };
+
+  const handleSoloInRoomExit = () => {
+    const newMinigameIndex = minigameIndex + 1;
+    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
+
+    socket.emit("updateCurrentGameIndex", roomCode, newMinigameIndex);
+
+    setCurrentGame(newNextGame);
+
   };
 
   useEffect(() => {

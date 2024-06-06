@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import "./style.scss";
 import { useAnimate, usePresence } from "framer-motion";
+import { socket } from "../../socket";
 
 interface LeaderboardProps {
-  oldUsers: { username: string; score: number }[];
-  newUsers: { username: string; score: number }[];
+  roomCode: string;
+  oldUsers: { id: string; username: string; score: number }[];
+  newUsers: { id: string; username: string; score: number }[];
   onExit: () => void;
 }
-export default function Leaderboard({ oldUsers, newUsers, onExit }: LeaderboardProps) {
+export default function Leaderboard({ roomCode, oldUsers, newUsers, onExit }: LeaderboardProps) {
   // sort users by score
-  const sortedOldUsers = oldUsers.sort((a, b) => b.score - a.score);
-  const sortedNewUsers = newUsers.sort((a, b) => b.score - a.score);
+  const sortedOldUsers = [...oldUsers].sort((a, b) => b.score - a.score);
+  const sortedNewUsers = [...newUsers].sort((a, b) => b.score - a.score);
 
   const [scope, animate] = useAnimate();
   const [isPresence, safeToRemove] = usePresence();
@@ -19,12 +21,17 @@ export default function Leaderboard({ oldUsers, newUsers, onExit }: LeaderboardP
     if (isPresence) {
       const enterAnimation = async () => {
         await animate(scope.current, { opacity: [0, 1], x: [400, 0] }, { duration: 1, type: "spring" });
+        setTimeout(() => {
+          socket.emit("updateCrowns", roomCode);
+          console.log("updateCrowns");
+        }, 500 * sortedOldUsers.length + 500);
       };
       enterAnimation();
     } else {
       const exitAnimation = async () => {
         await animate(scope.current, { opacity: [1, 0], x: [0, -400] }, { duration: 1, type: "spring" });
         safeToRemove();
+
         onExit();
       };
       exitAnimation();
