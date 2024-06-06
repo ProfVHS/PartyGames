@@ -128,10 +128,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
 
   useEffect(() => {
     localStorage.setItem("socketId", socket.id!);
-
-    if (gamesArray.length == 0 && roomData?.in_game) {
-      socket.emit("getGamesArray", roomCode);
-    }
   }, []);
 
   const handleMiniGameEnd = () => {

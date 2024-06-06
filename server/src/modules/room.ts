@@ -472,53 +472,6 @@ module.exports = (
     });
   });
 
-  // get games array
-  socket.on("getGamesArray", async (roomCode: string) => {
-    const gamesArrayExist = await new Promise<MiniGames>((resolve, reject) => {
-      db.get(`SELECT * FROM minigames WHERE id_room = "${roomCode}"`, [], (err: Error, row: MiniGames) => {
-        if (err) {
-          console.log("Games Array exist error:");
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
-    if (gamesArrayExist) {
-      const games = await new Promise<MiniGames[]>((resolve, reject) => {
-        db.all(`SELECT name FROM minigames WHERE id_room = "${roomCode}" ORDER BY game_index`, [], (err: Error, row: MiniGames[]) => {
-          if (err) {
-            console.log("Games Array game error:");
-            reject(err);
-          } else {
-            resolve(row);
-          }
-        });
-      });
-      const current = await new Promise<number>((resolve, reject) => {
-        db.get(`SELECT * FROM rooms WHERE id = "${roomCode}"`, [], (err: Error, row: Room) => {
-          if (err) {
-            console.log("Current Game Index error:");
-            reject(err);
-          } else {
-            resolve(row.current_game);
-          }
-        });
-      });
-
-      const gamesArray: string[] = [];
-
-      games.forEach((game) => {
-        gamesArray.push(game.name);
-      });
-
-      console.log("Games Array :", gamesArray);
-      console.log("Current Game Index :", current);
-
-      socket.nsp.to(socket.id).emit("receiveGamesArray", gamesArray, current);
-    }
-  });
-
   //#endregion
 
   //#region room events (data, time, etc) needed during the game
