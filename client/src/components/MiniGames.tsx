@@ -60,10 +60,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       setCurrentGame("MINIGAMEEND");
     });
 
-    socket.on("receiveSoloInRoom", () => {
-      setCurrentGame("SOLOINROOM");
-    });
-
     socket.on("receiveLeaderboardGameUsers", (users) => {
       setLeaderboardGameUsers(users);
     });
@@ -77,7 +73,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
       socket.off("receiveGamesArray");
       socket.off("updateCurrentGame");
       socket.off("receiveNextGame");
-      socket.off("receiveSoloInRoom");
       socket.off("receiveLeaderboardGameUsers");
       socket.off("receiveEndMiniGames");
     };
@@ -133,16 +128,9 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   const handleMiniGameEnd = () => {
     if (currentGame === "COLORSMEMORY") {
       setCurrentGame("LEADERBOARDGAME");
-    } else if (currentGame !== "SOLOINROOM") {
+    } else {
       setCurrentGame("LEADERBOARD");
     }
-  };
-
-  const handleSoloInRoomExit = () => {
-    const newMinigameIndex = minigameIndex + 1;
-    const newNextGame = minigameIndex + 1 < gamesArray.length ? gamesArray[newMinigameIndex] : "ENDGAME";
-
-    setCurrentGame(newNextGame);
   };
 
   useEffect(() => {
@@ -152,7 +140,6 @@ export default function MiniGames({ users, roomCode, roomData }: MiniGamesProps)
   return (
     <>
       <AnimatePresence>
-        {currentGame === "SOLOINROOM" && <LastUserNotification roomCode={roomCode} onExit={handleSoloInRoomExit} />}
         {currentGame === "LEADERBOARD" && <Leaderboard oldUsers={usersBeforeGame} newUsers={users} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "LEADERBOARDGAME" && <LeaderboardGame users={leaderboardGameUsers} onExit={() => setCurrentGame(nextMinigame)} />}
         {currentGame === "CLICKTHEBOMB" && <Ctb roomData={roomData} roomCode={roomCode} users={users} onExit={handleMiniGameEnd} />}

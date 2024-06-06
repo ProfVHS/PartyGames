@@ -23,7 +23,7 @@ export default function RoomPage() {
   const usersLength = useRef<number>(0);
   const readyLength = useRef<number>(0);
   const [startGame, setStartGame] = useState(false);
-  const [hostLeft, setHostLeft] = useState<boolean>(false);
+  const [endRoomGame, setEndRoomGame] = useState<{ endGame: boolean; textReason: string }>({ endGame: false, textReason: "" });
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [windowSizeX, setWindowSizeX] = useState<number>(0);
@@ -92,8 +92,8 @@ export default function RoomPage() {
       console.log(data + " has left the room");
     });
 
-    socket.on("hostDisconnected", () => {
-      setHostLeft(true);
+    socket.on("endRoomGame", (data: string) => {
+      setEndRoomGame({ endGame: true, textReason: data });
     });
 
     return () => {
@@ -128,8 +128,8 @@ export default function RoomPage() {
             return <Camera key={user.id} username={user.username} score={user.score} isDisconnected={user.is_disconnect} />;
           })}
         <div className="roomContent">
-          {hostLeft ? (
-            <Notification textContent="Host left the room" />
+          {endRoomGame.endGame ? (
+            <Notification textContent={endRoomGame.textReason} />
           ) : (
             <>
               {startGame && <MiniGames roomCode={roomCode} users={users} roomData={roomData!} />}
